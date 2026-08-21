@@ -1494,6 +1494,10 @@ trait HasAttributes
      */
     public function fromFloat($value)
     {
+        if (is_float($value) && (is_nan($value) || is_infinite($value))) {
+            return $value;
+        }
+
         return match ((string) $value) {
             'Infinity' => INF,
             '-Infinity' => -INF,

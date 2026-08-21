@@ -57,6 +57,8 @@ class DatabaseInstrumentStrictMorphsTest extends TestCase
 
     public function testMapIgnoreGenericPivotClass()
     {
+        $this->expectNotToPerformAssertions();
+
         $pivotModel = new Pivot();
 
         $pivotModel->getMorphClass();

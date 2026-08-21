@@ -969,7 +969,7 @@ class DatabaseInstrumentFactoryTest extends TestCase
             ->make();
 
         $this->assertNull($comment->user_id);
-        $this->assertNull($comment->commentable->id);
+        $this->assertNull($comment->commentable);
     }
 
     public function test_can_default_to_without_parents()

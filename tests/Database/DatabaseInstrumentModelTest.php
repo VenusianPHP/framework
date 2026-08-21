@@ -3216,6 +3216,8 @@ class DatabaseInstrumentModelTest extends TestCase
 
     public function testDoesntThrowWhenAssigningMissingAttributes()
     {
+        $this->expectNotToPerformAssertions();
+
         $originalMode = Model::preventsAccessingMissingAttributes();
         Model::preventAccessingMissingAttributes();
 

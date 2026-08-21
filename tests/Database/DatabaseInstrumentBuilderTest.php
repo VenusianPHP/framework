@@ -938,7 +938,9 @@ class DatabaseInstrumentBuilderTest extends TestCase
         $this->expectException(RelationNotFoundException::class);
 
         $builder = $this->getBuilder();
-        $builder->setModel($this->getMockModel());
+        $model = $this->getMockModel();
+        $model->shouldReceive('newInstance')->once()->andReturn(new class extends Model {});
+        $builder->setModel($model);
 
         $builder->getRelation('invalid');
     }

@@ -19,8 +19,11 @@ class NotificationDatabaseChannelTest extends TestCase
         $notification = new NotificationDatabaseChannelTestNotification;
         $notification->id = 1;
         $notifiable = m::mock();
-
-        $notifiable->shouldReceive('routeNotificationFor->create')->with([
+        $notifiable->shouldReceive('routeNotificationFor')
+            ->once()
+            ->with('database', $notification)
+            ->andReturn($repository = m::mock());
+        $repository->shouldReceive('create')->once()->with([
             'id' => 1,
             'type' => get_class($notification),
             'data' => ['invoice_id' => 1],
@@ -36,8 +39,11 @@ class NotificationDatabaseChannelTest extends TestCase
         $notification = new NotificationDatabaseChannelTestNotification;
         $notification->id = 1;
         $notifiable = m::mock();
-
-        $notifiable->shouldReceive('routeNotificationFor->create')->with([
+        $notifiable->shouldReceive('routeNotificationFor')
+            ->once()
+            ->with('database', $notification)
+            ->andReturn($repository = m::mock());
+        $repository->shouldReceive('create')->once()->with([
             'id' => 1,
             'type' => get_class($notification),
             'data' => ['invoice_id' => 1],
@@ -54,8 +60,11 @@ class NotificationDatabaseChannelTest extends TestCase
         $notification = new NotificationDatabaseChannelCustomizeTypeTestNotification;
         $notification->id = 1;
         $notifiable = m::mock();
-
-        $notifiable->shouldReceive('routeNotificationFor->create')->with([
+        $notifiable->shouldReceive('routeNotificationFor')
+            ->once()
+            ->with('database', $notification)
+            ->andReturn($repository = m::mock());
+        $repository->shouldReceive('create')->once()->with([
             'id' => 1,
             'type' => 'MONTHLY',
             'data' => ['invoice_id' => 1],
