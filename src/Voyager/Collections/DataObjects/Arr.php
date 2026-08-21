@@ -292,7 +292,7 @@ class Arr
      * @param (Closure(): TFirstDefault)|null $default
      * @return TValue|TFirstDefault
      */
-    public static function first(array $array, ?callable $callback = null, mixed $default = null): mixed
+    public static function first(iterable $array, ?callable $callback = null, mixed $default = null): mixed
     {
         if (is_null($callback)) {
             if (empty($array)) {
@@ -409,7 +409,7 @@ class Arr
      * @param float|int|array|string $keys
      * @return void
      */
-    public static function forget(array &$array, float|int|array|string $keys): void
+    public static function forget(array &$array, float|int|array|string|null $keys): void
     {
         $original = &$array;
 
@@ -484,7 +484,7 @@ class Arr
      * @param mixed|null $default
      * @return mixed
      */
-    public static function get(ArrayAccess|array $array, int|string|null $key, mixed $default = null): mixed
+    public static function get(mixed $array, float|int|string|null $key, mixed $default = null): mixed
     {
         if (! static::accessible($array)) {
             return value($default);
@@ -520,7 +520,7 @@ class Arr
      * @param array|string $keys
      * @return bool
      */
-    public static function has(ArrayAccess|array $array, array|string $keys): bool
+    public static function has(mixed $array, array|string|null $keys): bool
     {
         $keys = (array) $keys;
 
@@ -724,7 +724,7 @@ class Arr
      * @param array|string $keys
      * @return array
      */
-    public static function only(array $array, array|string $keys): array
+    public static function only(array $array, array|string|null $keys): array
     {
         return array_intersect_key($array, array_flip((array) $keys));
     }
@@ -750,10 +750,10 @@ class Arr
      * Select an array of values from an array.
      *
      * @param array $array
-     * @param array|string $keys
+     * @param array|string|null $keys
      * @return array
      */
-    public static function select(array $array, array|string $keys): array
+    public static function select(array $array, array|string|null $keys): array
     {
         $keys = static::wrap($keys);
 
@@ -819,7 +819,7 @@ class Arr
      * @param array|Closure|string|null $key
      * @return array
      */
-    protected static function explodePluckParameters(array|Closure|string $value, array|Closure|string|null $key): array
+    protected static function explodePluckParameters(array|Closure|string|null $value, array|Closure|string|null $key): array
     {
         $value = is_string($value) ? explode('.', $value) : $value;
 
@@ -1000,7 +1000,7 @@ class Arr
      * @param  mixed  $value
      * @return array
      */
-    public static function set(array &$array, int|string|null $key, mixed $value): array
+    public static function set(array &$array, float|int|string|null $key, mixed $value): array
     {
         if (is_null($key)) {
             return $array = $value;

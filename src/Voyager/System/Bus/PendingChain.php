@@ -183,7 +183,7 @@ class PendingChain
      *
      * @return \Voyager\System\Bus\PendingDispatch
      */
-    public function dispatch(): \Voyager\System\Bus\PendingDispatch
+    public function dispatch(): mixed
     {
         if (is_string($this->job)) {
             $firstJob = new $this->job(...func_get_args());
@@ -219,7 +219,7 @@ class PendingChain
      * @param  bool|\Closure  $boolean
      * @return \Voyager\System\Bus\PendingDispatch|null
      */
-    public function dispatchIf(bool|\Closure $boolean): ?\Voyager\System\Bus\PendingDispatch
+    public function dispatchIf(bool|\Closure $boolean): mixed
     {
         return value($boolean) ? $this->dispatch() : null;
     }
@@ -230,7 +230,7 @@ class PendingChain
      * @param  bool|\Closure  $boolean
      * @return \Voyager\System\Bus\PendingDispatch|null
      */
-    public function dispatchUnless(bool|\Closure $boolean): ?\Voyager\System\Bus\PendingDispatch
+    public function dispatchUnless(bool|\Closure $boolean): mixed
     {
         return ! value($boolean) ? $this->dispatch() : null;
     }

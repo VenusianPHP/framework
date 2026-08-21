@@ -11,7 +11,6 @@
             <directory suffix="Test.php">./tests</directory>
             <exclude>./tests/Filesystem/deferred</exclude>
             <exclude>./tests/Console/Scheduling/deferred</exclude>
-            <exclude>./tests/Bus/deferred</exclude>
             <exclude>./tests/Console/deferred</exclude>
             <exclude>./tests/Vessel/deferred</exclude>
             <exclude>./tests/NutsAndBolts/deferred</exclude>

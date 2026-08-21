@@ -2049,9 +2049,9 @@ class Str
      * Always return the same UUID when generating new UUIDs.
      *
      * @param (Closure(UuidInterface): mixed)|null $callback
-     * @return UuidInterface
+     * @return UuidInterface|string
      */
-    public static function freezeUuids(?Closure $callback = null): UuidInterface
+    public static function freezeUuids(?Closure $callback = null): UuidInterface|string
     {
         $uuid = Str::uuid();
 
@@ -2082,9 +2082,9 @@ class Str
      * Generate a ULID.
      *
      * @param DateTimeInterface|null $time
-     * @return Ulid
+     * @return Ulid|string
      */
-    public static function ulid(?DateTimeInterface $time = null): Ulid
+    public static function ulid(?DateTimeInterface $time = null): Ulid|string
     {
         if (static::$ulidFactory) {
             return call_user_func(static::$ulidFactory);
@@ -2156,9 +2156,9 @@ class Str
      * Always return the same ULID when generating new ULIDs.
      *
      * @param (Closure(Ulid): mixed)|null $callback
-     * @return Ulid
+     * @return Ulid|string
      */
-    public static function freezeUlids(?Closure $callback = null): Ulid
+    public static function freezeUlids(?Closure $callback = null): Ulid|string
     {
         $ulid = Str::ulid();
 

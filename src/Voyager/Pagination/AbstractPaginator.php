@@ -8,7 +8,6 @@ use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\Concerns\ForwardsCalls;
 use Voyager\NutsAndBolts\Concerns\Tappable;
-use Voyager\NutsAndBolts\Concerns\TransformsToResourceCollection;
 use Stringable;
 use Traversable;
 
@@ -21,7 +20,7 @@ use Traversable;
  */
 abstract class AbstractPaginator implements CanBeEscapedWhenCastToString, Stringable
 {
-    use ForwardsCalls, Tappable, TransformsToResourceCollection;
+    use ForwardsCalls, Tappable;
 
     /**
      * All of the items being paginated.

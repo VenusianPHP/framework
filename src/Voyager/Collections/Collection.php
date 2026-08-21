@@ -18,7 +18,6 @@ use Voyager\NutsAndBolts\Concerns\EnumeratesValues;
 use Voyager\NutsAndBolts\Exceptions\ItemNotFoundException;
 use Voyager\NutsAndBolts\Exceptions\MultipleItemsFoundException;
 use Voyager\Contracts\NutsAndBolts\CanBeEscapedWhenCastToString;
-use Voyager\NutsAndBolts\Concerns\TransformsToResourceCollection;
 
 use function Voyager\NutsAndBolts\Helpers\enum_value;
 
@@ -32,7 +31,7 @@ use function Voyager\NutsAndBolts\Helpers\enum_value;
  */
 class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerable
 {
-    use EnumeratesValues, Macroable, TransformsToResourceCollection;
+    use EnumeratesValues, Macroable;
 
     /**
      * The items contained in the collection.

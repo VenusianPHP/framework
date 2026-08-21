@@ -1,9 +1,9 @@
 <?php
 
 use Carbon\CarbonImmutable;
-use Tests\Bus\deferred\Fixtures\ChainHeadJob;
-use Tests\Bus\deferred\Fixtures\SecondTestJob;
-use Tests\Bus\deferred\Fixtures\ThirdTestJob;
+use Tests\Bus\Fixtures\ChainHeadJob;
+use Tests\Bus\Fixtures\SecondTestJob;
+use Tests\Bus\Fixtures\ThirdTestJob;
 use Voyager\Bus\Batch;
 use Voyager\Bus\Batchable;
 use Voyager\Bus\BatchFactory;
@@ -112,7 +112,7 @@ beforeEach(function () {
         })->byDefault();
 
         $dispatcher->shouldReceive('chain')->zeroOrMoreTimes()->andReturnUsing(function ($jobs) {
-            $pendingChain = Mockery::mock(PendingChain::class, [$jobs, \stdClass::class]);
+            $pendingChain = Mockery::mock(PendingChain::class, [$jobs, [\stdClass::class]]);
             $pendingChain->shouldReceive('dispatch')->zeroOrMoreTimes()->andReturn(Mockery::mock(Batch::class));
 
             return $pendingChain;

@@ -6,8 +6,6 @@ use Voyager\NutsAndBolts\LazyCollection;
 use Voyager\Testing\Assert;
 use Mockery as m;
 
-use function Orchestra\Testbench\terminate;
-
 /**
  * @param  string  $file
  * @return int
@@ -497,7 +495,7 @@ test('get and put support shared locking across processes', function () use (&$t
             $files->put($tempDir.'/file.txt', $content, true);
             $read = $files->get($tempDir.'/file.txt', true);
 
-            terminate($this, strlen($read) === strlen($content) ? 1 : 0);
+            exit(strlen($read) === strlen($content) ? 1 : 0);
         }
     }
 
