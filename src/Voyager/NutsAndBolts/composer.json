@@ -1,0 +1,60 @@
+{
+    "name": "voyager/nuts-and-bolts",
+    "description": "The Voyager Support package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "doctrine/inflector": "^2.0",
+        "laravel/serializable-closure": "^2.0",
+        "league/commonmark": "^2.8.1",
+        "league/uri": "^7.5.1",
+        "nesbot/carbon": "^3.8.4",
+        "php": "^8.4|^8.5|^8.6",
+        "ramsey/uuid": "^4.7",
+        "symfony/polyfill-php86": "^1.34",
+        "symfony/uid": "^8.0.0",
+        "symfony/var-dumper": "^8.0.0",
+        "vlucas/phpdotenv": "^5.6.1",
+        "voku/portable-ascii": "^2.0.2",
+        "voyager/collections": "^0.8.0",
+        "voyager/conditionable": "^0.8.0",
+        "voyager/contracts": "^0.8.0",
+        "voyager/macroable": "^0.8.0",
+        "voyager/magic-aliases": "^0.8.0",
+        "voyager/reflection": "^0.8.0"
+    },
+    "suggest": {},
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Voyager\\NutsAndBolts\\": ""
+        },
+        "files": [
+            "Helpers/functions.php",
+            "Helpers/helpers.php",
+            "Helpers/time.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        },
+        "venusian": {
+            "upstream": "laravel/framework",
+            "upstream-ref": "v12.67.0",
+            "upstream-path": "src/Illuminate/Support",
+            "ported-at": "2026-08-19"
+        }
+    }
+}

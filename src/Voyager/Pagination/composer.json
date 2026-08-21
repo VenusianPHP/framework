@@ -1,0 +1,40 @@
+{
+    "name": "voyager/pagination",
+    "description": "The Voyager Pagination package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "voyager/collections": "^0.8.0",
+        "voyager/contracts": "^0.8.0",
+        "voyager/nuts-and-bolts": "^0.8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Voyager\\Pagination\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        },
+        "venusian": {
+            "upstream": "laravel/framework",
+            "upstream-ref": "v12.67.0",
+            "upstream-path": "src/Illuminate/Pagination",
+            "ported-at": "2026-08-20"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

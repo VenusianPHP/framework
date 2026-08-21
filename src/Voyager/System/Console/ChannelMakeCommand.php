@@ -1,0 +1,80 @@
+<?php
+
+namespace Voyager\System\Console;
+
+use Voyager\Console\GeneratorCommand;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputOption;
+
+#[AsCommand(name: 'make:channel')]
+class ChannelMakeCommand extends GeneratorCommand
+{
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected ?string $name = 'make:channel';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected string $description = 'Create a new channel class';
+
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected ?string $type = 'Channel';
+
+    /**
+     * Build the class with the given name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function buildClass(string $name): string
+    {
+        return str_replace(
+            ['DummyUser', '{{ userModel }}'],
+            class_basename($this->userProviderModel()),
+            parent::buildClass($name)
+        );
+    }
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub(): string
+    {
+        return __DIR__.'/stubs/channel.stub';
+    }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param  string  $rootNamespace
+     * @return string
+     */
+    protected function getDefaultNamespace(string $rootNamespace): string
+    {
+        return $rootNamespace.'\Broadcasting';
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the channel already exists'],
+        ];
+    }
+}

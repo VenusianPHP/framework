@@ -1,0 +1,36 @@
+<?php
+
+namespace {{ namespace }};
+
+use Voyager\Broadcasting\Channel;
+use Voyager\Broadcasting\InteractsWithSockets;
+use Voyager\Broadcasting\PresenceChannel;
+use Voyager\Broadcasting\PrivateChannel;
+use Voyager\Contracts\Broadcasting\ShouldBroadcast;
+use Voyager\System\Events\Dispatchable;
+use Voyager\Queue\SerializesModels;
+
+class {{ class }}
+{
+    use Dispatchable, InteractsWithSockets, SerializesModels;
+
+    /**
+     * Create a new event instance.
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array<int, Channel>
+     */
+    public function broadcastOn(): array
+    {
+        return [
+            new PrivateChannel('channel-name'),
+        ];
+    }
+}

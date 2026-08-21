@@ -1,0 +1,31 @@
+{
+  "name": "voyager/conditionable",
+  "description": "The Voyager Conditionable package.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Angel Gonzalez",
+      "email": "angel@projectsaturnstudios.com"
+    },
+    {
+      "name": "Taylor Otwell"
+    }
+  ],
+  "require": {
+    "php": "^8.4|^8.5"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Voyager\\NutsAndBolts\\": ""
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "0.8.x-dev"
+    }
+  }
+}

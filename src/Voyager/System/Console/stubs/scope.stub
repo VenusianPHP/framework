@@ -1,0 +1,18 @@
+<?php
+
+namespace {{ namespace }};
+
+use Voyager\Database\Instrument\Builder;
+use Voyager\Database\Instrument\Model;
+use Voyager\Database\Instrument\Scope;
+
+class {{ class }} implements Scope
+{
+    /**
+     * Apply the scope to a given Instrument query builder.
+     */
+    public function apply(Builder $builder, Model $model): void
+    {
+        //
+    }
+}

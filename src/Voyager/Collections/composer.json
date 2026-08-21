@@ -1,0 +1,38 @@
+{
+  "name": "voyager/collections",
+  "description": "The Voyager Collections package.",
+  "license": "MIT",
+  "authors": [
+    {
+        "name": "Angel Gonzalez",
+        "email": "angel@projectsaturnstudios.com"
+    },
+    {
+        "name": "Taylor Otwell"
+    }
+  ],
+  "require": {
+      "php": "^8.4|^8.5",
+      "voyager/macroable": "^0.8.0",
+      "voyager/contracts": "^0.8.0",
+      "voyager/conditionble": "^0.8.0"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+        "Voyager\\NutsAndBolts\\": ""
+    },
+    "files": [
+      "Helpers/helpers.php",
+      "Helpers/functions.php"
+    ]
+  },
+  "config": {
+      "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+        "dev-master": "0.8.x-dev"
+    }
+  }
+}

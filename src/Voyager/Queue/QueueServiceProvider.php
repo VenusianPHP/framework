@@ -1,0 +1,335 @@
+<?php
+
+namespace Voyager\Queue;
+
+use Voyager\Contracts\Debug\ExceptionHandler;
+use Voyager\Contracts\Events\Dispatcher as EventDispatcher;
+use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
+use Voyager\Queue\Connectors\BackgroundConnector;
+use Voyager\Queue\Connectors\DatabaseConnector;
+use Voyager\Queue\Connectors\DeferredConnector;
+use Voyager\Queue\Connectors\FailoverConnector;
+use Voyager\Queue\Connectors\NullConnector;
+use Voyager\Queue\Connectors\RedisConnector;
+use Voyager\Queue\Connectors\SyncConnector;
+use Voyager\Queue\Failed\DatabaseFailedJobProvider;
+use Voyager\Queue\Failed\DatabaseUuidFailedJobProvider;
+use Voyager\Queue\Failed\FileFailedJobProvider;
+use Voyager\Queue\Failed\NullFailedJobProvider;
+use Voyager\NutsAndBolts\DataObjects\Arr;
+use Voyager\MagicAliases\MagicAlias;
+use Voyager\NutsAndBolts\ServiceProvider;
+use Laravel\SerializableClosure\SerializableClosure;
+use Voyager\Queue\Concerns\SerializesAndRestoresModelIdentifiers;
+
+class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
+{
+    use SerializesAndRestoresModelIdentifiers;
+
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->configureSerializableClosureUses();
+
+        $this->registerManager();
+        $this->registerConnection();
+        $this->registerWorker();
+        $this->registerListener();
+        $this->registerFailedJobServices();
+    }
+
+    /**
+     * Configure serializable closures uses.
+     *
+     * @return void
+     */
+    protected function configureSerializableClosureUses()
+    {
+        SerializableClosure::transformUseVariablesUsing(function ($data) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->getSerializedPropertyValue($value);
+            }
+
+            return $data;
+        });
+
+        SerializableClosure::resolveUseVariablesUsing(function ($data) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->getRestoredPropertyValue($value);
+            }
+
+            return $data;
+        });
+    }
+
+    /**
+     * Register the queue manager.
+     *
+     * @return void
+     */
+    protected function registerManager()
+    {
+        $this->app->singleton('queue', function ($app) {
+            // Once we have an instance of the queue manager, we will register the various
+            // resolvers for the queue connectors. These connectors are responsible for
+            // creating the classes that accept queue configs and instantiate queues.
+            return tap(new QueueManager($app), function ($manager) {
+                $this->registerConnectors($manager);
+            });
+        });
+    }
+
+    /**
+     * Register the default queue connection binding.
+     *
+     * @return void
+     */
+    protected function registerConnection()
+    {
+        $this->app->singleton('queue.connection', function ($app) {
+            return $app['queue']->connection();
+        });
+    }
+
+    /**
+     * Register the connectors on the queue manager.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    public function registerConnectors($manager)
+    {
+        // Beanstalkd and SQS are dropped by the driver policy, along with the rest of AWS bar S3.
+        foreach (['Null', 'Sync', 'Deferred', 'Background', 'Failover', 'Database', 'Redis'] as $connector) {
+            $this->{"register{$connector}Connector"}($manager);
+        }
+    }
+
+    /**
+     * Register the Null queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerNullConnector($manager)
+    {
+        $manager->addConnector('null', function () {
+            return new NullConnector;
+        });
+    }
+
+    /**
+     * Register the Sync queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerSyncConnector($manager)
+    {
+        $manager->addConnector('sync', function () {
+            return new SyncConnector;
+        });
+    }
+
+    /**
+     * Register the Deferred queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerDeferredConnector($manager)
+    {
+        $manager->addConnector('deferred', function () {
+            return new DeferredConnector;
+        });
+    }
+
+    /**
+     * Register the Background queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerBackgroundConnector($manager)
+    {
+        $manager->addConnector('background', function () {
+            return new BackgroundConnector;
+        });
+    }
+
+    /**
+     * Register the Failover queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerFailoverConnector($manager)
+    {
+        $manager->addConnector('failover', function () use ($manager) {
+            return new FailoverConnector(
+                $manager,
+                $this->app->make(EventDispatcher::class)
+            );
+        });
+    }
+
+    /**
+     * Register the database queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerDatabaseConnector($manager)
+    {
+        $manager->addConnector('database', function () {
+            return new DatabaseConnector($this->app['db']);
+        });
+    }
+
+    /**
+     * Register the Redis queue connector.
+     *
+     * @param  \Voyager\Queue\QueueManager  $manager
+     * @return void
+     */
+    protected function registerRedisConnector($manager)
+    {
+        $manager->addConnector('redis', function () {
+            return new RedisConnector($this->app['redis']);
+        });
+    }
+
+    /**
+     * Register the queue worker.
+     *
+     * @return void
+     */
+    protected function registerWorker()
+    {
+        $this->app->singleton('queue.worker', function ($app) {
+            $isDownForMaintenance = function () {
+                return $this->app->isDownForMaintenance();
+            };
+
+            $resetScope = function () use ($app) {
+                if (method_exists($app['log'], 'flushSharedContext')) {
+                    $app['log']->flushSharedContext();
+                }
+
+                if (method_exists($app['log'], 'withoutContext')) {
+                    $app['log']->withoutContext();
+                }
+
+                if (method_exists($app['db'], 'getConnections')) {
+                    foreach ($app['db']->getConnections() as $connection) {
+                        $connection->resetTotalQueryDuration();
+                        $connection->allowQueryDurationHandlersToRunAgain();
+                    }
+                }
+
+                $app->forgetScopedInstances();
+
+                Facade::clearResolvedInstances();
+
+                memory_reset_peak_usage();
+            };
+
+            return new Worker(
+                $app['queue'],
+                $app['events'],
+                $app[ExceptionHandler::class],
+                $isDownForMaintenance,
+                $resetScope
+            );
+        });
+    }
+
+    /**
+     * Register the queue listener.
+     *
+     * @return void
+     */
+    protected function registerListener()
+    {
+        $this->app->singleton('queue.listener', function ($app) {
+            return new Listener($app->basePath());
+        });
+    }
+
+    /**
+     * Register the failed job services.
+     *
+     * @return void
+     */
+    protected function registerFailedJobServices()
+    {
+        $this->app->singleton('queue.failer', function ($app) {
+            $config = $app['config']['queue.failed'];
+
+            if (array_key_exists('driver', $config) &&
+                (is_null($config['driver']) || $config['driver'] === 'null')) {
+                return new NullFailedJobProvider;
+            }
+
+            if (isset($config['driver']) && $config['driver'] === 'file') {
+                return new FileFailedJobProvider(
+                    $config['path'] ?? $this->app->storagePath('framework/cache/failed-jobs.json'),
+                    $config['limit'] ?? 100,
+                    fn () => $app['cache']->store('file'),
+                );
+            } elseif (isset($config['driver']) && $config['driver'] === 'database-uuids') {
+                return $this->databaseUuidFailedJobProvider($config);
+            } elseif (isset($config['table'])) {
+                return $this->databaseFailedJobProvider($config);
+            } else {
+                return new NullFailedJobProvider;
+            }
+        });
+    }
+
+    /**
+     * Create a new database failed job provider.
+     *
+     * @param  array  $config
+     * @return \Voyager\Queue\Failed\DatabaseFailedJobProvider
+     */
+    protected function databaseFailedJobProvider($config)
+    {
+        return new DatabaseFailedJobProvider(
+            $this->app['db'], $config['database'], $config['table']
+        );
+    }
+
+    /**
+     * Create a new database failed job provider that uses UUIDs as IDs.
+     *
+     * @param  array  $config
+     * @return \Voyager\Queue\Failed\DatabaseUuidFailedJobProvider
+     */
+    protected function databaseUuidFailedJobProvider($config)
+    {
+        return new DatabaseUuidFailedJobProvider(
+            $this->app['db'], $config['database'], $config['table']
+        );
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [
+            'queue',
+            'queue.connection',
+            'queue.failer',
+            'queue.listener',
+            'queue.worker',
+        ];
+    }
+}

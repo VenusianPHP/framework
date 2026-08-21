@@ -1,0 +1,50 @@
+{
+    "name": "voyager/queue",
+    "description": "The Voyager Queue package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "laravel/serializable-closure": "^2.0",
+        "ramsey/uuid": "^4.7",
+        "symfony/process": "^7.2",
+        "voyager/collections": "^0.8.0",
+        "voyager/console": "^0.8.0",
+        "voyager/contracts": "^0.8.0",
+        "voyager/filesystem": "^0.8.0",
+        "voyager/nuts-and-bolts": "^0.8.0",
+        "voyager/pipeline": "^0.8.0",
+        "voyager/vessel": "^0.8.0"
+    },
+    "suggest": {
+        "voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.8.0)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Voyager\\Queue\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        },
+        "venusian": {
+            "upstream": "laravel/framework",
+            "upstream-ref": "v12.67.0",
+            "upstream-path": "src/Illuminate/Queue",
+            "ported-at": "2026-08-20"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

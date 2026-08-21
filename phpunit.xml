@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true"
+>
+    <testsuites>
+        <testsuite name="Framework">
+            <directory suffix="Test.php">./tests</directory>
+            <exclude>./tests/Filesystem/deferred</exclude>
+            <exclude>./tests/Console/Scheduling/deferred</exclude>
+            <exclude>./tests/Bus/deferred</exclude>
+            <exclude>./tests/Console/deferred</exclude>
+            <exclude>./tests/Vessel/deferred</exclude>
+            <exclude>./tests/NutsAndBolts/deferred</exclude>
+            <exclude>./tests/Pipeline/deferred</exclude>
+            <exclude>./tests/Log/deferred</exclude>
+            <exclude>./tests/System/deferred</exclude>
+            <exclude>./tests/Redis/deferred</exclude>
+            <exclude>./tests/Pagination/deferred</exclude>
+            <exclude>./tests/Testing/deferred</exclude>
+            <exclude>./tests/Validation/deferred</exclude>
+            <exclude>./tests/Queue/deferred</exclude>
+            <exclude>./tests/Notifications/deferred</exclude>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>

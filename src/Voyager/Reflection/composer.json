@@ -1,0 +1,35 @@
+{
+  "name": "voyager/reflection",
+  "description": "The Voyager Reflection package.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Angel Gonzalez",
+      "email": "angel@projectsaturnstudios.com"
+    },
+    {
+      "name": "Taylor Otwell"
+    }
+  ],
+  "require": {
+    "php": "^8.4|^8.5",
+    "voyager/collection": "^0.8"
+  },
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "Voyager\\NutsAndBolts\\": ""
+    },
+    "files": [
+      "Helpers/helpers.php"
+    ]
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "0.8.x-dev"
+    }
+  }
+}

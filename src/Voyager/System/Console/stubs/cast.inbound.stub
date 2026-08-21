@@ -1,0 +1,19 @@
+<?php
+
+namespace {{ namespace }};
+
+use Voyager\Database\Instrument\Model;
+use Voyager\Contracts\Database\Instrument\CastsInboundAttributes;
+
+class {{ class }} implements CastsInboundAttributes
+{
+    /**
+     * Prepare the given value for storage.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    public function set(Model $model, string $key, mixed $value, array $attributes): mixed
+    {
+        return $value;
+    }
+}

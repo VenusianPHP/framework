@@ -1,0 +1,147 @@
+{
+    "name": "venusian/framework",
+    "description": "The Venusian PHP Framework.",
+    "keywords": [
+        "framework",
+        "venusian",
+        "scrapyard-io"
+    ],
+    "license": "MIT",
+    "version": "0.8.0",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "brick/math": "^0.13|^0.14|^0.15|^0.16|^0.17|^0.18",
+        "doctrine/inflector": "^2.0",
+        "dragonmantank/cron-expression": "^3.4",
+        "egulias/email-validator": "^4.0",
+        "guzzlehttp/guzzle": "^7.8.2",
+        "guzzlehttp/promises": "^2.0",
+        "guzzlehttp/psr7": "^2.7",
+        "guzzlehttp/uri-template": "^1.0",
+        "laravel/prompts": "^0.3.0",
+        "laravel/serializable-closure": "^2.0",
+        "league/commonmark": "^2.8.1",
+        "league/flysystem": "^3.25.1",
+        "league/flysystem-aws-s3-v3": "^3.25.1",
+        "league/flysystem-ftp": "^3.25.1",
+        "league/flysystem-local": "^3.25.1",
+        "league/flysystem-path-prefixing": "^3.25.1",
+        "league/flysystem-read-only": "^3.25.1",
+        "league/flysystem-sftp-v3": "^3.25.1",
+        "league/uri": "^7.5.1",
+        "monolog/monolog": "^3.0",
+        "nesbot/carbon": "^3.8.4",
+        "nunomaduro/termwind": "^2.0",
+        "predis/predis": "^2.3",
+        "psr/log": "^3.0",
+        "ramsey/uuid": "^4.7",
+        "symfony/console": "^7.2",
+        "symfony/error-handler": "^7.2",
+        "symfony/event-dispatcher": "^7.2",
+        "symfony/http-foundation": "^7.2|^8.0",
+        "symfony/mime": "^7.2|^8.0",
+        "symfony/polyfill-php83": "^1.33",
+        "symfony/polyfill-php85": "^1.33",
+        "symfony/polyfill-php86": "^1.34",
+        "symfony/process": "^7.2",
+        "symfony/uid": "^8.0.0",
+        "symfony/var-dumper": "^8.0.0",
+        "vlucas/phpdotenv": "^5.6.1",
+        "voku/portable-ascii": "^2.0.2"
+    },
+    "replace": {
+        "voyager/broadcasting": "self.version",
+        "voyager/bus": "self.version",
+        "voyager/cache": "self.version",
+        "voyager/collections": "self.version",
+        "voyager/concurrency": "self.version",
+        "voyager/conditionable": "self.version",
+        "voyager/config": "self.version",
+        "voyager/console": "self.version",
+        "voyager/contracts": "self.version",
+        "voyager/database": "self.version",
+        "voyager/encryption": "self.version",
+        "voyager/events": "self.version",
+        "voyager/filesystem": "self.version",
+        "voyager/hashing": "self.version",
+        "voyager/http": "self.version",
+        "voyager/json-schema": "self.version",
+        "voyager/log": "self.version",
+        "voyager/macroable": "self.version",
+        "voyager/magic-aliases": "self.version",
+        "voyager/notifications": "self.version",
+        "voyager/nuts-and-bolts": "self.version",
+        "voyager/pagination": "self.version",
+        "voyager/pipeline": "self.version",
+        "voyager/process": "self.version",
+        "voyager/queue": "self.version",
+        "voyager/redis": "self.version",
+        "voyager/reflection": "self.version",
+        "voyager/testing": "self.version",
+        "voyager/translation": "self.version",
+        "voyager/validation": "self.version",
+        "voyager/vessel": "self.version"
+    },
+    "suggest": {},
+    "require-dev": {
+        "fakerphp/faker": "^1.24",
+        "mockery/mockery": "^1.6",
+        "opis/json-schema": "^2.4.1",
+        "pestphp/pest": "^4"
+    },
+    "autoload": {
+        "files": [
+            "src/Voyager/NutsAndBolts/functions.php",
+            "src/Voyager/Filesystem/functions.php",
+            "src/Voyager/Collections/Helpers/helpers.php",
+            "src/Voyager/Collections/Helpers/functions.php",
+            "src/Voyager/NutsAndBolts/Helpers/helpers.php",
+            "src/Voyager/NutsAndBolts/Helpers/functions.php",
+            "src/Voyager/NutsAndBolts/Helpers/time.php",
+            "src/Voyager/Reflection/Helpers/helpers.php",
+            "src/Voyager/System/helpers.php"
+        ],
+        "psr-4": {
+            "Voyager\\": "src/Voyager",
+            "Voyager\\NutsAndBolts\\": [
+                "src/Voyager/Macroable/",
+                "src/Voyager/Collections/",
+                "src/Voyager/Conditionable/",
+                "src/Voyager/Reflection/"
+            ]
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        },
+        "files": [
+            "tests/NutsAndBolts/Enums.php",
+            "tests/Pipeline/Enums.php",
+            "tests/NutsAndBolts/Fixtures/functions.php",
+            "tests/Vessel/Fixtures/AttributeTargets.php",
+            "tests/Vessel/Fixtures/functions.php",
+            "tests/Database/Enums.php"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true,
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

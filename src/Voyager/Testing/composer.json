@@ -1,0 +1,45 @@
+{
+    "name": "voyager/testing",
+    "description": "The Voyager Testing package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "voyager/collections": "^0.8.0",
+        "voyager/contracts": "^0.8.0",
+        "voyager/macroable": "^0.8.0",
+        "voyager/nuts-and-bolts": "^0.8.0"
+    },
+    "suggest": {
+        "phpunit/phpunit": "Required to use assertions and run tests (^11.0|^12.0).",
+        "mockery/mockery": "Required to use mocking (^1.6)."
+    },
+    "autoload": {
+        "psr-4": {
+            "Voyager\\Testing\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        },
+        "venusian": {
+            "upstream": "laravel/framework",
+            "upstream-ref": "v12.67.0",
+            "upstream-path": "src/Illuminate/Testing",
+            "ported-at": "2026-08-20"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}
