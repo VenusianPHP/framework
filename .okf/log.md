@@ -170,3 +170,26 @@
   namespace rewrite that `grep -rn 'Illuminate'` cannot catch — and that
   `tests/System` must use `Stubs/` rather than `Fixtures/` because the dev volume is
   case-insensitive and a lowercase `fixtures/` already exists.
+* **Update**: Converted all seven wave 3 test directories (`tests/Filesystem`,
+  `tests/Process`, `tests/Pagination`, `tests/Http`, `tests/Cache`, `tests/Redis`,
+  `tests/Testing` — ~85 files including every `deferred/` subdirectory) to Pest
+  v4, run as seven parallel agents against one shared worktree (each scoped to
+  its own non-overlapping `tests/<Component>/` directory, so no coordination
+  was needed between them). Diffed the full suite's `--log-junit` output before
+  and after: the same 46 pre-existing failures fail before and after conversion,
+  0 fixed, 0 regressed. 39 previously-risky (no-assertion) Mockery-only cases
+  across Cache/Redis/Http turned into honest passes, continuing the effect from
+  wave 2. One deliberate exception: `tests/Testing/deferred/ConfigShowCommandTest.php`
+  was left untouched — it depends on `Orchestra\Testbench`, which is not and
+  will not become a dependency of this repo (see [known gaps](known-gaps.md)
+  for the fuller "we are not building Laravel" note, and the 17 other
+  pre-existing Testbench-dependent files found scattered across `deferred/`
+  that predate this conversion and were equally left alone). Also surfaced,
+  recorded in [known gaps](known-gaps.md): a converted class's helper method
+  can't become a plain Pest function if it reads a `private` trait property or
+  calls a `protected`/`private` `TestCase` method (PHP's visibility check is
+  scope-based, not object-based); `__CLASS__` and `self::` inside a closure
+  silently stop resolving the way they did under the original class wrapper,
+  with no error to catch it; and a genuine, unrelated `Voyager\MagicAliases\MagicAlias`
+  incompatibility with Mockery 1.6.15 that was already failing two `Testing/deferred`
+  tests before any of this work started.

@@ -1,0 +1,351 @@
+<?php
+
+namespace Tests\Validation;
+
+use Voyager\Vessel\Vessel;
+use Voyager\Contracts\NutsAndBolts\Arrayable;
+use Voyager\NutsAndBolts\Collection;
+use Voyager\MagicAliases\MagicAlias;
+use Voyager\Translation\ArrayLoader;
+use Voyager\Translation\Translator;
+use Voyager\Validation\Rules\Enum;
+use Voyager\Validation\ValidationServiceProvider;
+use Voyager\Validation\Validator;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+
+include_once 'Enums.php';
+
+class ValidationEnumRuleTest extends TestCase
+{
+    public function testValidationPassesWhenPassingCorrectEnum()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'pending',
+                'int_status' => 1,
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+                'int_status' => new Enum(IntegerStatus::class),
+            ]
+        );
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function testValidationPassesWhenPassingInstanceOfEnum()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => StringStatus::done,
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+            ]
+        );
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function testValidationPassesWhenPassingInstanceOfPureEnum()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => PureEnum::one,
+            ],
+            [
+                'status' => new Enum(PureEnum::class),
+            ]
+        );
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function testValidationFailsWhenProvidingNoExistingCases()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'finished',
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+        $this->assertEquals(['The selected status is invalid.'], $v->messages()->get('status'));
+    }
+
+    public function testValidationPassesForAllCasesUntilEitherOnlyOrExceptIsPassed()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status_1' => PureEnum::one,
+                'status_2' => PureEnum::two,
+                'status_3' => IntegerStatus::done->value,
+            ],
+            [
+                'status_1' => new Enum(PureEnum::class),
+                'status_2' => (new Enum(PureEnum::class))->only([])->except([]),
+                'status_3' => new Enum(IntegerStatus::class),
+            ],
+        );
+
+        $this->assertTrue($v->passes());
+    }
+
+    #[DataProvider('conditionalCasesDataProvider')]
+    public function testValidationPassesWhenOnlyCasesProvided(
+        IntegerStatus|int $enum,
+        array|Arrayable|IntegerStatus $only,
+        bool $expected
+    ) {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => $enum,
+            ],
+            [
+                'status' => (new Enum(IntegerStatus::class))->only($only),
+            ],
+        );
+
+        $this->assertSame($expected, $v->passes());
+    }
+
+    #[DataProvider('conditionalCasesDataProvider')]
+    public function testValidationPassesWhenExceptCasesProvided(
+        int|IntegerStatus $enum,
+        array|Arrayable|IntegerStatus $except,
+        bool $expected
+    ) {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => $enum,
+            ],
+            [
+                'status' => (new Enum(IntegerStatus::class))->except($except),
+            ],
+        );
+
+        $this->assertSame($expected, $v->fails());
+    }
+
+    public function testOnlyHasHigherOrderThanExcept()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => PureEnum::one,
+            ],
+            [
+                'status' => (new Enum(PureEnum::class))
+                    ->only(PureEnum::one)
+                    ->except(PureEnum::one),
+            ],
+        );
+
+        $this->assertTrue($v->passes());
+    }
+
+    public function testValidationFailsWhenProvidingDifferentType()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 10,
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+        $this->assertEquals(['The selected status is invalid.'], $v->messages()->get('status'));
+    }
+
+    public function testValidationPassesWhenProvidingDifferentTypeThatIsCastableToTheEnumType()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => '1',
+            ],
+            [
+                'status' => new Enum(IntegerStatus::class),
+            ]
+        );
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function testValidationFailsWhenProvidingNull()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => null,
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+        $this->assertEquals(['The selected status is invalid.'], $v->messages()->get('status'));
+    }
+
+    public function testValidationPassesWhenProvidingNullButTheFieldIsNullable()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => null,
+            ],
+            [
+                'status' => ['nullable', new Enum(StringStatus::class)],
+            ]
+        );
+
+        $this->assertFalse($v->fails());
+    }
+
+    public function testValidationFailsOnPureEnum()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'one',
+            ],
+            [
+                'status' => ['required', new Enum(PureEnum::class)],
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+    }
+
+    public function testValidationFailsWhenProvidingStringToIntegerType()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'abc',
+            ],
+            [
+                'status' => new Enum(IntegerStatus::class),
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+        $this->assertEquals(['The selected status is invalid.'], $v->messages()->get('status'));
+    }
+
+    public function testValidationFailsWhenUsingDifferentCase()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'DONE',
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+        $this->assertEquals(['The selected status is invalid.'], $v->messages()->get('status'));
+    }
+
+    public static function conditionalCasesDataProvider(): array
+    {
+        return [
+            [IntegerStatus::done, IntegerStatus::done, true],
+            [IntegerStatus::done, [IntegerStatus::done, IntegerStatus::pending], true],
+            // Laravel also covers Instrument's ArrayObject cast here; it arrives in wave 6.
+            [IntegerStatus::done, new Collection([IntegerStatus::done, IntegerStatus::pending]), true],
+            [IntegerStatus::pending->value, [IntegerStatus::done, IntegerStatus::pending], true],
+            [IntegerStatus::done->value, IntegerStatus::pending, false],
+        ];
+    }
+
+    public function testCustomMessageUsingDotNotationAndFqcnWorks()
+    {
+        $v = new Validator(
+            resolve('translator'),
+            [
+                'status' => 'invalid_value',
+                'status_fqcn' => 'another_invalid',
+            ],
+            [
+                'status' => new Enum(StringStatus::class),
+                'status_fqcn' => new Enum(StringStatus::class),
+            ],
+            [
+                'status.enum' => 'Please choose a valid status (dot notation)',
+                'status_fqcn.Voyager\Validation\Rules\Enum' => 'Please choose a valid status (fqcn)',
+            ]
+        );
+
+        $this->assertTrue($v->fails());
+
+        $this->assertSame([
+            'Please choose a valid status (dot notation)',
+            'Please choose a valid status (fqcn)',
+        ], $v->messages()->all());
+    }
+
+    public function testEnumRuleIsStringable()
+    {
+        $rule = new Enum(StringStatus::class);
+
+        $this->assertSame('in:"pending","done"', (string) $rule);
+    }
+
+    public function testEnumRuleStringableWithOnly()
+    {
+        $rule = (new Enum(StringStatus::class))->only([StringStatus::pending]);
+
+        $this->assertSame('in:"pending"', (string) $rule);
+    }
+
+    public function testEnumRuleStringableWithExcept()
+    {
+        $rule = (new Enum(StringStatus::class))->except([StringStatus::pending]);
+
+        $this->assertSame('in:"done"', (string) $rule);
+    }
+
+    protected function setUp(): void
+    {
+        $container = Vessel::getInstance();
+
+        $container->bind('translator', function () {
+            return new Translator(
+                new ArrayLoader, 'en'
+            );
+        });
+
+        MagicAlias::setMagicAliasApplication($container);
+
+        (new ValidationServiceProvider($container))->register();
+    }
+
+    protected function tearDown(): void
+    {
+        Vessel::setInstance(null);
+
+        MagicAlias::clearResolvedInstances();
+
+        MagicAlias::setMagicAliasApplication(null);
+
+        parent::tearDown();
+    }
+}

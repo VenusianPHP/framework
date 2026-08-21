@@ -309,20 +309,22 @@ where the new name is 29 bytes, and `43` where it is 41. Harmless today because
 the file is deferred and never runs; it will fail the moment Log's deferred
 tests are restored.
 
-## Waves 0-2 are Pest v4; waves 3-6 are still PHPUnit
+## Waves 0-3 are Pest v4; waves 4-6 are still PHPUnit
 
 `tests/Vessel`, `tests/NutsAndBolts` (wave 0), `tests/Config`, `tests/Pipeline`,
 `tests/Encryption`, `tests/Hashing`, `tests/JsonSchema` (wave 1), `tests/System`,
-`tests/Console` and `tests/Log` (wave 2) were converted from upstream PHPUnit
-classes to Pest v4 on 2026-08-21. Inline stub classes moved to
-`tests/<Component>/Fixtures/` under `Tests\<Component>\Fixtures`, one class per
-file (PSR-4). Two exceptions load through `autoload-dev.files` because PSR-4
-cannot carry them: `tests/Vessel/Fixtures/functions.php` and
+`tests/Console` and `tests/Log` (wave 2), and `tests/Filesystem`, `tests/Process`,
+`tests/Pagination`, `tests/Http`, `tests/Cache`, `tests/Redis`, `tests/Testing`
+(wave 3, all seven components including their `deferred/` subdirectories) were
+converted from upstream PHPUnit classes to Pest v4 on 2026-08-21. Inline stub
+classes moved to `tests/<Component>/Fixtures/` under `Tests\<Component>\Fixtures`,
+one class per file (PSR-4). Two exceptions load through `autoload-dev.files`
+because PSR-4 cannot carry them: `tests/Vessel/Fixtures/functions.php` and
 `tests/NutsAndBolts/Fixtures/functions.php` hold plain functions, and
 `tests/Vessel/Fixtures/AttributeTargets.php` holds classes whose upstream names
 end in `Test` and would otherwise be collected as test files.
 
-Wave 2 added two wrinkles worth knowing before converting waves 3-6:
+Wave 2 added two wrinkles worth knowing before converting waves 4-6:
 
 * **`tests/System/Stubs/`, not `Fixtures/`.** `tests/System/fixtures/` already
   exists in lowercase, and the dev volume is case-insensitive — `Fixtures` and
@@ -334,8 +336,87 @@ Wave 2 added two wrinkles worth knowing before converting waves 3-6:
   case being added. Wave 2 went 534 -> 698 assertions for this reason alone
   while the suite-wide total did not move.
 
-Every other `tests/<Component>` directory still holds PHPUnit classes and is
-converted wave by wave.
+Wave 3 confirmed the Mockery-assertion effect at scale: 39 previously-risky
+cases across `tests/Cache` (30 -> 1), `tests/Redis` (7 -> 0) and `tests/Http`
+(3 -> 0) turned into honest passes, with zero change to the suite's failure
+set — verified by diffing the full `--log-junit` output before and after
+conversion: the same 46 tests fail before and after (all pre-existing, none
+introduced), 0 fixed, 0 regressed. `tests/Http` also went from 235 to 238
+passed for the same reason. It surfaced three new traps:
+
+* **A PHPUnit test class's own helper methods can't become plain Pest
+  functions if they read a trait's `private` property.** `tests/Redis`'s
+  `RedisConnectionTest` and its two limiter tests each had a `private`/`public`
+  helper (`connections()`, `redis()`) that read `$this->redis`, a `private`
+  property declared on the `InteractsWithRedis` trait. PHP visibility is
+  scope-based: inside a class method (or a Pest closure Pest has bound to the
+  test case), reading `$this->redis` is fine; the moment that same read
+  happens inside an ordinary top-level function — even one passed `$this` as
+  an argument — PHP throws `Error: Cannot access private property`, because
+  the function's scope isn't the class. The fix is to read the private
+  property at the *call site* (inside the bound test closure) and pass the
+  resulting value into the helper function, e.g. `redisConnections($this->redis)`
+  rather than `redisConnections($this)` with the function doing
+  `$testCase->redis` internally. Watch for this pattern in waves 4-6 wherever
+  a converted PHPUnit class had a private/protected helper method touching a
+  trait- or class-declared non-public property.
+* **`__CLASS__` and `self::` break once the class wrapper is removed.**
+  `tests/Cache`'s `CacheManagerTest` and `CacheRepositoryTest` used
+  `__CLASS__` as an arbitrary unique string (driver/macro name) — a
+  compile-time constant resolved by lexical class scope, which silently
+  becomes `''` with no enclosing class. `tests/Http`'s `HttpClientTest` had
+  `self::assertX(...)` calls inside non-static closures that still resolved
+  under the original class wrapper; both had to be caught by hand and
+  replaced (a literal string for `__CLASS__`, `expect()` for `self::assert*`)
+  since neither fails loudly — the constant becomes an empty string, `self::`
+  is still followed inside a closure that captured lexical class scope, so
+  neither shows up on `grep -rn 'PHPUnit\\Framework\\TestCase'` sweeps.
+* **A `protected`/`private` PHPUnit `TestCase` method (e.g. `createMock()`)
+  can't be called from a plain top-level helper function either**, for the
+  same scope-based-visibility reason as the trait-property trap above — but
+  the fix differs: route the call through Pest's own bound test case
+  (`test()->createMock(...)` inside the closure) rather than trying to pass
+  `$this` through, since `createMock()` isn't a value that can be read and
+  handed off like a property.
+
+## `Orchestra\Testbench` is not a dependency and never will be
+
+18 test files across `tests/Console/deferred`, `tests/Filesystem/deferred`,
+`tests/Log/deferred`, `tests/Pipeline/deferred`, `tests/System/deferred`,
+`tests/System/Stubs/` and `tests/Testing/deferred` reference
+`Orchestra\Testbench` — Laravel's package-testing harness, which boots a full
+Laravel HTTP application. This predates the Pest conversion (present on `main`
+before wave 0) and is untouched by waves 0-3; it is called out here because it
+directly contradicts the "we are not building Laravel" ground rule. `composer.json`
+has never required `orchestra/testbench`, so every one of these files errors
+with `Class "Orchestra\Testbench\TestCase" not found` if run outside
+`phpunit.xml`'s exclusions (all 18 files live in `deferred/` or are Stubs
+consumed only by `deferred/` tests, so the default suite never touches them).
+
+None of these were converted to Pest during waves 0-3 — they were left exactly
+as-is, per instruction, rather than worked around. They need a human decision
+before any later wave touches them: either rewrite each against a Voyager-native
+console/database-testing harness once one exists, or drop the file (and the
+upstream coverage it represents) outright. `tests/Testing/deferred/ConfigShowCommandTest.php`
+is the canonical example — it exercises `ConfigShowCommand` via `$this->artisan()`,
+a Testbench-only helper.
+
+## `Voyager\MagicAliases\MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15
+
+Discovered while baselining `tests/Testing/deferred/{TestDatabasesTest,InteractsWithDatabaseTest}.php`
+during the wave 3 conversion — both already failed under plain PHPUnit, before
+any Pest conversion, with:
+
+```
+TypeError: Voyager\MagicAliases\MagicAlias::shouldReceive(): Return value must be of type
+Mockery\Expectation, Mockery\CompositeExpectation returned
+```
+
+at `src/Voyager/MagicAliases/MagicAlias.php:100`. `composer show mockery/mockery`
+reports `1.6.15`. Left unfixed and the failure signature preserved exactly
+(same two files, same error) since fixing it means changing `src/` or the
+locked Mockery version, both out of scope for a test-conversion pass. Both
+files are already in `deferred/` and excluded from the default suite.
 
 [^audit]: Runtime audit and 37-check regression sweep
 [^src-tree]: Framework source tree
