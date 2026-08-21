@@ -1,31 +1,31 @@
 ---
 type: Convention
 title: Namespace and autoloading scheme
-description: How Voyager\NutsAndBolts\* class names resolve across five physical directories via overlapping PSR-4 prefixes.
+description: How Voyager\ and the overlapping Voyager\NutsAndBolts\ PSR-4 prefixes resolve 1050 PHP files across 32 component directories.
 tags: [psr-4, autoloading, namespaces, composer]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T18:20:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
   - id: root-composer
     resource: ../../composer.json
-    title: venusian/framework composer.json (version 0.8.0)
-    author: human:angel
-    last_modified: 2026-08-19
-  - id: fqcn-map
-    resource: every namespace and class declaration under ../../src/Voyager
-    title: Declared FQCN to file-path map
-  - id: smoke-test
-    resource: runtime reflection executed against ../../vendor/autoload.php
-    title: Autoload verification run
+    title: venusian/framework composer.json autoload
+  - id: src-tree
+    resource: every PHP file under ../../src/Voyager
+    title: 32 directories, 1050 PHP files
 ---
 
 # Overview
 
-Physical layout is by **package**; logical namespace is by **role**. A class in
-`Collections/Concerns/` and a class in `Macroable/Concerns/` both live under
-`Voyager\NutsAndBolts\Concerns`. Two overlapping PSR-4 prefixes make that work.
+Physical layout is by **package directory** under `src/Voyager/<Name>/`.
+Logical namespace is usually `Voyager\<Name>\`, except the NutsAndBolts
+family, which shares `Voyager\NutsAndBolts\` across five directories.
 
 # The two prefixes
+
+From the root manifest:[^root-composer]
 
 ```yaml
 "Voyager\\": "src/Voyager"
@@ -36,64 +36,54 @@ Physical layout is by **package**; logical namespace is by **role**. A class in
   - "src/Voyager/Reflection/"
 ```
 
-Note what is **not** in the second list: `src/Voyager/NutsAndBolts/` itself.[^root-composer]
-It is reached through the shorter `Voyager\` prefix instead —
+`src/Voyager/NutsAndBolts/` itself is **not** in the second list. It is
+reached through `Voyager\` —
 `Voyager\NutsAndBolts\DataObjects\Str` → `src/Voyager/NutsAndBolts/DataObjects/Str.php`.
 
-Resolution therefore relies on Composer trying the longest matching prefix
-first, sweeping all four of its directories, and **falling back to the shorter
-prefix** when none of them holds the file. `Voyager\NutsAndBolts\Concerns\Tappable`
-is the illustrative case: it is absent from all four listed directories and is
-found at `src/Voyager/NutsAndBolts/Concerns/Tappable.php` via `Voyager\`.[^fqcn-map]
+Composer tries the longest prefix first, then falls back. A name collision
+across Macroable / Collections / Conditionable / Reflection resolves silently
+to list order.
 
-This was verified end to end — all 26 declarations resolve under
-`vendor/autoload.php`.[^smoke-test]
+`Voyager\Reflection\Reflector` is the family member **not** under
+`Voyager\NutsAndBolts\`.
 
-# Declared FQCN to file map
+# Files autoload
 
-| FQCN | File (under `src/Voyager/`) |
-|------|------------------------------|
-| `Voyager\NutsAndBolts\Collection` | `Collections/Collection.php` |
-| `Voyager\NutsAndBolts\LazyCollection` | `Collections/LazyCollection.php` |
-| `Voyager\NutsAndBolts\HigherOrderWhenProxy` | `Conditionable/HigherOrderWhenProxy.php` |
-| `Voyager\NutsAndBolts\Concerns\Conditionable` | `Conditionable/Concerns/Conditionable.php` |
-| `Voyager\NutsAndBolts\Concerns\Macroable` | `Macroable/Concerns/Macroable.php` |
-| `Voyager\NutsAndBolts\Concerns\EnumeratesValues` | `Collections/Concerns/EnumeratesValues.php` |
-| `Voyager\NutsAndBolts\Concerns\TransformsToResourceCollection` | `Collections/Concerns/TransformsToResourceCollection.php` |
-| `Voyager\NutsAndBolts\Concerns\ReflectsClosures` | `Reflection/Concerns/ReflectsClosures.php` |
-| `Voyager\NutsAndBolts\Concerns\Tappable` | `NutsAndBolts/Concerns/Tappable.php` |
-| `Voyager\NutsAndBolts\Concerns\Dumpable` | `NutsAndBolts/Concerns/Dumpable.php` |
-| `Voyager\NutsAndBolts\Contracts\Enumerable` | `Collections/Contracts/Enumerable.php` |
-| `Voyager\NutsAndBolts\Contracts\CanBeEscapedWhenCastToString` | `Collections/Contracts/CanBeEscapedWhenCastToString.php` |
-| `Voyager\NutsAndBolts\Contracts\Arrayable` | `NutsAndBolts/Contracts/Arrayable.php` |
-| `Voyager\NutsAndBolts\Contracts\Jsonable` | `NutsAndBolts/Contracts/Jsonable.php` |
-| `Voyager\NutsAndBolts\DataObjects\Arr` | `Collections/DataObjects/Arr.php` |
-| `Voyager\NutsAndBolts\DataObjects\HigherOrderCollectionProxy` | `Collections/DataObjects/HigherOrderCollectionProxy.php` |
-| `Voyager\NutsAndBolts\DataObjects\{Str,Stringable,Number,Env,Carbon,Pluralizer,HigherOrderTapProxy}` | `NutsAndBolts/DataObjects/` |
-| `Voyager\NutsAndBolts\Exceptions\{ItemNotFoundException,MultipleItemsFoundException}` | `Collections/Exceptions/` |
-| `Voyager\Reflection\Reflector` | `Reflection/Reflector.php` |
+Root `autoload.files` (order as written):[^root-composer]
 
-# Rules to follow
+1. `src/Voyager/NutsAndBolts/functions.php` — namespaced `Voyager\NutsAndBolts\*`
+2. `src/Voyager/Filesystem/functions.php` — namespaced `Voyager\Filesystem\join_paths`
+3. `src/Voyager/Collections/Helpers/helpers.php` — global collection helpers
+4. `src/Voyager/Collections/Helpers/functions.php` — `Voyager\NutsAndBolts\Helpers\enum_value`
+5. `src/Voyager/NutsAndBolts/Helpers/helpers.php` — global support helpers
+6. `src/Voyager/NutsAndBolts/Helpers/functions.php` — empty
+7. `src/Voyager/NutsAndBolts/Helpers/time.php` — global `now()` and intervals
+8. `src/Voyager/Reflection/Helpers/helpers.php` — empty
+9. `src/Voyager/System/helpers.php` — global `app()`, `config()`, `dispatch()`, …
 
-1. **`Voyager\NutsAndBolts\` is the namespace for everything except `Reflector`.**
-   `Voyager\Reflection\Reflector` is the single class outside it, resolved via
-   the `Voyager\` prefix.[^fqcn-map]
-2. **Namespace by role, not by directory.** `DataObjects\` for value objects and
-   static utility classes, `Concerns\` for traits, `Contracts\` for interfaces,
-   `Exceptions\` for exceptions, `Helpers\` for functions. Root-level
-   `Voyager\NutsAndBolts\` holds only `Collection`, `LazyCollection`, and
-   `HigherOrderWhenProxy`.
-3. **Adding a directory to a package means updating the root manifest** if the
-   package is one of the four listed under the `Voyager\NutsAndBolts\` prefix.
-4. **A name collision across two of the four directories is unresolvable** — the
-   first directory in list order wins silently. Keep leaf filenames unique
-   across `Macroable/`, `Collections/`, `Conditionable/`, and `Reflection/`.
+See [global helpers](/api/global-helpers.md).
+
+# Dev autoload
+
+`Tests\\` → `tests/`. Extra `autoload-dev.files`: Enums and fixture
+`functions.php` files that PSR-4 cannot carry, including
+`tests/Database/Enums.php` and `tests/Validation/Enums.php`.[^root-composer]
+
+# Rules
+
+1. New component code goes in `src/Voyager/<Package>/` with namespace
+   `Voyager\<Package>\`, unless it is a NutsAndBolts-family type.
+2. Family types still namespace by role: `DataObjects\`, `Concerns\`,
+   `Contracts\`, `Exceptions\`.
+3. Adding a directory to Macroable / Collections / Conditionable / Reflection
+   means checking the `Voyager\NutsAndBolts\` prefix list.
+4. Keep leaf filenames unique across those four directories.
+5. Do not invent a "26 declarations" map — the tree is 1050 PHP files.[^src-tree]
 
 # Related
 
-- [Package split](package-split.md) — why the directories exist.
-- [Global helpers](/api/global-helpers.md) — the `files` autoload entries.
+- [Package split](package-split.md)
+- [Global helpers](/api/global-helpers.md)
 
-[^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^fqcn-map]: Declared FQCN to file-path map
-[^smoke-test]: Autoload verification run
+[^root-composer]: venusian/framework composer.json autoload
+[^src-tree]: 32 directories, 1050 PHP files

@@ -1,115 +1,97 @@
 ---
 type: Architecture Decision
 title: Laravel lineage
-description: Venusian's foundation is a deliberate namespace-rename port of illuminate/support and illuminate/collections, taken first because everything above it depends on it.
+description: Venusian ports Laravel's generic non-web surface under Voyager\, from laravel/framework@v12.67.0, because the product is windowed apps and hardware ICs — not a second Laravel HTTP stack.
 tags: [lineage, laravel, illuminate, licensing, upstream, port]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T20:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
-  - id: maintainer
-    resource: maintainer statement to claude-code on 2026-08-19 describing intent and scope
-    title: Framework intent, stated by the maintainer
+  - id: readme
+    resource: ../../README.md
+    title: Venusian Framework README
     author: human:angel
-    last_modified: 2026-08-19
   - id: subpackage-manifests
-    resource: ../../src/Voyager/*/composer.json
-    title: Per-package composer manifests
+    resource: ../../src/Voyager/*/composer.json extra.venusian
+    title: Per-package upstream-ref metadata
   - id: src-tree
     resource: every PHP file under ../../src/Voyager
     title: Framework source tree
-  - id: illuminate-collections
-    resource: https://github.com/laravel/framework/tree/master/src/Illuminate/Collections
-    title: illuminate/collections upstream
-    author: human:taylorotwell
-  - id: illuminate-support
-    resource: https://github.com/laravel/framework/tree/master/src/Illuminate/Support
-    title: illuminate/support upstream
-    author: human:taylorotwell
 ---
 
 # Decision
 
-Port Laravel's Support components into Venusian as renamed first-party source,
-and do it **before** any of the CLI or sketch layers.[^maintainer] Venusian aims
-at a Laravel-like developer experience for
-[sketch-based CLI workflows](/overview.md); the Support layer is the part of
-Laravel that is genuinely runtime-agnostic, so it is both the most reusable
-piece and the one everything above it needs first.
+Port Laravel's **generic, non-web** components into Venusian as renamed
+first-party source.[^readme] Venusian wants Laravel's developer experience for
+windowed applications and hardware ICs. Incoming HTTP, Blade mail, Auth, and
+View stay out.
 
-Nearly all of `src/Voyager` is the result. Taylor Otwell is credited as a second
-author in four of the five sub-package manifests; both projects are
-MIT.[^subpackage-manifests]
+Taylor Otwell is a second author on the sub-package manifests that carry
+Laravel code; both projects are MIT.[^subpackage-manifests]
 
-# Why port rather than depend on illuminate/support
+# Why port rather than depend on illuminate/*
 
-The Support packages are the runtime-agnostic slice of Laravel, but depending on
-them directly would pull Laravel's release cadence, version constraints, and
-container assumptions into a framework whose whole premise is a different
-runtime target. Porting under the `Voyager\` namespace keeps the ergonomics and
-drops the coupling — at the cost of owning the maintenance, discussed below.
+Depending on `illuminate/*` would import Laravel's release cadence, container
+assumptions, and web-shaped extras. Porting under `Voyager\` keeps the
+ergonomics and drops the coupling.
 
-# What maps to what
+# Upstream revision
+
+Most split manifests record:[^subpackage-manifests]
+
+```yaml
+extra.venusian:
+  upstream: laravel/framework
+  upstream-ref: v12.67.0
+  upstream-path: src/Illuminate/<Component>
+  ported-at: 2026-08-19 | 2026-08-20
+```
+
+Root `composer.json` itself does **not** repeat that ref. When a file has no
+`extra.venusian` (Contracts, Conditionable, Macroable, MagicAliases,
+Reflection, Collections), do not invent a date — only cite `v12.67.0` where
+the manifest writes it.
+
+# What maps to what (foundation)
 
 | Venusian | Laravel upstream |
 |----------|------------------|
-| `Voyager\NutsAndBolts\Collection`, `LazyCollection`, `Contracts\Enumerable` | `Illuminate\Support\Collection`, `LazyCollection`, `Illuminate\Support\Enumerable`[^illuminate-collections] |
-| `Voyager\NutsAndBolts\Concerns\EnumeratesValues` | `Illuminate\Collections\Traits\EnumeratesValues`[^illuminate-collections] |
-| `Voyager\NutsAndBolts\DataObjects\Arr` | `Illuminate\Support\Arr`[^illuminate-collections] |
-| `Voyager\NutsAndBolts\DataObjects\{Str,Stringable,Number,Env,Pluralizer,Carbon}` | `Illuminate\Support\*`[^illuminate-support] |
-| `Voyager\NutsAndBolts\Concerns\{Macroable,Conditionable,Tappable,Dumpable}` | `Illuminate\Support\Traits\*`[^illuminate-support] |
-| `Voyager\Reflection\Reflector` | `Illuminate\Support\Reflector`[^illuminate-support] |
-| `collect()`, `data_get()`, `value()`, `tap()`, `env()`, … | `Illuminate\Support\helpers.php`[^illuminate-support] |
+| `Voyager\NutsAndBolts\Collection`, `LazyCollection` | `Illuminate\Support\Collection` / Collections package |
+| `Voyager\NutsAndBolts\DataObjects\{Arr,Str,Stringable,Number,Env,Pluralizer,Carbon}` | `Illuminate\Support\*` |
+| `Voyager\NutsAndBolts\Concerns\{Macroable,Conditionable,…}` | `Illuminate\Support\Traits\*` |
+| `Voyager\Reflection\Reflector` | `Illuminate\Support\Reflector` |
+| `Voyager\Vessel\Vessel` | `Illuminate\Container\Container` |
+| `Voyager\Database\Instrument\Model` | `Illuminate\Database\Eloquent\Model` |
+| `Voyager\System\Application` | `Illuminate\Foundation\Application` |
+| `Voyager\MagicAliases\MagicAlias` | `Illuminate\Support\Facades\Facade` |
+
+Helpers, config, and tests follow the same rename. Eloquent is **Instrument**.
+Artisan-the-binary is **computer**. Facades are **magic aliases**.
 
 # Consequences
 
-**Upstream is the reference documentation.** Any Laravel `Collection`, `Str`, or
-`Arr` method not shadowed by a local edit behaves as documented at
-laravel.com/docs. `Collection` exposes 183 public methods and `Enumerable`
-declares 148; `Str` has 114 and `Stringable` 148.[^src-tree] None of that is
-documented in-repo, and it does not need to be — but the divergences do.
+**Upstream is the reference documentation** for methods this tree has not
+shadowed. Divergences and cuts belong in [known gaps](/known-gaps.md).
 
-**Divergences are the thing worth recording.** Three are visible so far:
+**Upstream fixes do not flow automatically.** There is no subtree sync. The
+`extra.venusian.upstream-ref` field is how to tell which Laravel bugfixes are
+already in.
 
-- `Reflector` sits in its own `Voyager\Reflection` namespace rather than
-  alongside the other support classes.
-- `ReflectsClosures` is declared a `class` where upstream declares a `trait` —
-  see [known gaps](/known-gaps.md).
-- `TransformsToResourceCollection` is a Venusian addition with an empty body and
-  no Laravel counterpart — a placeholder for a layer not yet written.[^src-tree]
-- The port added PHP type hints to signatures Laravel leaves untyped. Where a hint
-  is narrower than the body, arguments are silently coerced instead of rejected —
-  a systemic hazard with its own concept, [port hazards](port-hazards.md).
+**Attribution must survive a package split.** Keep the Taylor Otwell author
+entry when rewriting manifests.
 
-**Upstream fixes do not flow automatically.** There is no vendored copy, no
-subtree, and no sync script — the port is a one-time rename. Laravel bugfixes
-and new methods must be ported by hand, and **there is no record of which
-upstream revision the current code corresponds to**. Capturing that revision
-remains the single highest-value addition to this bundle.
-
-The [0.7.x reference implementation](/reference/upstream-0-7-x.md) covers the
-adjacent question — was a given difference deliberate, or a slip in the
-`Fabricate` → `Voyager` rename? It settled `ReflectsClosures` that way. It does
-not answer which *Laravel* revision anything came from.
-
-**Attribution must survive a package split.** The Taylor Otwell author entry is
-in the sub-package manifests, not the root one.[^subpackage-manifests] Rewriting
-those manifests (which [known gaps](/known-gaps.md) recommends for other
-reasons) must preserve it.
-
-**Web-shaped upstream code needs review before reuse, not after.** The port took
-the runtime-agnostic slice, but Laravel's Support still carries web-era
-assumptions in places — HTML escaping on `CanBeEscapedWhenCastToString`, the
-resource-collection hook — that a CLI framework may want to drop rather than
-carry forward.
+**Web-shaped upstream code is cut, not deferred**, when it is incoming-HTTP,
+Blade mail, or Auth. Channel `auth()`, `ValidationException` redirects, and
+the Notifications mail channel are the worked examples.
 
 # Related
 
-- [Overview](/overview.md) — what Venusian is aiming at.
-- [Package split](package-split.md) — how the ported code is packaged.
-- [voyager/collections](/packages/collections.md), [voyager/nuts-and-bolts](/packages/nuts-and-bolts.md)
+- [Overview](/overview.md)
+- [Package split](package-split.md)
+- [Port hazards](port-hazards.md)
 
-[^maintainer]: Framework intent, stated by the maintainer
-[^subpackage-manifests]: Per-package composer manifests
+[^readme]: Venusian Framework README
+[^subpackage-manifests]: Per-package upstream-ref metadata
 [^src-tree]: Framework source tree
-[^illuminate-collections]: illuminate/collections upstream
-[^illuminate-support]: illuminate/support upstream

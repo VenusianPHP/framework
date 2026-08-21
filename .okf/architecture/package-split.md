@@ -1,19 +1,20 @@
 ---
 type: Architecture Decision
 title: Monorepo with composer replace
-description: Venusian develops five voyager/* packages in one tree and declares them all in the root manifest's replace block.
+description: Venusian develops 31 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
 tags: [monorepo, composer, packaging]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T19:20:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
   - id: root-composer
     resource: ../../composer.json
     title: venusian/framework composer.json (version 0.8.0)
-    author: human:angel
-    last_modified: 2026-08-19
   - id: subpackage-manifests
     resource: ../../src/Voyager/*/composer.json
-    title: Per-package composer manifests
+    title: Per-package composer manifests (31 files)
   - id: gitattributes
     resource: ../../.gitattributes
     title: Repository export-ignore rules
@@ -21,7 +22,6 @@ sources:
     resource: ../../AGENTS.md
     title: Agent guidelines — venusian/framework
     author: human:angel
-    last_modified: 2026-08-19
 ---
 
 # Decision
@@ -34,75 +34,48 @@ once it is split out.
 
 # Replace block
 
-```
-voyager/collections      -> src/Voyager/Collections/
-voyager/conditionable    -> src/Voyager/Conditionable/
-voyager/contracts        -> (no directory)
-voyager/macroable        -> src/Voyager/Macroable/
-voyager/reflection       -> src/Voyager/Reflection/
-voyager/nuts-and-bolts   -> src/Voyager/NutsAndBolts/
-```
+Root `composer.json` lists **31** packages, each `"self.version"`:[^root-composer]
 
-All six are pinned to `self.version`, so a `venusian/framework` release version
-is simultaneously the version of every constituent package.[^root-composer]
+`voyager/broadcasting`, `bus`, `cache`, `collections`, `concurrency`,
+`conditionable`, `config`, `console`, `contracts`, `database`, `encryption`,
+`events`, `filesystem`, `hashing`, `http`, `json-schema`, `log`, `macroable`,
+`magic-aliases`, `notifications`, `nuts-and-bolts`, `pagination`, `pipeline`,
+`process`, `queue`, `redis`, `reflection`, `testing`, `translation`,
+`validation`, `vessel`.
 
-`voyager/contracts` is the one entry with no directory. The four contract
-interfaces live inside the packages that use them —
-`Voyager\NutsAndBolts\Contracts\{Arrayable,Jsonable}` under `NutsAndBolts/` and
-`Voyager\NutsAndBolts\Contracts\{Enumerable,CanBeEscapedWhenCastToString}` under
-`Collections/`.
-
-It is declared because it is **planned**: `voyager/contracts` is the
-framework-wide interface package for System and the components, playing the role
-`illuminate/contracts` plays in Laravel.[^agents-md] The four interfaces above
-are the *foundation's* own contracts and deliberately stay where they are — see
-[dependency direction](dependency-direction.md).
+Each of those 31 directories has a `composer.json`.[^subpackage-manifests]
+`src/Voyager/Contracts/` exists (114 PHP files) — it is not an empty
+`replace` stub.
 
 # System is not a split package
 
-`Voyager\System` is the one component that ships **no** sub-package
-`composer.json`, `LICENSE` or `.gitattributes`, and that is correct rather than
-an oversight.
-
-It mirrors `Illuminate\Foundation`, which is the single exception upstream: of
-laravel/framework's 37 components, 36 carry their own `composer.json` and are
-published as read-only split packages, and `Foundation` carries none and is
-absent from the framework's `replace` block. Foundation is the application
-skeleton that wires the components together, not a component you can consume on
-its own, so there is nothing to split out. Upstream autoloads it anyway through
-the wholesale `Illuminate\ -> src/Illuminate/` PSR-4 entry.
-
-The porting recipe's "mirror `src/Voyager/Collections/`" instruction therefore
-does **not** apply to System. Applying it uniformly is a real trap — the files
-look missing when they are deliberately absent.
-
-Open inconsistency: the root `composer.json` still lists
-`"voyager/system": "self.version"` in `replace`. Upstream has no
-`illuminate/foundation` entry, so this one should go.
+`Voyager\System` (112 PHP files) ships **no** `composer.json`, `LICENSE`, or
+`.gitattributes`, and it is **absent** from `replace`. That matches
+`Illuminate\Foundation`: the application skeleton, not a consumable split
+package. Autoload still reaches it through the root `"Voyager\\": "src/Voyager"`
+prefix and `src/Voyager/System/helpers.php`.
 
 # Consequences
 
 **The monorepo hides split-time breakage.** The root autoloader resolves every
-class regardless of which directory it lives in, so a wrong dependency
-declaration in a sub-package manifest never surfaces during monorepo
-development. Each sub-manifest currently has at least one such error — see the
-drift table in [known gaps](/known-gaps.md).[^subpackage-manifests]
+class regardless of directory, so a wrong sub-manifest never fails locally.
+Remaining drift is in [known gaps](/known-gaps.md) — a `conditionble` typo, a
+`voyager/collection` singular pin, a wider NutsAndBolts PHP constraint, and
+ScrapyardIO URLs on Macroable. The old `fabricate/*` requires are gone.
 
-**Dependency direction is a rule, but nothing enforces it.** `AGENTS.md` sets
-out which package may depend on which.[^agents-md] The five packages here form
-one family that may inter-depend freely; the rule bites at the boundary with
-components and System, neither of which exists yet. Under one autoloader a legal
-edge and an illegal one compile identically, so the rule survives on review
-alone. The audit lives in [dependency direction](dependency-direction.md).
+**Dependency direction is a rule, not a compiler.** See
+[dependency direction](dependency-direction.md).
 
 **The `.okf/` bundle is not shipped.** `.gitattributes` export-ignores
-`/tests`, `/phpunit.xml`, `/.github`, `/AGENTS.md`, and `/.okf`, so none of it
-lands in a `composer` dist tarball.[^gitattributes]
+`/tests`, `/phpunit.xml`, `/.github`, `/AGENTS.md`, `/.okf`, `/bootstrap`,
+`/storage`, and `/config-stubs`.[^gitattributes] `/config` is **not**
+export-ignored and holds nine published config files.
 
 # Related
 
-- [Namespace and autoloading](namespace-and-autoloading.md) — how the split maps onto PSR-4.
-- [Laravel lineage](laravel-lineage.md) — why the package boundaries look the way they do.
+- [Namespace and autoloading](namespace-and-autoloading.md)
+- [Laravel lineage](laravel-lineage.md)
+- [Packages](/packages/)
 
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
 [^subpackage-manifests]: Per-package composer manifests

@@ -1,18 +1,19 @@
 ---
 type: Framework
 title: Venusian Framework
-description: A Laravel-like PHP framework targeting sketch-based CLI workflows, currently at the foundation stage with Laravel's Support components ported in.
-resource: https://github.com/ScrapyardIO/framework
-tags: [php, framework, cli, sketches, monorepo, voyager, venusian]
+description: A Laravel-like PHP framework for windowed applications and hardware ICs. v0.8.0 ports Laravel's generic non-web surface into a Voyager\ monorepo.
+resource: https://github.com/VenusianPHP/framework
+tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T21:00:00Z }
-stale_after: 2026-11-19
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
-  - id: maintainer
-    resource: maintainer statement to claude-code on 2026-08-19 describing intent and scope
-    title: Framework intent, stated by the maintainer
+  - id: readme
+    resource: ../README.md
+    title: Venusian Framework README
     author: human:angel
-    last_modified: 2026-08-19
   - id: agents-md
     resource: ../AGENTS.md
     title: Agent guidelines — venusian/framework
@@ -21,127 +22,133 @@ sources:
   - id: root-composer
     resource: ../composer.json
     title: venusian/framework composer.json (version 0.8.0)
-    author: human:angel
-    last_modified: 2026-08-19
   - id: src-tree
-    resource: every PHP file under ../src/Voyager (26 declarations, 13,157 lines)
-    title: Framework source tree
-  - id: smoke-test
-    resource: runtime reflection and smoke test executed against ../vendor/autoload.php
-    title: Autoload and runtime verification run
+    resource: every PHP file under ../src/Voyager (32 component directories, 1050 PHP files)
+    title: Framework source tree at 8a8600fda67358ec3b38b579f9f13e5107bdc758
+  - id: tests-yml
+    resource: ../.github/workflows/tests.yml
+    title: GitHub Actions tests workflow
+  - id: pr1-ci
+    resource: https://github.com/VenusianPHP/framework/actions/runs/32527823474
+    title: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5
 ---
 
 # What Venusian is
 
-Venusian is a **Laravel-like PHP framework for sketch-based workflows in the
-CLI**. It borrows Laravel's developer experience — expressive collections,
-fluent strings, macroable extension points, global helpers — but its runtime
-target is the command line and the sketch, not the HTTP request/response
-cycle.[^maintainer]
+Venusian is a **Laravel-like PHP framework for windowed GUIs, human input, and
+integrated circuits**.[^readme] It keeps Laravel's expressive collections,
+container, console, database, queue, and validation surface, and drops
+web-first assumptions (incoming HTTP, Blade mail, channel authorization,
+Auth/View packages) that do not belong on a desktop or a GPIO bus.
 
-That inversion is the whole point. Laravel's shape is worth keeping; Laravel's
-web-first assumptions are not what this framework is being built around.
+Treat **Venusian** as the product name and **Voyager** as the code namespace
+and `voyager/*` Composer family.[^root-composer]
 
-# Current stage: the Support foundation
+The git remote is `VenusianPHP/framework`. `README.md` badges still point at
+`github.com/Venusian/framework` — same product, different org slug on the
+badge URLs.[^readme]
 
-v0.8.0 is the **foundation layer**, not a partial framework. The Support
-components have been deliberately ported over from Laravel first, because
-everything above them depends on them.[^maintainer] What is in the tree today:
-collections, strings, numbers, dates, environment access, macros, and
-reflection — 26 declarations across 13,157 lines.[^src-tree]
+# Current stage: 0.8.x reconstituting
 
-The CLI and sketch layers are not in this repository yet. Their absence is
-sequencing, not omission: the layer under them was the thing to land first.
-`AGENTS.md` describes the current phase as **reconstituting**.[^agents-md]
+`AGENTS.md` describes the phase as **reconstituting**.[^agents-md] Composer
+package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
+`Voyager\`.[^root-composer]
 
-The target shape is already fixed by the dependency rule, which names layers
-that have no code yet — a **System** layer aware of everything, and
-**components** such as Broadcasting and Filesystem sitting between System and
-the foundation.[^agents-md] Read
-[dependency direction](/architecture/dependency-direction.md) before adding
-anything: it decides where new code is allowed to go.
+This is no longer a Support-only sketch. `src/Voyager/` holds **32**
+component directories and **1050** PHP files, including Vessel, System,
+Console, Database, Queue, Validation, and Contracts.[^src-tree] The only
+provider still commented out in
+[`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) is
+`Voyager\Sketches\SketchesServiceProvider` (labelled wave 7).
 
-# What ships today
+# What is in the tree
 
-| Publishable package | Directory | Primary contents |
-|---------------------|-----------|------------------|
-| [`voyager/collections`](/packages/collections.md) | `src/Voyager/Collections/` | `Collection`, `LazyCollection`, `Arr`, `Enumerable` |
-| [`voyager/nuts-and-bolts`](/packages/nuts-and-bolts.md) | `src/Voyager/NutsAndBolts/` | `Str`, `Stringable`, `Number`, `Env`, `Carbon`, `Pluralizer` |
-| [`voyager/macroable`](/packages/macroable.md) | `src/Voyager/Macroable/` | `Macroable` trait |
-| [`voyager/conditionable`](/packages/conditionable.md) | `src/Voyager/Conditionable/` | `Conditionable` trait, `HigherOrderWhenProxy` |
-| [`voyager/reflection`](/packages/reflection.md) | `src/Voyager/Reflection/` | `Reflector`, `ReflectsClosures` |
+| Directory | Publishable as | PHP files |
+|-----------|----------------|----------:|
+| `Broadcasting/` | `voyager/broadcasting` | 20 |
+| `Bus/` | `voyager/bus` | 16 |
+| `Cache/` | `voyager/cache` | 53 |
+| `Collections/` | `voyager/collections` | 11 |
+| `Concurrency/` | `voyager/concurrency` | 6 |
+| `Conditionable/` | `voyager/conditionable` | 2 |
+| `Config/` | `voyager/config` | 1 |
+| `Console/` | `voyager/console` | 78 |
+| `Contracts/` | `voyager/contracts` | 114 |
+| `Database/` | `voyager/database` | 230 |
+| `Encryption/` | `voyager/encryption` | 3 |
+| `Events/` | `voyager/events` | 7 |
+| `Filesystem/` | `voyager/filesystem` | 8 |
+| `Hashing/` | `voyager/hashing` | 6 |
+| `Http/` | `voyager/http` | 18 |
+| `JsonSchema/` | `voyager/json-schema` | 12 |
+| `Log/` | `voyager/log` | 11 |
+| `Macroable/` | `voyager/macroable` | 1 |
+| `MagicAliases/` | `voyager/magic-aliases` | 1 |
+| `Notifications/` | `voyager/notifications` | 21 |
+| `NutsAndBolts/` | `voyager/nuts-and-bolts` | 73 |
+| `Pagination/` | `voyager/pagination` | 7 |
+| `Pipeline/` | `voyager/pipeline` | 3 |
+| `Process/` | `voyager/process` | 14 |
+| `Queue/` | `voyager/queue` | 95 |
+| `Redis/` | `voyager/redis` | 16 |
+| `Reflection/` | `voyager/reflection` | 3 |
+| `System/` | *(not a split package)* | 112 |
+| `Testing/` | `voyager/testing` | 34 |
+| `Translation/` | `voyager/translation` | 11 |
+| `Validation/` | `voyager/validation` | 45 |
+| `Vessel/` | `voyager/vessel` | 18 |
 
-The composer package is named `venusian/framework`, but every class ships under
-the `Voyager\` root namespace and every publishable sub-package is named
-`voyager/*`.[^root-composer] Treat **Venusian** as the framework and **Voyager**
-as the code namespace for its foundation packages; see
-[package split](/architecture/package-split.md).
+Counts from `find src/Voyager/<Dir> -name '*.php'` at
+`8a8600fda67358ec3b38b579f9f13e5107bdc758`.[^src-tree]
 
-The root manifest's `replace` block also claims a sixth package,
-`voyager/contracts`, which has no corresponding directory yet.[^root-composer] It
-is the framework-wide interface package for the layers above — Venusian's
-`illuminate/contracts`. The foundation keeps its own interfaces (`Arrayable`,
-`Jsonable`, `Enumerable`, `CanBeEscapedWhenCastToString`) inside the family by
-design, so it stays standalone; see
-[dependency direction](/architecture/dependency-direction.md).
+The root `replace` block lists the **31** `voyager/*` names above and does
+**not** list `voyager/system`.[^root-composer] System is the application
+skeleton — see [package split](/architecture/package-split.md).
+
+One concept per publishable package lives under [packages](/packages/).
 
 # Requirements
 
 - PHP `^8.4|^8.5`.[^root-composer]
-- The `intl` extension for [`Number`](/packages/nuts-and-bolts.md) — its methods
-  call `ensureIntlExtensionIsInstalled()` and throw `RuntimeException` without it.[^src-tree]
-- Runtime dependencies: `ramsey/uuid`, `symfony/uid`, `nesbot/carbon`,
-  `vlucas/phpdotenv`, `league/commonmark`, `symfony/var-dumper`,
-  `voku/portable-ascii`, `symfony/polyfill-php86`.[^root-composer]
-- Dev: `pestphp/pest ^4` (installed at 4.7.8).[^smoke-test]
+- CI installs `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, and `gmp` (plus
+  `dom`, `curl`, `libxml`, `mbstring`, `zip`).[^tests-yml]
+- Runtime dependencies are the union of the ported Laravel components
+  (Flysystem, Carbon, Symfony Console/Process/Mime, Guzzle, Predis, Monolog,
+  `laravel/prompts`, `doctrine/inflector`, …). Read `composer.json` rather
+  than a stale short list.[^root-composer]
+- Dev: `pestphp/pest ^4`, `mockery/mockery ^1.6`, `fakerphp/faker ^1.24`,
+  `opis/json-schema ^2.4.1`.[^root-composer]
 
-`symfony/var-dumper` and `league/commonmark` are already in the runtime
-requirements — both point toward terminal-facing output rather than web
-rendering.[^root-composer]
+# Tests and CI
+
+`.github/workflows/tests.yml` checks out with `actions/checkout@v5` and runs
+`vendor/bin/pest` on PHP 8.4 and 8.5.[^tests-yml]
+
+PR 1 (`ci/stable-tests`, merged as `8a8600f`) made that workflow green.
+Actions run `32527823474` reported **6257 passed**, 12 skipped, 7 deprecated,
+14 notices, 18843 assertions on **both** matrix cells.[^pr1-ci] Do not cite
+"184 tests" or "no test suite" as current.
+
+`phpunit.xml` excludes every `tests/**/deferred/` directory. Leftover
+PHPUnit `TestCase` classes in the default suite are concentrated in
+Database, Queue, Notifications, and Broadcasting; they run under Pest v4.
+See [known gaps](/known-gaps.md).
 
 # Where the Laravel code came from
 
-The Support layer is a namespace-rename port of `illuminate/support` and
-`illuminate/collections`. Taylor Otwell is credited as a co-author in four of
-the five sub-package manifests, and everything is MIT on both
-sides.[^root-composer] See [Laravel lineage](/architecture/laravel-lineage.md)
-for the mapping table and for what the port implies about tracking upstream.
+Most components record `extra.venusian.upstream-ref: v12.67.0` on their
+sub-package manifest. See [Laravel lineage](/architecture/laravel-lineage.md).
 
-# State of the repository
+# How to work here
 
-Under git as of 2026-08-19, with the pre-repair tree as the first commit so the
-fixes read as a diff. A Pest suite of 184 tests covers the foundation, and
-`.github/workflows/tests.yml` runs it on PHP 8.4 and 8.5. `README.md` and
-`AGENTS.md` are both written. `config/` is still an empty directory. See
-[local development](/playbooks/local-development.md).
+`AGENTS.md` is the contract — read this bundle before changing framework
+code, and write durable facts back.[^agents-md] See
+[maintaining this knowledge bundle](/playbooks/maintaining-this-bundle.md)
+and [local development](/playbooks/local-development.md).
 
-Runtime-verified defects in the ported code are recorded in
-[known gaps](/known-gaps.md). Six were found and fixed on 2026-08-19 — a
-`Stringable` name-resolution bug that silently broke `implode()`, `groupBy()` and
-`where()`; thirteen `Str` signatures that silently coerced `Collection`
-arguments; a `LazyCollection::make()` that rejected its own constructor's
-`Closure` form; a missing `Str::singular()`; a `now()` helper that fatalled; and
-`ReflectsClosures` declared as a class instead of a trait.
-
-Most shared one root cause — type hints added to Laravel code written for
-untyped parameters, where PHP coerces rather than rejects. That pattern is worth
-knowing before touching more ported code:
-[port hazards](/architecture/port-hazards.md).
-
-Still open and worth a decision: the components listed in
-[known gaps](/known-gaps.md).
-
-A [0.7.x reference implementation](/reference/upstream-0-7-x.md) of the framework
-exists outside this repo under the `Fabricate` namespace; it is the answer key for
-"was this deliberate or a port slip?".
-
-`AGENTS.md` is the contract for working in this repository — it requires reading
-this bundle before changing framework code, and it governs how the bundle itself
-is maintained.[^agents-md] See
-[maintaining this knowledge bundle](/playbooks/maintaining-this-bundle.md).
-
-[^maintainer]: Framework intent, stated by the maintainer
+[^readme]: Venusian Framework README
 [^agents-md]: Agent guidelines — venusian/framework
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^src-tree]: Framework source tree
-[^smoke-test]: Autoload and runtime verification run
+[^src-tree]: Framework source tree at 8a8600f
+[^tests-yml]: GitHub Actions tests workflow
+[^pr1-ci]: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5
