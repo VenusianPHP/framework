@@ -1,6 +1,59 @@
 # Update Log
 
 ## 2026-08-21
+* **Verification**: Framework Auditor pass against `0.8.x` HEAD after PR 1
+  (`8a8600fda67358ec3b38b579f9f13e5107bdc758`).
+  **Verification key:** `agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758`.
+  Official OKF 0.2 field is `verified: { by, at }`; this repo also writes
+  `verification_key` because Angel asked for a citeable audit token and OKF
+  0.2 has no reserved name for one. Concepts stay `status: draft` (AGENTS.md:
+  human sign-off is what makes `stable`). Playbook updated:
+  [maintaining this knowledge bundle](playbooks/maintaining-this-bundle.md).
+* **Correction**: [overview](overview.md) and root [index](index.md) still
+  described a CLI/sketch-only Support foundation (26 declarations, 5
+  publishable packages, `ScrapyardIO/framework`, "CLI and sketch layers not
+  in this repo"). README and the tree say otherwise: windowed GUIs + hardware
+  ICs; 32 directories / 1050 PHP files under `src/Voyager/`; 31 `voyager/*`
+  replace entries. Evidence: `README.md`, `composer.json`,
+  `find src/Voyager`.
+* **Correction**: [known-gaps](known-gaps.md) said `voyager/contracts` has no
+  directory and wave 6 Database had not landed. `src/Voyager/Contracts/` is
+  114 PHP files; `src/Voyager/Database/` is 230 PHP files with
+  `Instrument\Model` and `Capsule\Manager`. `DatabaseServiceProvider` is in
+  `DefaultProviders`.
+* **Correction**: Test/CI claims ("no suite", "184 tests", waves 5–6 still
+  PHPUnit, `checkout@v4`, intl-only extensions, MagicAlias vs Mockery
+  1.6.15). PR 1 CI run `32527823474`: **6257 passed** on PHP 8.4 and 8.5;
+  `.github/workflows/tests.yml` uses `actions/checkout@v5` and
+  `intl, pdo, pdo_sqlite, pdo_mysql, gmp`; leftover PHPUnit `TestCase`
+  classes in the default suite are Database 119 + Queue 17 + Notifications 6
+  + Broadcasting 2 (they run under Pest); `MagicAlias::shouldReceive()`
+  returns `Mockery\ExpectationInterface`.
+* **Correction**: `fabricate/*` requires, empty `config/`, missing Laravel
+  revision, `voyager/system` in `replace`, fatal `now()`, `ReflectsClosures`
+  as a class — all false at this SHA. Remaining manifest drift:
+  `voyager/conditionble` typo, `voyager/collection` singular, NutsAndBolts
+  PHP `^8.6`, Macroable ScrapyardIO URLs. Deliberate Queue / Broadcasting /
+  Notifications / Validation cuts still match source. File-upload value
+  object and Testbench deferred files still match source.
+  `DatabaseBatchRepository::find()` still lacks `return null`.
+* **Update**: Added package concepts for every publishable `voyager/*`
+  directory that had none, and refreshed the five foundation concepts.
+  [packages/index.md](packages/index.md) lists all 31; System is noted as
+  the non-split skeleton.
+* **Update**: Architecture concepts
+  ([package-split](architecture/package-split.md),
+  [dependency-direction](architecture/dependency-direction.md),
+  [namespace-and-autoloading](architecture/namespace-and-autoloading.md),
+  [laravel-lineage](architecture/laravel-lineage.md),
+  [port-hazards](architecture/port-hazards.md)),
+  [global helpers](api/global-helpers.md),
+  [local development](playbooks/local-development.md), and
+  [0.7.x reference](reference/upstream-0-7-x.md) rewritten against the
+  measured tree. Recorded upward `use Voyager\System\` edges from Bus,
+  Queue, Broadcasting, and Testing.
+
+## 2026-08-21
 * **Update**: Converted the wave 4 test directories (`tests/Bus`, `tests/Translation`,
   `tests/Concurrency`, `tests/Events`, `tests/Validation` — 48 files, including
   every `deferred/` subdirectory in both `Bus` and `Validation`) to Pest v4.
