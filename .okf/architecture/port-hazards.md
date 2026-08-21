@@ -4,8 +4,10 @@ title: Port hazards — type hints added to ported Laravel code
 description: Adding strict PHP type hints to Laravel code written for untyped parameters silently narrows behaviour; the failure is a wrong answer, not an error.
 tags: [porting, type-hints, php, laravel, bugs, review]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T23:00:00Z }
-stale_after: 2026-11-19
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
   - id: audit
     resource: runtime audit of Str, Collection, EnumeratesValues and LazyCollection against ../../vendor/autoload.php on 2026-08-19
@@ -23,6 +25,15 @@ sources:
     resource: ../../tests/Validation/ValidationInArrayKeysTest.php run against ../../src/Voyager/Collections/DataObjects/Arr.php on 2026-08-20
     title: Wave 4 Validation port
 ---
+
+# Still live after PR 1
+
+PR 1 (`fb9c2d9`) was another pass over this hazard — over-narrow hints that
+broke Pest on 8.4/8.5. The pattern has not gone away.
+`Bus\DatabaseBatchRepository::find(): ?Batch` still falls off the end with
+no `return null` (see [known gaps](/known-gaps.md)). That is the same
+"declared return type turns an implicit null into a fatal" case as the
+wave-5 `Batchable::batch()` row below.
 
 # The hazard
 

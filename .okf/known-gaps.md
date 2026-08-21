@@ -1,486 +1,235 @@
 ---
 type: Known Issues
 title: Known gaps in Venusian v0.8.0
-description: Defects in the ported Support foundation, each confirmed by running the code — what was fixed on 2026-08-19 and what remains open.
+description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T23:00:00Z }
-stale_after: 2026-11-19
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
-  - id: audit
-    resource: runtime audit and regression sweep against ../vendor/autoload.php on 2026-08-19
-    title: Runtime audit, 37-check sweep, and the 184-test Pest suite
   - id: src-tree
     resource: every PHP file under ../src/Voyager
-    title: Framework source tree
+    title: Framework source tree at 8a8600f
+  - id: tests-tree
+    resource: ../tests and ../phpunit.xml
+    title: Test tree, Pest.php, and deferred exclusions
+  - id: tests-yml
+    resource: ../.github/workflows/tests.yml
+    title: GitHub Actions tests workflow
+  - id: pr1-ci
+    resource: https://github.com/VenusianPHP/framework/actions/runs/32527823474
+    title: PR 1 tests workflow — 6257 passed
+  - id: magic-alias
+    resource: ../src/Voyager/MagicAliases/MagicAlias.php
+    title: MagicAlias::shouldReceive return type
   - id: subpackage-manifests
     resource: ../src/Voyager/*/composer.json
-    title: Per-package composer manifests
-  - id: ref-0-7-x
-    resource: /Users/angelgonzalez/Development/PHP/OfficialScrapyardIO/ScrapyardIO/framework/src/Fabricate
-    title: 0.7.x reference implementation (Fabricate namespace)
-    author: human:angel
-  - id: wave5
-    resource: ../src/Voyager/Queue, ../src/Voyager/Broadcasting and ../src/Voyager/Notifications, ported 2026-08-20
-    title: Wave 5 port
-  - id: wave4
-    resource: ../src/Voyager/Validation and ../tests/Validation, ported 2026-08-20
-    title: Wave 4 Validation port
+    title: Per-package composer manifests (31 files)
+  - id: default-providers
+    resource: ../src/Voyager/System/DefaultProviders.php
+    title: Default service providers
   - id: agents-md
     resource: ../AGENTS.md
     title: Agent guidelines — venusian/framework
     author: human:angel
-    last_modified: 2026-08-19
 ---
 
 # Overview
 
-Everything here was reproduced against the working tree with
-`vendor/autoload.php` loaded, not inferred from reading source.[^audit] Baseline
-health is good: all 26 declarations resolve and all 27 global helpers are
-defined.[^audit]
+Claims below were checked against `src/`, `tests/`, `composer.json`, and
+`.github/workflows/tests.yml` at `8a8600fda67358ec3b38b579f9f13e5107bdc758`
+(0.8.x after PR 1), not against older bundle text.[^src-tree]
 
-**Scope note.** This covers defects in what has been built. The absence of a
-container, kernel, router, or console is *not* listed — Venusian is at the
-[Support-foundation stage](/overview.md) by design. Likewise no cross-package
-import violates the layering rule; see
-[dependency direction](/architecture/dependency-direction.md).
+The 2026-08-19 Support-foundation defects (`Stringable` resolution, `Str`
+iterable hints, `LazyCollection::make(Closure)`, `Str::singular()`, `now()`,
+`ReflectsClosures` as a class, `Arr::first()`/`chunk()`, stub `Pluralizer`)
+are **fixed in source**. They stay in [log.md](log.md) as history. This file
+keeps only what is still true, plus a retired-claims list so those sentences
+are not copied forward.
 
-# Fixed on 2026-08-19
+# Retired — do not repeat
 
-All verified by a 37-check regression sweep covering both the fixed paths and
-ordinary inputs.[^audit] The repo has no test suite, so that sweep is currently
-the only regression evidence — see [local development](/playbooks/local-development.md).
+| Old claim | Tree fact |
+|-----------|-----------|
+| `src/Voyager/Contracts/` does not exist | **114** PHP files; `voyager/contracts` has its own `composer.json`[^src-tree] |
+| Database / wave 6 has not landed | **230** PHP files; `Instrument\Model` and `Capsule\Manager` exist; `DatabaseServiceProvider` is in [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php)[^default-providers] |
+| `config/` is empty | **9** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue` |
+| No test suite / 184 Pest tests | PR 1 CI: **6257 passed**, 12 skipped, 18843 assertions on PHP 8.4 and 8.5[^pr1-ci] |
+| CI uses `checkout@v4` and only `intl` | `actions/checkout@v5`; extensions include `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`[^tests-yml] |
+| Waves 5–6 tests are still PHPUnit | After PR 1, leftover `extends PHPUnit\Framework\TestCase` classes in the default suite are **Database (119)**, **Queue (17)**, **Notifications (6)**, **Broadcasting (2)**. Other packages are Pest v4. Those leftovers **run under Pest**. |
+| `MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15 (`Expectation` vs `CompositeExpectation`) | Return type is `Mockery\ExpectationInterface` (PR 1). `CompositeExpectation` implements that interface.[^magic-alias] |
+| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 31 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
+| Root `replace` lists `voyager/system` | It does not. 31 `voyager/*` entries; System has no `composer.json`. |
+| No record of the upstream Laravel revision | Most manifests set `extra.venusian.upstream-ref` to **`v12.67.0`**. |
+| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 32 directories, 1050 PHP files, 31 publishable packages. |
+| `now()` fatals / Date alias does not exist | Global `now()` in `NutsAndBolts/Helpers/time.php` returns `Carbon::now()`. Namespaced `Voyager\NutsAndBolts\now()` and `System/helpers.php` `now()` call `Date::now()`. `NutsAndBolts/MagicAliases/Date.php` exists. |
+| `voyager/contracts` planned-but-unbuilt | Built. Foundation `Arrayable` / `Jsonable` live under `Voyager\Contracts\NutsAndBolts`. `Enumerable` remains `Voyager\NutsAndBolts\Contracts\Enumerable` in Collections. |
 
-## `Stringable` resolved to the wrong class in three Collections sites
+# Open — deliberate cuts
 
-Three sites tested `$x instanceof Stringable` intending PHP's **native**
-`\Stringable`, and resolved elsewhere:[^src-tree]
+Recorded so nobody "restores" them from upstream by mistake.
 
-| Site | Resolved to | Effect |
-|------|-------------|--------|
-| `Collection.php` `groupBy` | `Voyager\NutsAndBolts\DataObjects\Stringable` (imported) | `TypeError` on a native-`\Stringable` group key |
-| `Collection.php` `implode` | same import | Wrong branch; returned `''` |
-| `EnumeratesValues.php` `where` | `Voyager\NutsAndBolts\Concerns\Stringable` — **no import, class does not exist** | Match arm dead; comparison silently failed |
+## Queue — Beanstalkd, SQS, DynamoDB
 
-Voyager's `Stringable` implements native `\Stringable`, so the imported name was
-strictly narrower — every plain `__toString()` object stopped matching. The third
-site had no `use` at all, so the unqualified name resolved against the file's own
-namespace to a missing class; `instanceof` against a missing class is just
-`false`, so nothing errored.
+`QueueServiceProvider::registerConnectors()` registers Null, Sync, Deferred,
+Background, Failover, Database, Redis only. Comment in that method: Beanstalkd
+and SQS dropped; AWS barred except S3. No DynamoDB failed-job provider.
+`config/queue.php` defaults to `sync` / failed-job `file`.
 
-Before the fix: `implode(', ')` returned `''` instead of `'a, b'`; `groupBy` threw
-`TypeError`; `where` matched 0 rows instead of 1.[^audit] All three sites now use
-`\Stringable` explicitly and the shadowing import is gone. The repo's own
-`Contracts/Enumerable.php` documents the key as `array-key|\UnitEnum|\Stringable`,
-fully qualified, corroborating that native was always the intent.[^src-tree]
+The database driver **source is present** (`DatabaseQueue`,
+`DatabaseConnector`, `Failed\DatabaseFailedJobProvider`,
+`Failed\DatabaseUuidFailedJobProvider`). Tests for it stay in
+`tests/Queue/deferred/` — see process debt below. The comment at
+`config/queue.php:15-16` still says Database "is not built yet"; that line is
+stale.
 
-## Thirteen `Str` signatures silently coerced `Collection` arguments
+## Broadcasting — Ably and incoming channel auth
 
-`array|string` hints over bodies already written for iterables. A `Collection`
-has `__toString()`, so it was coerced to its JSON form and matched as a single
-literal pattern — `Str::is(collect(['a*','b*']), 'bat')` returned `false` with no
-error.[^audit] Widened to `iterable|string`, which is what the bodies expected.
-`chopStart`/`chopEnd` also `(array)`-cast an object (yielding its properties, not
-its items) and now normalise explicitly.
+No Ably broadcaster. `Contracts\Broadcasting\Broadcaster` keeps `broadcast()`
+only. `BroadcastController` and `BroadcastManager::{routes,userRoutes,channelRoutes,socket}`
+are absent. Four upstream test files are cut, not deferred — see
+`tests/Broadcasting/README.md`. `Broadcaster::channel()` can still *register*
+authenticators.
 
-This is a systemic class, not three one-offs — see
-[port hazards](/architecture/port-hazards.md).
+## Notifications — mail
 
-## `LazyCollection::make()` rejected a `Closure`
+No `MailChannel`, `MailMessage`, `SimpleMessage`, or Blade email view.
+`ChannelManager::$defaultChannel` is `'database'`. Two upstream mail test
+files are cut — see `tests/Notifications/README.md`.
 
-`__construct` accepted `Closure`, `make()` did not, so the documented
-`LazyCollection::make(fn () => yield ...)` form threw `TypeError` while
-`new LazyCollection(...)` worked.[^audit] Widened; generators are still rejected
-with the original `InvalidArgumentException`, as intended.
+## Validation — Auth, HTTP response, precognition
 
-## `Str::singular()` did not exist
+| Cut | Why (still true) |
+|-----|------------------|
+| `Rules\Can` / `Rule::can()` | Body was `Gate::allows()`. No Auth package. |
+| `ValidationException` HTTP surface (`$response`, `$status`, `$redirectTo`, …) | Incoming-HTTP. `errors()` / `errorBag()` / `withMessages()` remain. |
+| Precognition branch of `ValidatesWhenResolvedTrait` | Comment only; `isPrecognitive()` came from a request trait Http already cut. |
 
-`Stringable::singular()` called `Str::singular()`, which was never
-defined — so both `Str::singular('users')` and `Str::of('users')->singular()`
-threw `BadMethodCallException` via the `Macroable` fallback.[^audit]
-`Pluralizer::singular()` existed all along; `Str::singular()` now forwards to it.
+`exists` / `unique` are **not** cut. `Instrument\Model` now exists.
+`ValidationServiceProvider` still wires the presence verifier only when `db`
+is bound. The three database-backed test files remain in
+`tests/Validation/deferred/` (README still says "waiting on wave 6").
 
-## `now()` fatalled, and `time.php` guards could never fire
+## Http is the client only
 
-`now()` delegated to `Voyager\NutsAndBolts\MagicAliases\Date::now()`, which does
-not exist in this tree.[^src-tree] Separately, all ten guards in the file tested
-`function_exists('Voyager\NutsAndBolts\<fn>')` while the file has no `namespace`
-declaration, so it actually declares **global** functions — the guards could
-never suppress a redefinition, and a second include would fatal on duplicate
-declaration.[^audit] The file also called `enum_value()` unqualified from the
-global namespace, where it does not resolve.
+`src/Voyager/Http` is `Http/Client/` (18 PHP files). No
+`Http\UploadedFile` or `Http\Testing\FileFactory`. `file` / `image` / `mimes`
+/ `dimensions` rules work against Symfony `File`/`UploadedFile`. Three
+upstream tests stay in `tests/Validation/deferred/` until Venusian defines a
+file-validation subject.
 
-Guards now name the global functions, `enum_value` is imported, and `now()` is
-wired to `Carbon::now()` **as an interim measure** with the seam noted in
-source. `MagicAliases` is the facade layer and needs a container to exist first —
-see [the 0.7.x reference](/reference/upstream-0-7-x.md).
+# Open — defects and debt
 
-## `ReflectsClosures` was a class where a trait was intended
+## `DatabaseBatchRepository::find()` has no `return null`
 
-Declared `class` with all-protected methods, giving it zero public surface and
-making `use ReflectsClosures;` fail to compile.[^audit] Settled against the
-0.7.x tree, which declares it a `trait` — a port regression, not a
-redesign.[^ref-0-7-x] Now a trait; verified by composing it and calling
-`firstClosureParameterType()`.
+```77:87:src/Voyager/Bus/DatabaseBatchRepository.php
+    public function find(string $batchId): ?Batch
+    {
+        // ...
+        if ($batch) {
+            return $this->toBatch($batch);
+        }
+    }
+```
 
-## Three more defects, found by writing the tests
+A typed `?Batch` cannot fall off the end. `tests/Bus/deferred/BusBatchTest.php`
+still fails `batch can be deleted` and `options serialization on postgres` on
+this. One-line fix, still unapplied.
 
-Each surfaced the moment a test called the method the way Laravel documents.[^audit]
+## `System\Bus\PendingChain::__construct(mixed $job, array $chain)`
 
-**`Arr::first()` and `Arr::last()` typed `$default` as `?Closure`.** The value is
-passed through `value()`, which returns non-closures unchanged, so a plain
-default is valid — but the hint rejected it. `Arr::first([1,2], $callback, 'none')`
-threw a `TypeError` instead of returning `'none'`. Now `mixed`.
-
-**`chunk()` declared `$preserveKeys` with no default.** In the `Enumerable`
-contract and both implementations, so the ordinary `chunk($size)` call was a
-fatal, not a divergence. Defaulted to `true`, matching `array_chunk` and Laravel.
-
-**`LazyCollection::chunk()` ignored `$preserveKeys` entirely.** It accepted the
-argument but never captured it in the generator closure, so it always preserved
-keys. That also silently broke `splitIn()`, its only internal caller, which
-passes `false`.
-
-The first is the same type-hint narrowing as the `Str` family; see
-[port hazards](/architecture/port-hazards.md).
-
-## `Pluralizer` was a stub — now the real inflector
-
-Its docblock deferred a Doctrine inflector port, and `doctrine/inflector` was not
-installed, so the stub was load-bearing: 20 of 24 common words were wrong
-(`child` → `childs`, `box` → `boxs`, `bus` unchanged).
-
-`doctrine/inflector ^2.0` turns out to be a declared requirement of
-`illuminate/support`, so it came in as part of the wave-0 port rather than as a
-separate decision. The upstream `Pluralizer` replaced the stub: **24/24 plural
-and 8/8 singular** cases now correct.[^audit]
-
-# Open
-
-## Wave 5 ships driver and boundary cuts
-
-Recorded so nobody "restores" them from upstream by mistake.[^wave5]
-
-**Queue** — Beanstalkd and SQS connectors, their queues and jobs, and the
-DynamoDB failed-job provider are cut by the driver policy (no AWS bar S3). The
-`database` driver's source is kept and registered but inert: nothing resolves it
-without a `db` binding, so it lights up when Database lands in wave 6.
-`config/queue.php` therefore defaults to `sync`, and the failed-job driver to
-`file`, rather than Laravel's `database` and `database-uuids`.
-
-**Broadcasting** — Ably is cut by the driver policy. The channel-authorization
-surface is cut by the HTTP boundary rule: `auth()` and
-`validAuthenticationResponse()` from the `Broadcaster` contract and every
-broadcaster, `BroadcastController`, and `routes()`/`userRoutes()`/
-`channelRoutes()`/`socket()` on `BroadcastManager`. Authenticating an incoming
-request for a channel is receiving-HTTP. The send path is untouched.
-
-**Notifications** — `Channels\MailChannel`, `Messages\MailMessage`, its
-`Messages\SimpleMessage` base and the `resources/views/email.blade.php` template
-are cut with Mail, and `NotificationServiceProvider::boot()` no longer registers
-a Blade view namespace. `ChannelManager`'s default channel is **`database`**
-rather than Laravel's `mail`.
-
-Four of Laravel's Broadcasting test files and two of its Notifications test
-files cover only cut surface, so they are cut rather than deferred — see the
-READMEs in `tests/Broadcasting` and `tests/Notifications`.
-
-## Validation ships three deliberate cuts
-
-Recorded so nobody "restores" them from upstream by mistake.[^wave4]
-
-| Cut | Why |
-|-----|-----|
-| `Rules\Can` and `Rule::can()` | Its whole body is one `Gate::allows()` call. Auth is out of scope for this port, and there is no `Gate` magic alias — nothing is left of the class once the Gate goes. |
-| `ValidationException::$response`, `$status`, `$redirectTo`, `status()`, `redirectTo()`, `getResponse()` | These shape an HTTP response. Cut per the HTTP boundary rule; `errors()`, `errorBag()` and `withMessages()` stay. Nothing in the tree read them. |
-| The precognition branch of `ValidatesWhenResolvedTrait::validateResolved()` | Precognition is an HTTP request feature, and `isPrecognitive()` came from the `CanBePrecognitive` trait that the `Http` port already cut, so the branch was dead. |
-
-The `exists`/`unique` rules are **not** cut. They guard on
-`Instrument\Model` with `instanceof`/`is_subclass_of`, which is simply false
-until wave 6 lands the class, and `ValidationServiceProvider` only wires the
-presence verifier when `db` is bound. They light up on their own.
-
-## Validation's file rules have no upload value object
-
-`file`, `image`, `mimes` and `dimensions` are ported and work against Symfony's
-`File`/`UploadedFile`. Laravel's tests for them build subjects with
-`Illuminate\Http\UploadedFile::fake()`, and `Http` is ported as the client only —
-neither `Http\UploadedFile` nor `Http\Testing\FileFactory` exists here, both
-being part of *receiving* a request.[^wave4]
-
-So three upstream test files — `ValidationFileRuleTest`, `ValidationImageFileRuleTest`,
-`ValidationDimensionsRuleTest` — sit in `tests/Validation/deferred/`, converted
-to Pest v4 against their exact broken baseline (23 failed / 4 assertions,
-a load-time fatal, and 1 failed / 5 passed respectively) rather than left as
-PHPUnit, since the blocker is a missing value object, not a namespace or
-syntax issue the conversion itself could paper over. Reviving them means first
-deciding what a Venusian file-validation subject is — a design question, not
-a port step. Until then the rules are ported but uncovered.
-
-## `voyager/contracts` is declared but not yet built
-
-The root manifest `replace`s it, but there is no `src/Voyager/Contracts/`
-directory, so publishing it today would ship nothing. **Planned work, not a
-defect** — listed so nobody "fixes" it by deleting the entry. It is the
-framework-wide interface package for System and the components, Venusian's
-`illuminate/contracts`. The foundation's own interfaces stay inside the
-NutsAndBolts family by design. See
-[dependency direction](/architecture/dependency-direction.md).
+`$chain` is `array`. The deferred Bus/Queue chaining case still passes a
+string (`BusBatchTest`: "chained closure after multiple batches is properly
+dispatched").
 
 ## `TransformsToResourceCollection` is an empty trait
 
-Declared and `use`d by `Collection`, body empty.[^src-tree] A placeholder for a
-layer not yet written. Worth a decision rather than a fix: the name comes from
-Laravel's web-facing API-resource concept, which a CLI-and-sketch framework may
-not want at all.
+`src/Voyager/Collections/Concerns/TransformsToResourceCollection.php` is still
+an empty body, `use`d by `Collection` and the paginators.
 
-## Sub-package manifests are stale — but the `fabricate/*` names are not typos
+## `Str::is()` rejects `null` `$value`
 
-The five per-package manifests have drifted from the root:[^subpackage-manifests]
+`$value` is `string`, so `Str::is('foo*', null)` is a `TypeError`. Laravel
+coerces null to `''`. Divergence, not a crash in the default suite.
 
-| Manifest | Declares | Problem |
-|----------|----------|---------|
-| `Collections/` | `fabricate/macroable ^0.8.0` | Stale **0.7.x package name**; now `voyager/macroable` |
-| `Reflection/` | `fabricate/collection ^0.6\|^0.7` | Stale 0.7.x name; now `voyager/collections` |
-| `NutsAndBolts/` | `voyager/macroable ^0.7.0`, `voyager/collections ^0.7.0` | Pinned to 0.7 while the monorepo is 0.8.0 |
-| `NutsAndBolts/` | `symfony/polyfill-php86 ^8.0.0` | Root declares `^1.34`; no `8.x` exists |
-| `Reflection/` | `branch-alias: 0.7.x-dev` | The other four say `0.8.x-dev` |
+## `foreach ($pattern as $pattern)` in `Str::is()` / `Str::isMatch()`
 
-The `fabricate/*` entries are **rename leftovers**, not mistakes — 0.7.x really
-was namespaced `Fabricate`.[^ref-0-7-x] They still need updating, but the fix is
-"finish the rename", not "correct a typo".
+Not a bug — PHP iterates a by-value copy. Left as Laravel verbatim.
 
-These are invisible in the monorepo — the root autoloader covers everything — and
-only bite on the first standalone package split.
+## Sub-package manifests still drift (no `fabricate/*`)
 
-## `Str::is()` no longer accepts a null `$value`
+| Manifest | Current leftover |
+|----------|------------------|
+| `Collections/composer.json` | requires `voyager/conditionble ^0.8.0` (typo; package is `conditionable`) |
+| `Reflection/composer.json` | requires `voyager/collection ^0.8` (singular; package is `collections`) |
+| `NutsAndBolts/composer.json` | PHP `^8.4\|^8.5\|^8.6` while root is `^8.4\|^8.5` |
+| `Macroable/composer.json` | `homepage` / `support` still `ScrapyardIO/framework` |
 
-`$value` is typed `string`, so `Str::is('foo*', null)` throws `TypeError` where
-Laravel coerces null to `''` and returns `false`.[^audit] Arguably an improvement
-over Laravel; recorded because it is a real behavioural divergence for anyone
-porting calling code.
+Invisible under the monorepo autoloader; bites on a standalone split.
 
-## `foreach ($pattern as $pattern)` in `Str::is()` and `Str::isMatch()`
+## Deferred tests whose original blocker has moved
 
-The loop variable shadows the array being iterated. **Not a bug** — PHP iterates a
-by-value copy, verified with multi-element patterns reaching elements 2 and
-3.[^audit] Left as-is because it appears to be verbatim from Laravel and
-gratuitous divergence costs more than the ugliness. Flagged so the next reader
-does not re-investigate it. Adjacent vestigial bits in the same method: a
-`(string)` cast on an already-`string` parameter, and an `is_iterable()` check
-that predates the type hint.
+`phpunit.xml` excludes 15 `deferred/` trees (60 PHP files). Still real:
 
-## `config/` is still empty
+- **Orchestra\Testbench** — 14 deferred PHP files plus
+  `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`. Root
+  `composer.json` does not require `orchestra/testbench`. Human decision:
+  rewrite against a Voyager harness or drop. Canonical:
+  `tests/Testing/deferred/ConfigShowCommandTest.php`.
+- **File-upload value object** — three Validation deferred files, above.
+- **BusBatchTest** — two `src/` bugs, above.
+- **Log `ContextTest` Suit lengths** — serialized enum literals still use
+  upstream byte lengths (`E:31:` / `E:43:`) for `Tests\Log\Fixtures\Suit:Clubs`
+  (29 / 41 bytes). Harmless while the file is excluded.
+- **Parked after Database landed** — `tests/Validation/deferred` presence
+  tests, `tests/Queue/deferred` database-driver tests, and
+  `tests/Testing/deferred/{InteractsWithDatabaseTest,TestDatabasesTest}.php`
+  still sit in `deferred/`. Their READMEs still say "wave 6". Database is in
+  the tree; unparking is remaining work, not a missing component. Do not
+  claim they pass — they are not in the default suite.
 
-`tests/` and `.github/` are now populated; `config/` remains an empty directory
-with nothing reading from it. Harmless, but it implies a configuration layer that
-does not exist yet.
+## PHPUnit leftover style debt
 
-## No record of the upstream Laravel revision ported from
+144 runnable `*Test.php` files still wrap a PHPUnit `TestCase` (or
+`MockeryTestCase`) in Database / Queue / Notifications / Broadcasting.
+Pest v4 executes them. Conversion is style debt, not a red suite.
 
-Nothing records which `laravel/framework` revision the Support code corresponds
-to, so there is no mechanical way to tell which upstream bugfixes are in. The
-[0.7.x reference implementation](/reference/upstream-0-7-x.md) answers
-*Venusian*-generation questions but not *Laravel*-generation ones. See
-[Laravel lineage](/architecture/laravel-lineage.md).
+## Upward imports into `Voyager\System`
 
-## Fixed: the port missed `Foundation` -> `System` in two stack-trace regexes
+`AGENTS.md`: nothing below System depends on System.[^agents-md] Current
+exceptions, Laravel-shaped:
 
-`tests/System/Bootstrap/HandleExceptionsTest.php` matched stack frames against
-`Voyager\\Foundation\\Bootstrap\\HandleExceptions`. The root `Illuminate` ->
-`Voyager` rename was applied to those regexes but the `Foundation` -> `System`
-half was not, and `Voyager\Foundation` exists nowhere in `src`, so the `m::on()`
-matcher could never fire.
+| From | Import |
+|------|--------|
+| `Bus\Dispatcher`, `Bus\ChainedBatch` | `System\Bus\PendingChain` / `Dispatchable` |
+| `Queue\CallQueuedClosure` | `System\Bus\Dispatchable` |
+| `Broadcasting\AnonymousEvent` | `System\Events\Dispatchable` |
+| `Testing\*` | `System\Application`, `System\Testing`, `System\Bus\PendingChain` |
 
-The failure was invisible for three compounding reasons: `warning()` was never
-called, `HandleExceptions` swallowed Mockery's `NoMatchingExpectationException`
-in its `catch (Throwable) { return; }`, and the file — a plain PHPUnit
-`TestCase` with no `MockeryPHPUnitIntegration` — never closed the Mockery
-container. The unmet expectation leaked into the global container and surfaced
-as an `InvalidCountException` against whichever *Pest* test next closed it,
-which is why it appeared to be a Wave 0 defect.
+## Unused Auth / View contract imports
 
-Fixed during the Wave 2 conversion on 2026-08-21. Two permanently-broken cases
-now pass. **The lesson generalises**: `grep -rn 'Illuminate' src/Voyager/<X>`
-returns empty for a half-renamed `Voyager\Foundation`, so it does not prove the
-namespace rewrite is complete. Grep for the *old component names* too.
+`src/Voyager/System/helpers.php` aliases `Voyager\Contracts\Auth\Factory` and
+`Voyager\Contracts\View\{Factory,View}`. Those directories do not exist.
+PHP `use` is lazy, and no helper in that file references the aliases.
 
-## `Suit` enum lengths in `tests/Log/deferred/ContextTest.php` are stale
+## Sketches not landed
 
-The serialized-enum literals still carry the byte lengths of the upstream
-`Illuminate\Tests\Log\…` namespace — `E:31:"Tests\Log\Fixtures\Suit:Clubs"`
-where the new name is 29 bytes, and `43` where it is 41. Harmless today because
-the file is deferred and never runs; it will fail the moment Log's deferred
-tests are restored.
+`DefaultProviders` still comments
+`\Voyager\Sketches\SketchesServiceProvider::class` as wave 7. There is no
+`src/Voyager/Sketches/`.
 
-## Waves 0-4 are Pest v4; waves 5-6 are still PHPUnit
+# Related
 
-`tests/Vessel`, `tests/NutsAndBolts` (wave 0), `tests/Config`, `tests/Pipeline`,
-`tests/Encryption`, `tests/Hashing`, `tests/JsonSchema` (wave 1), `tests/System`,
-`tests/Console` and `tests/Log` (wave 2), `tests/Filesystem`, `tests/Process`,
-`tests/Pagination`, `tests/Http`, `tests/Cache`, `tests/Redis`, `tests/Testing`
-(wave 3), and `tests/Bus`, `tests/Translation`, `tests/Concurrency`,
-`tests/Events`, `tests/Validation` (wave 4, all five components including
-their `deferred/` subdirectories) were converted from upstream PHPUnit classes
-to Pest v4 on 2026-08-21. Inline stub
-classes moved to `tests/<Component>/Fixtures/` under `Tests\<Component>\Fixtures`,
-one class per file (PSR-4). Two exceptions load through `autoload-dev.files`
-because PSR-4 cannot carry them: `tests/Vessel/Fixtures/functions.php` and
-`tests/NutsAndBolts/Fixtures/functions.php` hold plain functions, and
-`tests/Vessel/Fixtures/AttributeTargets.php` holds classes whose upstream names
-end in `Test` and would otherwise be collected as test files.
+- [Overview](/overview.md) — current tree shape.
+- [Port hazards](/architecture/port-hazards.md) — why typed ports fail quietly.
+- [Local development](/playbooks/local-development.md) — how to run Pest.
 
-Wave 2 added two wrinkles worth knowing before converting waves 4-6:
-
-* **`tests/System/Stubs/`, not `Fixtures/`.** `tests/System/fixtures/` already
-  exists in lowercase, and the dev volume is case-insensitive — `Fixtures` and
-  `fixtures` resolve to the same inode, so git would record the classes under
-  the lowercase path and PSR-4 would fail on a case-sensitive CI box.
-* **Pest counts a fulfilled Mockery expectation as an assertion** and closes the
-  container after every test. Converting a file therefore raises its assertion
-  count and turns "risky, no assertions" cases into honest passes, without any
-  case being added. Wave 2 went 534 -> 698 assertions for this reason alone
-  while the suite-wide total did not move.
-
-Wave 3 confirmed the Mockery-assertion effect at scale: 39 previously-risky
-cases across `tests/Cache` (30 -> 1), `tests/Redis` (7 -> 0) and `tests/Http`
-(3 -> 0) turned into honest passes, with zero change to the suite's failure
-set — verified by diffing the full `--log-junit` output before and after
-conversion: the same 46 tests fail before and after (all pre-existing, none
-introduced), 0 fixed, 0 regressed. `tests/Http` also went from 235 to 238
-passed for the same reason. It surfaced three new traps:
-
-* **A PHPUnit test class's own helper methods can't become plain Pest
-  functions if they read a trait's `private` property.** `tests/Redis`'s
-  `RedisConnectionTest` and its two limiter tests each had a `private`/`public`
-  helper (`connections()`, `redis()`) that read `$this->redis`, a `private`
-  property declared on the `InteractsWithRedis` trait. PHP visibility is
-  scope-based: inside a class method (or a Pest closure Pest has bound to the
-  test case), reading `$this->redis` is fine; the moment that same read
-  happens inside an ordinary top-level function — even one passed `$this` as
-  an argument — PHP throws `Error: Cannot access private property`, because
-  the function's scope isn't the class. The fix is to read the private
-  property at the *call site* (inside the bound test closure) and pass the
-  resulting value into the helper function, e.g. `redisConnections($this->redis)`
-  rather than `redisConnections($this)` with the function doing
-  `$testCase->redis` internally. Watch for this pattern in waves 4-6 wherever
-  a converted PHPUnit class had a private/protected helper method touching a
-  trait- or class-declared non-public property.
-* **`__CLASS__` and `self::` break once the class wrapper is removed.**
-  `tests/Cache`'s `CacheManagerTest` and `CacheRepositoryTest` used
-  `__CLASS__` as an arbitrary unique string (driver/macro name) — a
-  compile-time constant resolved by lexical class scope, which silently
-  becomes `''` with no enclosing class. `tests/Http`'s `HttpClientTest` had
-  `self::assertX(...)` calls inside non-static closures that still resolved
-  under the original class wrapper; both had to be caught by hand and
-  replaced (a literal string for `__CLASS__`, `expect()` for `self::assert*`)
-  since neither fails loudly — the constant becomes an empty string, `self::`
-  is still followed inside a closure that captured lexical class scope, so
-  neither shows up on `grep -rn 'PHPUnit\\Framework\\TestCase'` sweeps.
-* **A `protected`/`private` PHPUnit `TestCase` method (e.g. `createMock()`)
-  can't be called from a plain top-level helper function either**, for the
-  same scope-based-visibility reason as the trait-property trap above — but
-  the fix differs: route the call through Pest's own bound test case
-  (`test()->createMock(...)` inside the closure) rather than trying to pass
-  `$this` through, since `createMock()` isn't a value that can be read and
-  handed off like a property.
-
-Wave 4's biggest file by far, `ValidationValidatorTest.php` (274 methods,
-9,995 lines — roughly 10x the previous largest, `FoundationApplicationTest.php`
-at 550), converted clean with none of wave 3's three traps, and surfaced one
-new one of its own:
-
-* **A `//` comment containing an apostrophe (`there's`, `doesn't`) can break a
-  naive brace/paren balance tracker** if that tracker treats `'`/`"` as string
-  delimiters without first skipping comments — the apostrophe opens a bogus
-  "string" that only closes on the next real quote in the source, silently
-  swallowing anything between them. Only matters for hand-rolled conversion
-  tooling (regex- or scan-based), not for the conversion output itself; see
-  the 2026-08-21 log entry for how it surfaced and was fixed.
-
-`tests/Validation/deferred/ValidationFileRuleTest.php` (23 failed),
-`ValidationDimensionsRuleTest.php` (1 failed) and `ValidationImageFileRuleTest.php`
-(load-time fatal, `Voyager\Http\UploadedFile` still doesn't exist) were
-converted against their exact recorded broken profile rather than fixed,
-per the wave 0 precedent — the failures are pre-existing and out of scope for
-a syntax conversion. `ValidationDatabasePresenceVerifierTest.php`,
-`ValidationExistsRuleTest.php` and `ValidationUniqueRuleTest.php` were already
-fully green under a real SQLite connection and converted the same way,
-confirming `voyager/database` is further along than the "waits for wave 6"
-framing in the porting plan suggests — at least Capsule\Manager, Instrument\Model,
-Query\Builder and SQLite schema building all work today.
-
-**`tests/Bus/deferred/BusBatchTest.php` had two leftover `Illuminate`-era
-call sites, not a real Database blocker.** The file's `setUp()` called
-`$db->bootEloquent()` (renamed `bootInstrument()` in this package — see
-`AGENTS.md`'s Eloquent -> Instrument rule) and `Facade::getFacadeApplication()`
-/ `Facade::setFacadeApplication()` (renamed `MagicAlias::getMagicAliasApplication()`
-/ `MagicAlias::setMagicAliasApplication()`, with no `Voyager\MagicAliases\Facade`
-class ever having existed). Both were missed during the original port and made
-every one of the file's 19 cases fail in `beforeEach()` before any test body
-ran, which read as "blocked on Database" but wasn't — these are naming-rule
-compliance bugs in the test file itself, not a missing dependency, so they were
-fixed as part of the wave 4 conversion rather than preserved. Fixing them
-raised the file from 0/19 to 16/19 passing and surfaced three *real* remaining
-issues, left unfixed as genuine `src/` bugs outside a test-conversion pass's
-scope:
-
-* `test('batch can be deleted')` and `test('options serialization on postgres')`
-  both fail on `DatabaseBatchRepository::find()` at
-  `src/Voyager/Bus/DatabaseBatchRepository.php:87` — its `if ($batch) { return
-  ...; }` has no `else` branch, so PHP throws `Return value must be of type
-  ?Voyager\Bus\Batch, none returned` instead of implicitly returning `null`
-  (typed returns, unlike `void`, are never implicit in PHP). A one-line
-  `return null;` fix, not attempted here.
-* `test('chained closure after multiple batches is properly dispatched')` fails
-  with `Voyager\System\Bus\PendingChain::__construct(): Argument #2 ($chain)
-  must be of type array, string given` at
-  `src/Voyager/System/Bus/PendingChain.php:67` — worth a look together with
-  the `Bus`/`Queue` MagicAliases wiring the test exercises, not investigated
-  further here.
-
-## `Orchestra\Testbench` is not a dependency and never will be
-
-18 test files across `tests/Console/deferred`, `tests/Filesystem/deferred`,
-`tests/Log/deferred`, `tests/Pipeline/deferred`, `tests/System/deferred`,
-`tests/System/Stubs/` and `tests/Testing/deferred` reference
-`Orchestra\Testbench` — Laravel's package-testing harness, which boots a full
-Laravel HTTP application. This predates the Pest conversion (present on `main`
-before wave 0) and is untouched by waves 0-3; it is called out here because it
-directly contradicts the "we are not building Laravel" ground rule. `composer.json`
-has never required `orchestra/testbench`, so every one of these files errors
-with `Class "Orchestra\Testbench\TestCase" not found` if run outside
-`phpunit.xml`'s exclusions (all 18 files live in `deferred/` or are Stubs
-consumed only by `deferred/` tests, so the default suite never touches them).
-
-None of these were converted to Pest during waves 0-3 — they were left exactly
-as-is, per instruction, rather than worked around. They need a human decision
-before any later wave touches them: either rewrite each against a Voyager-native
-console/database-testing harness once one exists, or drop the file (and the
-upstream coverage it represents) outright. `tests/Testing/deferred/ConfigShowCommandTest.php`
-is the canonical example — it exercises `ConfigShowCommand` via `$this->artisan()`,
-a Testbench-only helper.
-
-## `Voyager\MagicAliases\MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15
-
-Discovered while baselining `tests/Testing/deferred/{TestDatabasesTest,InteractsWithDatabaseTest}.php`
-during the wave 3 conversion — both already failed under plain PHPUnit, before
-any Pest conversion, with:
-
-```
-TypeError: Voyager\MagicAliases\MagicAlias::shouldReceive(): Return value must be of type
-Mockery\Expectation, Mockery\CompositeExpectation returned
-```
-
-at `src/Voyager/MagicAliases/MagicAlias.php:100`. `composer show mockery/mockery`
-reports `1.6.15`. Left unfixed and the failure signature preserved exactly
-(same two files, same error) since fixing it means changing `src/` or the
-locked Mockery version, both out of scope for a test-conversion pass. Both
-files are already in `deferred/` and excluded from the default suite.
-
-[^audit]: Runtime audit and 37-check regression sweep
-[^src-tree]: Framework source tree
+[^src-tree]: Framework source tree at 8a8600f
+[^tests-yml]: GitHub Actions tests workflow
+[^pr1-ci]: PR 1 tests workflow — 6257 passed
+[^magic-alias]: MagicAlias::shouldReceive return type
 [^subpackage-manifests]: Per-package composer manifests
-[^ref-0-7-x]: 0.7.x reference implementation (Fabricate namespace)
+[^default-providers]: Default service providers
 [^agents-md]: Agent guidelines — venusian/framework
