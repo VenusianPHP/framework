@@ -1,42 +1,43 @@
 ---
 type: Playbook
 title: Local development
-description: How to install, smoke-test, and extend the Venusian framework working tree, including the missing test harness.
+description: How to install and run the Venusian 0.8.x working tree. Pest v4 is the suite; CI runs vendor/bin/pest on PHP 8.4 and 8.5.
 tags: [development, testing, pest, composer, onboarding]
 status: draft
-generated: { by: claude-code/claude-opus-5, at: 2026-08-19T21:00:00Z }
-stale_after: 2026-11-19
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+stale_after: 2026-11-21
 sources:
   - id: root-composer
     resource: ../../composer.json
     title: venusian/framework composer.json
-    author: human:angel
-    last_modified: 2026-08-19
-  - id: gitattributes
-    resource: ../../.gitattributes
-    title: Repository export-ignore rules
-  - id: tree-state
-    resource: the working tree at ../../ (tests/, config/, .github/, README.md, AGENTS.md)
-    title: Repository state as observed
-  - id: smoke-test
-    resource: composer and pest invocations in the working tree
-    title: Toolchain verification run
+  - id: tests-yml
+    resource: ../../.github/workflows/tests.yml
+    title: GitHub Actions tests workflow
+  - id: phpunit-xml
+    resource: ../../phpunit.xml
+    title: PHPUnit / Pest suite config
+  - id: pr1-ci
+    resource: https://github.com/VenusianPHP/framework/actions/runs/32527823474
+    title: PR 1 tests workflow — 6257 passed
 ---
 
 # Context
 
-You are working on the **Support foundation** of a Laravel-like framework aimed
-at sketch-based CLI workflows — see [overview](/overview.md). Most of what is
-here is ported Laravel code, so upstream behavior is the baseline and
-[divergences](/architecture/laravel-lineage.md) are what need documenting.
+You are working on `venusian/framework` **0.8.0**, a Laravel-like framework for
+windowed apps and hardware ICs. Most of `src/Voyager` is a port of
+`laravel/framework@v12.67.0`'s generic surface. See [overview](/overview.md).
 
 # Prerequisites
 
 - PHP `8.4` or `8.5`.[^root-composer]
-- `ext-intl`, required by [`Number`](/packages/nuts-and-bolts.md).
+- Extensions CI installs: `dom`, `curl`, `libxml`, `mbstring`, `intl`, `zip`,
+  `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`.[^tests-yml]
+  `intl` is required by `Number`. `pdo_sqlite` is required by Database
+  `:memory:` tests.
 - Composer 2.
-- `pestphp/pest-plugin` must be allowed — it already is, via
-  `config.allow-plugins`.[^root-composer]
+- `pestphp/pest-plugin` is already allowed in `config.allow-plugins`.
 
 # Install
 
@@ -45,8 +46,7 @@ composer install
 ```
 
 `composer.lock` is gitignored, so every install resolves fresh against
-`minimum-stability: dev` with `prefer-stable: true`.[^root-composer] Expect
-dependency versions to drift between machines; pin deliberately if that matters.
+`minimum-stability: dev` with `prefer-stable: true`.[^root-composer]
 
 # Run the tests
 
@@ -54,17 +54,25 @@ dependency versions to drift between machines; pin deliberately if that matters.
 vendor/bin/pest
 ```
 
-184 tests, 301 assertions, covering the whole Support foundation. CI runs the
-same command on PHP 8.4 and 8.5 via `.github/workflows/tests.yml`; `intl` must be
-present or every `Number` test fails.
+That is the command CI runs on PHP 8.4 and 8.5 after `actions/checkout@v5`
+and `composer update`.[^tests-yml]
 
-`tests/Regression/PortHazardsTest.php` pins the defects fixed on 2026-08-19.
-Those all failed *silently* before, so treat a regression there as significant
-rather than cosmetic — see [port hazards](/architecture/port-hazards.md).
+PR 1 (merge `8a8600f`) reported **6257 passed**, 12 skipped, 7 deprecated,
+14 notices, 18843 assertions on both versions.[^pr1-ci] Do not cite 184 tests.
+
+`phpunit.xml` defines one suite (`Framework`) over `./tests` with
+`suffix="Test.php"`, `failOnWarning` and `failOnRisky`. Every
+`tests/**/deferred/` directory is excluded.[^phpunit-xml]
+
+`tests/Pest.php` does not bind a default TestCase. It extends
+`toAcceptIterables`, resets `Sleep` and UUID generation in `afterEach`, and
+defines `nativeStringable()`.
+
+Leftover PHPUnit `TestCase` classes in Database / Queue / Notifications /
+Broadcasting still run through this command. Other packages are Pest v4
+closures. See [known gaps](/known-gaps.md).
 
 # Smoke test
-
-Quicker than the suite when you only want to know the tree loads:
 
 ```bash
 php -r 'require "vendor/autoload.php";
@@ -73,59 +81,30 @@ php -r 'require "vendor/autoload.php";
   echo Voyager\NutsAndBolts\DataObjects\Number::currency(1234.5), PHP_EOL;'
 ```
 
-Expected output: `12`, `hello-venusian-world`, `$1,234.50`.[^smoke-test]
+Expected: `12`, `hello-venusian-world`, `$1,234.50`.
 
-Do **not** include `now()` in a smoke test — it fatals. See
-[known gaps](/known-gaps.md).
-
-# Test layout
-
-`phpunit.xml` points a single `Framework` suite at `./tests`. Pest bootstraps
-through `tests/Pest.php`, which provides `nativeStringable()` — an object
-implementing only PHP's native `\Stringable`, used to prove the Collections
-paths treat any stringable alike.
-
-```
-tests/Collections/{Arr,Collection,LazyCollection}Test.php
-tests/NutsAndBolts/{Str,Stringable,Number,Conditionable,Macroable,Helpers}Test.php
-tests/Reflection/ReflectorTest.php
-tests/Regression/PortHazardsTest.php
-```
-
-`.gitattributes` export-ignores `/tests`, `/phpunit.xml` and `/.github`, so none
-of it ships in a Composer dist tarball.
-
-Writing the suite is what surfaced the `Arr::first()` and `chunk()` defects — so
-when adding coverage, call each method the way Laravel documents it rather than
-the way the local signature allows. See
-[port hazards](/architecture/port-hazards.md).
+`now()` is safe to call; it no longer fatals.
 
 # Adding a class
 
-1. Put the file in the directory of the package that owns it —
-   `src/Voyager/<Package>/`.
-2. Namespace it by **role**, not by directory: `DataObjects\` for value objects
-   and static utilities, `Concerns\` for traits, `Contracts\` for interfaces,
-   `Exceptions\` for exceptions. See
+1. Put the file in `src/Voyager/<Package>/`.
+2. Namespace by package (`Voyager\<Package>\`) or, for the NutsAndBolts family,
+   by role (`DataObjects\`, `Concerns\`, `Contracts\`). See
    [namespace and autoloading](/architecture/namespace-and-autoloading.md).
-3. Keep the leaf filename unique across `Macroable/`, `Collections/`,
-   `Conditionable/`, and `Reflection/` — a collision across those four resolves
-   silently to whichever comes first in the PSR-4 directory list.
-4. Adding a **new global helper file** means adding it to the root manifest's
-   `autoload.files` *and* the sub-package manifest's, then re-running
-   `composer dump-autoload`.
-5. Adding a cross-package dependency means updating the sub-package manifest —
-   the monorepo autoloader will not tell you that you forgot. See
-   [package split](/architecture/package-split.md).
+3. Keep leaf filenames unique across Macroable / Collections / Conditionable /
+   Reflection.
+4. A new global helper file belongs in root `autoload.files` *and* the
+   sub-package manifest, then `composer dump-autoload`.
+5. A cross-package dependency belongs in the sub-package manifest — the
+   monorepo autoloader will not tell you that you forgot.
 
 # Where the knowledge lives
 
-This `.okf/` bundle is export-ignored, so it ships with the git repository but
-not with a composer dist tarball.[^gitattributes] `README.md` and `AGENTS.md` are
-both empty; treat [overview](/overview.md) as the current entry point and update
-this bundle when the tree changes.
+This `.okf/` bundle is export-ignored. `README.md` states the product;
+`AGENTS.md` is the working contract. Update this bundle when the tree
+changes — [maintaining this knowledge bundle](maintaining-this-bundle.md).
 
 [^root-composer]: venusian/framework composer.json
-[^gitattributes]: Repository export-ignore rules
-[^tree-state]: Repository state as observed
-[^smoke-test]: Toolchain verification run
+[^tests-yml]: GitHub Actions tests workflow
+[^phpunit-xml]: PHPUnit / Pest suite config
+[^pr1-ci]: PR 1 tests workflow — 6257 passed

@@ -1,8 +1,8 @@
 # API
 
-* [Global helper functions](global-helpers.md) - the 27 global functions the framework's composer files autoload entries inject, plus one namespaced internal helper.
+* [Global helper functions](global-helpers.md) - composer `autoload.files` entries: collection helpers, support helpers, time helpers, and System helpers (`app`, `config`, `dispatch`, …).
 
 # Related
 
 * [Packages](../packages/) - the classes these helpers delegate to.
-* [Known gaps](../known-gaps.md) - `now()` fatals and the `time.php` guards are ineffective.
+* [Known gaps](../known-gaps.md) - `now()` no longer fatals; Auth/View contract aliases in System helpers are unused.
