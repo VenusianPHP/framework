@@ -6,10 +6,13 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\Pivot as InstrumentPivot;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBelongsToManySyncTouchesParentTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

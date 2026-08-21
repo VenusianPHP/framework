@@ -7,10 +7,13 @@ use Voyager\Contracts\Events\Dispatcher;
 use Voyager\Queue\FailoverQueue;
 use Voyager\Queue\QueueManager;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class FailoverQueueTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Vessel::setInstance(null);

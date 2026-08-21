@@ -10,11 +10,14 @@ use Voyager\Database\Instrument\Relations\HasMany;
 use Voyager\Database\Query\Builder as QueryBuilder;
 use Voyager\Database\UniqueConstraintViolationException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentHasManyTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testMakeMethodDoesNotSaveNewModel()
     {
         $relation = $this->getRelation();

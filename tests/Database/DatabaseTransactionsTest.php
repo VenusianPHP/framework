@@ -6,11 +6,14 @@ use Exception;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\DatabaseTransactionsManager;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
 class DatabaseTransactionsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Setup the database schema.
      *

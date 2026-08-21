@@ -7,11 +7,14 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentBelongsToManyWithDefaultAttributesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testWithPivotValueMethodSetsWhereConditionsForFetching()
     {
         $relation = $this->getMockBuilder(BelongsToMany::class)->onlyMethods(['touchIfTouching'])->setConstructorArgs($this->getRelationArguments())->getMock();

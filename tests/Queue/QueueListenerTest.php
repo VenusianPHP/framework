@@ -5,6 +5,7 @@ namespace Tests\Queue;
 use Voyager\Queue\Listener;
 use Voyager\Queue\ListenerOptions;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Composer\InstalledVersions;
 use Symfony\Component\Process\Process;
@@ -14,6 +15,8 @@ use function Voyager\NutsAndBolts\php_binary;
 
 class QueueListenerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testRunProcessCallsProcess()
     {
         $process = m::mock(Process::class)->makePartial();

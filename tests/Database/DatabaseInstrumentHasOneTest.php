@@ -9,10 +9,13 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Query\Builder as BaseBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentHasOneTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $builder;
 
     protected $related;

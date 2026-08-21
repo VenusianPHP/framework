@@ -14,10 +14,13 @@ use Voyager\Pagination\Paginator;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
 use Mockery\MockInterface;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentSoftDeletesIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

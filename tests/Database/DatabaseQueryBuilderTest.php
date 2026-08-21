@@ -30,6 +30,7 @@ use Voyager\NutsAndBolts\DataObjects\Str;
 use Tests\Database\Fixtures\Enums\Bar;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
@@ -38,6 +39,8 @@ include_once 'Enums.php';
 
 class DatabaseQueryBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $called;
 
     public function testBasicSelect()
@@ -5043,11 +5046,13 @@ class DatabaseQueryBuilderTest extends TestCase
     {
         $builder = $this->getPostgresBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = jsonb_set("options"::jsonb, \'{"name","first_name"}\', ?)', ['"John"']);
         $builder->from('users')->update(['users.options->name->first_name' => 'John']);
 
         $builder = $this->getPostgresBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = jsonb_set("options"::jsonb, \'{"language"}\', \'null\')', []);
         $builder->from('users')->update(['options->language' => new Raw("'null'")]);
     }
@@ -5056,6 +5061,7 @@ class DatabaseQueryBuilderTest extends TestCase
     {
         $builder = $this->getPostgresBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = ?, "meta" = jsonb_set("meta"::jsonb, \'{"tags"}\', ?), "group_id" = 45, "created_at" = ?', [
                 json_encode(['2fa' => false, 'presets' => ['laravel', 'vue']]),
                 json_encode(['white', 'large']),
@@ -5074,6 +5080,7 @@ class DatabaseQueryBuilderTest extends TestCase
     {
         $builder = $this->getPostgresBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = jsonb_set("options"::jsonb, \'{1,"2fa"}\', ?), "meta" = jsonb_set("meta"::jsonb, \'{"tags",0,2}\', ?) where ("options"->1->\'2fa\')::jsonb = \'true\'::jsonb', [
                 'false',
                 '"large"',
@@ -5090,6 +5097,7 @@ class DatabaseQueryBuilderTest extends TestCase
         $builder = $this->getSQLiteBuilder();
 
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = ?, "group_id" = 45, "created_at" = ?', [
                 json_encode(['2fa' => false, 'presets' => ['laravel', 'vue']]),
                 new DateTime('2019-08-06'),
@@ -5106,6 +5114,7 @@ class DatabaseQueryBuilderTest extends TestCase
     {
         $builder = $this->getSQLiteBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "group_id" = 45, "created_at" = ?, "options" = json_patch(ifnull("options", json(\'{}\')), json(?))', [
                 new DateTime('2019-08-06'),
                 json_encode(['name' => 'Taylor', 'security' => ['2fa' => false, 'presets' => ['laravel', 'vue']], 'sharing' => ['twitter' => 'username']]),
@@ -5124,6 +5133,7 @@ class DatabaseQueryBuilderTest extends TestCase
     {
         $builder = $this->getSQLiteBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = json_patch(ifnull("options", json(\'{}\')), json(?)), "meta" = json_patch(ifnull("meta", json(\'{}\')), json(?)) where json_extract("options", \'$[1]."2fa"\') = true', [
                 '{"[1]":{"2fa":false}}',
                 '{"tags[0][2]":"large"}',
@@ -5225,6 +5235,7 @@ SQL;
         // so single quotes must be escaped there as well...
         $builder = $this->getPostgresBuilder();
         $builder->getConnection()->shouldReceive('update')
+            ->once()
             ->with('update "users" set "options" = jsonb_set("options"::jsonb, \'{"\'\'))#"}\', ?)', ['"John"']);
         $builder->from('users')->update(["options->'))#" => 'John']);
     }

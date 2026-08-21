@@ -8,10 +8,13 @@ use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\MorphToMany;
 use Voyager\Database\Query\Expression;
 use Voyager\Database\Schema\Blueprint;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBelongsToManyExpressionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

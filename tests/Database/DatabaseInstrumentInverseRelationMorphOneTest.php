@@ -9,10 +9,13 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\MorphOne;
 use Voyager\Database\Instrument\Relations\MorphTo;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentInverseRelationMorphOneTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Setup the database schema.
      *

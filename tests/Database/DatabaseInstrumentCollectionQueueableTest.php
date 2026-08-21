@@ -6,10 +6,13 @@ use Voyager\Database\Instrument\Collection;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\Pivot;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentCollectionQueueableTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testSerializesPivotsEntitiesId()
     {
         $spy = m::spy(Pivot::class);

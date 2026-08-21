@@ -7,11 +7,14 @@ use Voyager\Database\MariaDbConnection;
 use Voyager\Database\Schema\MariaDbSchemaState;
 use Pdo\Mysql;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 class DatabaseMariaDbSchemaStateTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     #[DataProvider('provider')]
     public function testConnectionString(string $expectedConnectionString, array $expectedVariables, array $dbConfig): void
     {

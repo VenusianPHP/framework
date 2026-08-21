@@ -4,7 +4,11 @@ use Voyager\Filesystem\Filesystem;
 use Voyager\System\PackageManifest;
 
 test('the manifest is compiled from the installed packages', function () {
-    @unlink(__DIR__.'/fixtures/packages.php');
+    $compiled = __DIR__.'/fixtures/packages.php';
+
+    if (is_file($compiled)) {
+        unlink($compiled);
+    }
 
     $manifest = new PackageManifest(new Filesystem, __DIR__.'/fixtures', __DIR__.'/fixtures/packages.php');
 

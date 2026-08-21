@@ -5,6 +5,7 @@ namespace Tests\Queue;
 use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueue;
 use Voyager\NutsAndBolts\MagicAliases\Queue;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Voyager\Bus\Dispatcher as BusDispatcher;
 use Voyager\Contracts\Bus\Dispatcher as BusDispatcherContract;
@@ -16,6 +17,8 @@ use Voyager\Vessel\Vessel;
 
 class QueueSizeTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Laravel runs these against a Testbench application. `Queue::fake()` and
      * the `dispatch()` helper only need a container carrying a queue manager

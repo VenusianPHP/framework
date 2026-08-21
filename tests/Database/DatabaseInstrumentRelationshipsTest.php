@@ -19,10 +19,13 @@ use Voyager\Database\Query\Builder as BaseBuilder;
 use Voyager\Database\Query\Grammars\Grammar;
 use Voyager\Database\Query\Processors\Processor;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentRelationshipsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testStandardRelationships()
     {
         $post = new Post;

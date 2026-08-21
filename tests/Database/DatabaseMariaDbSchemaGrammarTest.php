@@ -10,10 +10,13 @@ use Voyager\Database\Schema\Grammars\MariaDbGrammar;
 use Voyager\Database\Schema\MariaDbBuilder;
 use Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMariaDbSchemaGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateTable()
     {
         $conn = $this->getConnection();

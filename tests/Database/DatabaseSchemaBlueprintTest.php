@@ -9,10 +9,13 @@ use Voyager\Database\Schema\Builder;
 use Voyager\Database\Schema\Grammars\MySqlGrammar;
 use Tests\Database\Fixtures\Models\User;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSchemaBlueprintTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Builder::$defaultMorphKeyType = 'int';

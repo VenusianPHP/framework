@@ -19,6 +19,8 @@ function sleptMicroseconds(Sleep $sleep): float
 }
 
 describe('real sleeping', function () {
+    beforeEach(fn () => Sleep::fake(false));
+
     test('it sleeps for whole seconds', function () {
         $start = microtime(true);
         Sleep::for(1)->seconds();

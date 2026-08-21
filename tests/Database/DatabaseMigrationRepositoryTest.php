@@ -8,11 +8,14 @@ use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Database\Migrations\DatabaseMigrationRepository;
 use Voyager\NutsAndBolts\Collection;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseMigrationRepositoryTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testGetRanMigrationsListMigrationsByPackage()
     {
         $repo = $this->getRepository();

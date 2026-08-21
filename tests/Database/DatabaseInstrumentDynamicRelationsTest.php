@@ -8,10 +8,13 @@ use Voyager\Database\Instrument\Relations\HasMany;
 use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Query\Builder as Query;
 use Tests\Database\DynamicRelationModel2 as Related;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentDynamicRelationsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicDynamicRelations()
     {
         DynamicRelationModel::resolveRelationUsing('dynamicRel_2', fn () => new FakeHasManyRel);

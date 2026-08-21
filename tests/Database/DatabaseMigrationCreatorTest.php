@@ -6,10 +6,13 @@ use Voyager\Database\Migrations\MigrationCreator;
 use Voyager\Filesystem\Filesystem;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMigrationCreatorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateMethodStoresMigrationFile()
     {
         $creator = $this->getCreator();

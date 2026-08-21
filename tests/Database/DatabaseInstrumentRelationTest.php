@@ -11,10 +11,13 @@ use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Instrument\Relations\Relation;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentRelationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testSetRelationFail()
     {
         $parent = new InstrumentRelationResetModelStub;

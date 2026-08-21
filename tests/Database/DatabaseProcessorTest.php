@@ -7,10 +7,13 @@ use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Processors\Processor;
 use Mockery as m;
 use PDO;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseProcessorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testInsertGetIdProcessing()
     {
         $pdo = $this->createMock(ProcessorTestPDOStub::class);

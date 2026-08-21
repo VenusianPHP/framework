@@ -10,6 +10,7 @@ use Voyager\Database\Console\Migrations\RollbackCommand;
 use Voyager\Database\Events\DatabaseRefreshed;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -17,6 +18,8 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationRefreshCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         RefreshCommand::prohibit(false);

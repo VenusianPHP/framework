@@ -40,7 +40,7 @@ class NullDispatcher implements DispatcherContract
      */
     public function dispatch($event, $payload = [], $halt = false): mixed
     {
-        //
+        return null;
     }
 
     /**
@@ -64,7 +64,7 @@ class NullDispatcher implements DispatcherContract
      */
     public function until($event, $payload = []): mixed
     {
-        //
+        return null;
     }
 
     /**

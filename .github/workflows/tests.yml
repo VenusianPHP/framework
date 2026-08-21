@@ -19,13 +19,14 @@ jobs:
     name: PHP ${{ matrix.php }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           # intl is required by Voyager\NutsAndBolts\DataObjects\Number
-          extensions: dom, curl, libxml, mbstring, intl, zip
+          # pdo_sqlite is required by Database integration tests (:memory:)
+          extensions: dom, curl, libxml, mbstring, intl, zip, pdo, pdo_sqlite, pdo_mysql, gmp
           coverage: none
 
       - name: Install Composer dependencies

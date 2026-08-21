@@ -6,10 +6,13 @@ use Exception;
 use Voyager\Queue\Failed\FileFailedJobProvider;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Voyager\NutsAndBolts\DataObjects\Str;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class FileFailedJobProviderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $path;
 
     protected $provider;

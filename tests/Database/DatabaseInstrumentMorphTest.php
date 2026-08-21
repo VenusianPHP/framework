@@ -12,10 +12,13 @@ use Voyager\Database\Instrument\Relations\Relation;
 use Voyager\Database\Query\Builder as QueryBuilder;
 use Voyager\Database\UniqueConstraintViolationException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentMorphTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Relation::morphMap([], false);

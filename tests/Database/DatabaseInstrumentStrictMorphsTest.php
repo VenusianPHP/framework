@@ -6,10 +6,13 @@ use Voyager\Database\ClassMorphViolationException;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\Pivot;
 use Voyager\Database\Instrument\Relations\Relation;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentStrictMorphsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -54,6 +57,8 @@ class DatabaseInstrumentStrictMorphsTest extends TestCase
 
     public function testMapIgnoreGenericPivotClass()
     {
+        $this->expectNotToPerformAssertions();
+
         $pivotModel = new Pivot();
 
         $pivotModel->getMorphClass();

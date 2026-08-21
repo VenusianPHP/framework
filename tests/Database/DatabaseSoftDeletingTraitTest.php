@@ -5,11 +5,14 @@ namespace Tests\Database;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseSoftDeletingTraitTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testDeleteSetsSoftDeletedColumn()
     {
         $model = m::mock(DatabaseSoftDeletingTraitStub::class);

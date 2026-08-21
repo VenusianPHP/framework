@@ -6,12 +6,15 @@ use Voyager\System\Application;
 use Voyager\Queue\Console\ListFailedCommand;
 use Voyager\Queue\Failed\FailedJobProviderInterface;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 class QueueListFailedCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         m::close();

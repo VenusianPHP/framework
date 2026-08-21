@@ -39,5 +39,11 @@ test('the environment file is loaded into every accessor', function () {
 test('a missing environment file fails silently', function () {
     $this->expectOutputString('');
 
-    (new LoadEnvironmentVariables)->bootstrap(environmentApplicationFor('BAD_FILE'));
+    set_error_handler(static fn (): bool => true);
+
+    try {
+        (new LoadEnvironmentVariables)->bootstrap(environmentApplicationFor('BAD_FILE'));
+    } finally {
+        restore_error_handler();
+    }
 });

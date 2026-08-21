@@ -15,11 +15,14 @@ use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Schema\Blueprint;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Group;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 #[Group('integration')]
 class InstrumentModelCustomCastingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

@@ -8,10 +8,13 @@ use Voyager\Database\QueryException;
 use Voyager\NutsAndBolts\MagicAliases\DB;
 use Mockery as m;
 use PDOException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseQueryExceptionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testIfItEmbedsBindingsIntoSql()
     {
         $connection = $this->getConnection();

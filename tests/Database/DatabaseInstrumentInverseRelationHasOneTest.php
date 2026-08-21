@@ -9,10 +9,13 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\BelongsTo;
 use Voyager\Database\Instrument\Relations\HasOne;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentInverseRelationHasOneTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Setup the database schema.
      *

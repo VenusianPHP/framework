@@ -6,10 +6,13 @@ use Voyager\Database\Connection;
 use Voyager\Database\Schema\Grammars\MariaDbGrammar;
 use Voyager\Database\Schema\MariaDbBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMariaDbBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCreateDatabase()
     {
         $connection = m::mock(Connection::class);

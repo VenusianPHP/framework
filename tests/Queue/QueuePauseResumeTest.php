@@ -11,10 +11,13 @@ use Voyager\Queue\Events\QueueResumed;
 use Voyager\Queue\QueueManager;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class QueuePauseResumeTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $manager;
     protected $cache;
 

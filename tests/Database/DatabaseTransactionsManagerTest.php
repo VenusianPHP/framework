@@ -3,10 +3,13 @@
 namespace Tests\Database;
 
 use Voyager\Database\DatabaseTransactionsManager;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseTransactionsManagerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBeginningTransactions()
     {
         $manager = new DatabaseTransactionsManager;

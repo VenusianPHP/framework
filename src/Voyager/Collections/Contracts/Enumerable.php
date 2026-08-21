@@ -3,6 +3,7 @@
 namespace Voyager\NutsAndBolts\Contracts;
 
 use CachingIterator;
+use Closure;
 use Countable;
 use Exception;
 use InvalidArgumentException;
@@ -224,7 +225,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Enumerable<array-key, TKey>|array<array-key, TKey> $keys
      * @return static
      */
-    public function except(Enumerable|array $keys): static;
+    public function except(mixed $keys): static;
 
     /**
      * Run a filter over each of the items.
@@ -442,7 +443,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TValue> $items
      * @return static
      */
-    public function intersect(Arrayable|array $items): static;
+    public function intersect(Arrayable|iterable|null $items): static;
 
     /**
      * Intersect the collection with the given items, using the callback.
@@ -676,7 +677,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param string|Enumerable<array-key, TKey>|array<array-key, TKey> $keys
      * @return static
      */
-    public function only(Enumerable|array|string $keys): static;
+    public function only(mixed $keys): static;
 
     /**
      * "Paginate" the collection by slicing it into a smaller collection.
@@ -707,7 +708,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @throws InvalidArgumentException
      */
-    public function random(int|callable|null $number = null): static;
+    public function random(int|callable|null $number = null): mixed;
 
     /**
      * Reduce the collection to a single value.
@@ -1000,7 +1001,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param string|null $key
      * @return static<array-key, mixed>
      */
-    public function pluck(array|string $value, ?string $key = null);
+    public function pluck(array|string|int|Closure $value, array|string|int|Closure|null $key = null);
 
     /**
      * Create a collection of all elements that do not pass a given truth test.

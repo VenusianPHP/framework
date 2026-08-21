@@ -22,12 +22,15 @@ use Mockery as m;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use stdClass;
 
 class DatabaseConnectionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testSettingDefaultCallsGetDefaultGrammar()
     {
         $connection = $this->getMockConnection();

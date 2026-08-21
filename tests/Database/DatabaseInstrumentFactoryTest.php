@@ -20,11 +20,14 @@ use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use Tests\Database\Fixtures\Models\Money\Price;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 class DatabaseInstrumentFactoryTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $container = Vessel::getInstance();
@@ -698,9 +701,9 @@ class DatabaseInstrumentFactoryTest extends TestCase
     public function test_resolve_nested_model_name_from_factory()
     {
         Vessel::getInstance()->instance(Application::class, $app = m::mock(Application::class));
-        $app->shouldReceive('getNamespace')->andReturn('Voyager\\Tests\\Database\\Fixtures\\');
+        $app->shouldReceive('getNamespace')->andReturn('Tests\\Database\\Fixtures\\');
 
-        Factory::useNamespace('Voyager\\Tests\\Database\\Fixtures\\Factories\\');
+        Factory::useNamespace('Tests\\Database\\Fixtures\\Factories\\');
 
         $factory = Price::factory();
 
@@ -966,7 +969,7 @@ class DatabaseInstrumentFactoryTest extends TestCase
             ->make();
 
         $this->assertNull($comment->user_id);
-        $this->assertNull($comment->commentable->id);
+        $this->assertNull($comment->commentable);
     }
 
     public function test_can_default_to_without_parents()

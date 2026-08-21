@@ -3,10 +3,13 @@
 namespace Tests\Database;
 
 use Voyager\Database\Query\Processors\MySqlProcessor;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMySqlProcessorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testProcessColumns()
     {
         $processor = new MySqlProcessor;

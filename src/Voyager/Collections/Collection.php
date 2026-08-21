@@ -2,6 +2,7 @@
 
 namespace Voyager\NutsAndBolts;
 
+use Closure;
 use stdClass;
 use UnitEnum;
 use Traversable;
@@ -405,7 +406,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  Enumerable<array-key, TKey>|array<array-key, TKey>|string  $keys
      * @return static
      */
-    public function except(Enumerable|array $keys): static
+    public function except(mixed $keys): static
     {
         if (is_null($keys)) {
             return $this->newInstance($this->items);
@@ -659,7 +660,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param Arrayable<TKey, TValue>|iterable<TKey, TValue>  $items
      * @return static
      */
-    public function intersect(Arrayable|array $items): static
+    public function intersect(Arrayable|iterable|null $items): static
     {
         return $this->newInstance(array_intersect($this->items, $this->getArrayableItems($items)));
     }
@@ -815,7 +816,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  \Closure|string|null  $key
      * @return static<array-key, mixed>
      */
-    public function pluck(array|string $value, ?string $key = null)
+    public function pluck(array|string|int|Closure $value, array|string|int|Closure|null $key = null)
     {
         return $this->newInstance(Arr::pluck($this->items, $value, $key));
     }
@@ -984,7 +985,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  Enumerable<array-key, TKey>|array<array-key, TKey>|string|null  $keys
      * @return static
      */
-    public function only(Enumerable|array|string $keys): static
+    public function only(mixed $keys): static
     {
         if (is_null($keys)) {
             return $this->newInstance($this->items);
@@ -1150,7 +1151,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @throws \InvalidArgumentException
      */
-    public function random(int|callable|null $number = null, bool $preserveKeys = false): static
+    public function random(int|callable|null $number = null, bool $preserveKeys = false): mixed
     {
         if (is_null($number)) {
             return Arr::random($this->items);

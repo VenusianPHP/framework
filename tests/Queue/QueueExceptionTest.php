@@ -5,10 +5,13 @@ namespace Tests\Queue;
 use Voyager\Queue\Jobs\RedisJob;
 use Voyager\Queue\MaxAttemptsExceededException;
 use Voyager\Queue\TimeoutExceededException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class QueueExceptionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function test_it_can_create_timeout_exception_for_job()
     {
         $e = TimeoutExceededException::forJob($job = new MyFakeRedisJob());

@@ -12,11 +12,14 @@ use PDO;
 use PDOStatement;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RequiresPhpExtension;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseConnectorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testOptionResolution()
     {
         $connector = new Connector;

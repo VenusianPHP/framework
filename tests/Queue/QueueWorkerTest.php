@@ -22,11 +22,14 @@ use Voyager\Queue\WorkerOptions;
 use Voyager\Queue\WorkerStopReason;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class QueueWorkerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public $events;
     public $exceptionHandler;
     public $maintenanceFlags;

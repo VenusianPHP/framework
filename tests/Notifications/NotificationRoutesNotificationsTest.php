@@ -8,11 +8,14 @@ use Voyager\Notifications\RoutesNotifications;
 use Voyager\NutsAndBolts\MagicAliases\Notification;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class NotificationRoutesNotificationsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Vessel::setInstance(null);
@@ -27,7 +30,7 @@ class NotificationRoutesNotificationsTest extends TestCase
         $container->instance(Dispatcher::class, $factory);
         $notifiable = new RoutesNotificationsTestInstance;
         $instance = new stdClass;
-        $factory->shouldReceive('send')->with($notifiable, $instance);
+        $factory->shouldReceive('send')->once()->with($notifiable, $instance);
         Vessel::setInstance($container);
 
         $notifiable->notify($instance);
@@ -40,7 +43,7 @@ class NotificationRoutesNotificationsTest extends TestCase
         $container->instance(Dispatcher::class, $factory);
         $notifiable = new RoutesNotificationsTestInstance;
         $instance = new stdClass;
-        $factory->shouldReceive('sendNow')->with($notifiable, $instance, null);
+        $factory->shouldReceive('sendNow')->once()->with($notifiable, $instance, null);
         Vessel::setInstance($container);
 
         $notifiable->notifyNow($instance);

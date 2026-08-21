@@ -300,7 +300,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function except(Enumerable|array $keys): static
+    public function except(mixed $keys): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -448,7 +448,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function intersect(Arrayable|array $items): static
+    public function intersect(Arrayable|iterable|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -526,7 +526,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function pluck(array|string $value, ?string $key = null)
+    public function pluck(array|string|int|Closure $value, array|string|int|Closure|null $key = null)
     {
         return new static(function () use ($value, $key) {
             [$value, $key] = $this->explodePluckParameters($value, $key);
@@ -646,7 +646,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function only(Enumerable|array|string $keys): static
+    public function only(mixed $keys): static
     {
         if ($keys instanceof Enumerable) {
             $keys = $keys->all();
@@ -713,7 +713,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function random(int|callable|null $number = null): static
+    public function random(int|callable|null $number = null): mixed
     {
         if (is_null($number)) {
             return $this->take(1);

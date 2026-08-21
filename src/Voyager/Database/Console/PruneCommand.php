@@ -148,7 +148,7 @@ class PruneCommand extends Command
      *
      * @return string[]|string
      */
-    protected function getPath(): string
+    protected function getPath(): array|string
     {
         if (! empty($path = $this->option('path'))) {
             return (new Collection($path))

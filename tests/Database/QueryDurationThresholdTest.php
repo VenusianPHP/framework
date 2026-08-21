@@ -8,10 +8,13 @@ use Voyager\Events\Dispatcher;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use PDO;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class QueryDurationThresholdTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * @var \Voyager\NutsAndBolts\DataObjects\Carbon
      */

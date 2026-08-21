@@ -9,10 +9,13 @@ use Voyager\Database\Instrument\Relations\HasMany;
 use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Query\Builder as QueryBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class InstrumentHasOneOrManyDeprecationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testHasManyMatchWithNullLocalKey(): void
     {
         $relation = $this->getHasManyRelation();

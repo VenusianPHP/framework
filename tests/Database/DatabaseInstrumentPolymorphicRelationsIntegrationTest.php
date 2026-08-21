@@ -5,10 +5,13 @@ namespace Tests\Database;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\Relation;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentPolymorphicRelationsIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Bootstrap Instrument.
      *

@@ -8,10 +8,13 @@ use Voyager\Database\Instrument\ModelNotFoundException;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\LazyCollection;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentHasManyThroughIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

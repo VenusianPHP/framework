@@ -6,10 +6,13 @@ use Voyager\Database\Connection;
 use Voyager\Database\Schema\Grammars\SqlServerGrammar;
 use Voyager\Database\Schema\SqlServerBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class SqlServerBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCreateDatabase()
     {
         $connection = m::mock(Connection::class);

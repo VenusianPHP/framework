@@ -10,11 +10,14 @@ use Voyager\Database\Query\Builder as BaseBuilder;
 use Voyager\Database\Query\Grammars\Grammar;
 use Voyager\Database\Query\Processors\Processor;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseSoftDeletingScopeTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testApplyingScopeToABuilder()
     {
         $scope = m::mock(SoftDeletingScope::class.'[extend]');

@@ -13,10 +13,13 @@ use Voyager\Database\Instrument\Relations\HasOneThrough;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\Database\Schema\Builder;
 use InvalidArgumentException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentHasOneThroughOfManyTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

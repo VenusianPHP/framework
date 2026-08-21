@@ -4,10 +4,13 @@ namespace Tests\Database;
 
 use Voyager\Database\Instrument\Concerns\PreventsCircularRecursion;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseConcernsPreventsCircularRecursionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

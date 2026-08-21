@@ -8,10 +8,13 @@ use Voyager\Database\Query\Grammars\MySqlGrammar;
 use Voyager\Database\Query\Processors\Processor;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMySqlQueryGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testToRawSql()
     {
         $connection = m::mock(Connection::class);

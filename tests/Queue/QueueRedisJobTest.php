@@ -6,11 +6,14 @@ use Voyager\Vessel\Vessel;
 use Voyager\Queue\Jobs\RedisJob;
 use Voyager\Queue\RedisQueue;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class QueueRedisJobTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testFireProperlyCallsTheJobHandler()
     {
         $job = $this->getJob();

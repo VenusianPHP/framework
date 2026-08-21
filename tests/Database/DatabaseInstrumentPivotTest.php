@@ -9,11 +9,14 @@ use Voyager\Database\Instrument\Relations\Pivot;
 use Voyager\Database\Query\Grammars\Grammar;
 use Voyager\Database\Query\Processors\Processor;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentPivotTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testPropertiesAreSetCorrectly()
     {
         $parent = m::mock(Model::class.'[getConnectionName]');

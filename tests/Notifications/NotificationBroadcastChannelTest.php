@@ -9,10 +9,13 @@ use Voyager\Notifications\Events\BroadcastNotificationCreated;
 use Voyager\Notifications\Messages\BroadcastMessage;
 use Voyager\Notifications\Notification;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class NotificationBroadcastChannelTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testDatabaseChannelCreatesDatabaseRecordWithProperData()
     {
         $notification = new NotificationBroadcastChannelTestNotification;

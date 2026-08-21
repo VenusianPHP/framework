@@ -319,7 +319,7 @@ test('clear clears the whole cache', function () {
     $repo = repositoryWithMockStore();
     $repo->getStore()->shouldReceive('flush')->andReturn(true);
 
-    $repo->clear();
+    expect($repo->clear())->toBeTrue();
 });
 
 test('getMultiple gets multiple values from the cache', function () {
