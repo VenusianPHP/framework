@@ -1,88 +1,68 @@
 <?php
 
-namespace Tests\Validation;
-
 use Tests\Validation\fixtures\Values;
+use Tests\Validation\IntegerStatus;
+use Tests\Validation\PureEnum;
+use Tests\Validation\StringStatus;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\NotIn;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-include_once 'Enums.php';
+test('it correctly formats a string version of the rule', function () {
+    $rule = new NotIn(['Laravel', 'Framework', 'PHP']);
+    expect((string) $rule)->toBe('not_in:"Laravel","Framework","PHP"');
 
-class ValidationNotInRuleTest extends TestCase
-{
-    public function testItCorrectlyFormatsAStringVersionOfTheRule()
-    {
-        $rule = new NotIn(['Laravel', 'Framework', 'PHP']);
+    $rule = new NotIn(collect(['Taylor', 'Michael', 'Tim']));
+    expect((string) $rule)->toBe('not_in:"Taylor","Michael","Tim"');
 
-        $this->assertSame('not_in:"Laravel","Framework","PHP"', (string) $rule);
+    $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $rule = new NotIn(collect(['Taylor', 'Michael', 'Tim']));
+    $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $this->assertSame('not_in:"Taylor","Michael","Tim"', (string) $rule);
+    $rule = Rule::notIn([1, 2, 3, 4]);
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $rule = Rule::notIn(new Values);
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    $rule = new NotIn(new Values);
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $rule = Rule::notIn('1', '2', '3', '4');
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $rule = Rule::notIn([1, 2, 3, 4]);
+    $rule = new NotIn('1', '2', '3', '4');
+    expect((string) $rule)->toBe('not_in:"1","2","3","4"');
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $rule = Rule::notIn([StringStatus::done]);
+    expect((string) $rule)->toBe('not_in:"done"');
 
-        $rule = Rule::notIn(collect([1, 2, 3, 4]));
+    $rule = Rule::notIn([IntegerStatus::done]);
+    expect((string) $rule)->toBe('not_in:"2"');
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $rule = Rule::notIn([PureEnum::one]);
+    expect((string) $rule)->toBe('not_in:"one"');
+});
 
-        $rule = Rule::notIn(new Values);
+test('not in rule validation', function () {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => Rule::notIn('bar', 'baz')]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = new NotIn(new Values);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => (string) Rule::notIn('bar', 'baz')]);
+    expect($v->passes())->toBeTrue();
 
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => [Rule::notIn('foo', 'bar')]]);
+    expect($v->passes())->toBeFalse();
 
-        $rule = Rule::notIn('1', '2', '3', '4');
-
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
-
-        $rule = new NotIn('1', '2', '3', '4');
-
-        $this->assertSame('not_in:"1","2","3","4"', (string) $rule);
-
-        $rule = Rule::notIn([StringStatus::done]);
-
-        $this->assertSame('not_in:"done"', (string) $rule);
-
-        $rule = Rule::notIn([IntegerStatus::done]);
-
-        $this->assertSame('not_in:"2"', (string) $rule);
-
-        $rule = Rule::notIn([PureEnum::one]);
-
-        $this->assertSame('not_in:"one"', (string) $rule);
-    }
-
-    public function testNotInRuleValidation()
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => Rule::notIn('bar', 'baz')]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => (string) Rule::notIn('bar', 'baz')]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => [Rule::notIn('foo', 'bar')]]);
-        $this->assertFalse($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['required', Rule::notIn('bar', 'baz')]]);
-        $this->assertTrue($v->passes());
-    }
-}
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['required', Rule::notIn('bar', 'baz')]]);
+    expect($v->passes())->toBeTrue();
+});

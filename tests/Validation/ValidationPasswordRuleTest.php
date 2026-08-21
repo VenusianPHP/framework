@@ -1,8 +1,5 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Validation\Rule as RuleContract;
 use Voyager\MagicAliases\MagicAlias;
 use Voyager\Translation\ArrayLoader;
@@ -10,55 +7,97 @@ use Voyager\Translation\Translator;
 use Voyager\Validation\Rules\Password;
 use Voyager\Validation\ValidationServiceProvider;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class ValidationPasswordRuleTest extends TestCase
+function passwordAssertValidationRules($rule, $values, $result, $messages)
 {
-    public function testString()
-    {
-        $this->fails(Password::min(3), [['foo' => 'bar'], ['foo']], [
+    foreach ($values as $value) {
+        $v = new Validator(
+            resolve('translator'),
+            ['my_password' => $value, 'my_password_confirmation' => $value],
+            ['my_password' => is_object($rule) ? clone $rule : $rule]
+        );
+
+        expect($v->passes())->toBe($result)
+            ->and($v->messages()->toArray())->toBe($result ? [] : ['my_password' => $messages]);
+    }
+}
+
+function passwordPasses($rule, $values)
+{
+    passwordAssertValidationRules($rule, $values, true, []);
+}
+
+function passwordFails($rule, $values, $messages)
+{
+    passwordAssertValidationRules($rule, $values, false, $messages);
+}
+
+beforeEach(function () {
+    $container = Vessel::getInstance();
+
+    $container->bind('translator', function () {
+        return new Translator(
+            new ArrayLoader, 'en'
+        );
+    });
+
+    MagicAlias::setMagicAliasApplication($container);
+
+    (new ValidationServiceProvider($container))->register();
+});
+
+afterEach(function () {
+    Vessel::setInstance(null);
+
+    MagicAlias::clearResolvedInstances();
+
+    MagicAlias::setMagicAliasApplication(null);
+
+    Password::$defaultCallback = null;
+});
+
+test('string', function () {
+        passwordFails(Password::min(3), [['foo' => 'bar'], ['foo']], [
             'validation.string',
             'validation.min.string',
         ]);
 
-        $this->fails(Password::min(3), [1234567, 545], [
+        passwordFails(Password::min(3), [1234567, 545], [
             'validation.string',
         ]);
 
-        $this->passes(Password::min(3), ['abcd', '454qb^', '接2133手田']);
-    }
+        passwordPasses(Password::min(3), ['abcd', '454qb^', '接2133手田']);
+    });
 
-    public function testMin()
-    {
-        $this->fails(new Password(8), ['a', 'ff', '12'], [
+test('min', function () {
+        passwordFails(new Password(8), ['a', 'ff', '12'], [
             'validation.min.string',
         ]);
 
-        $this->fails(Password::min(3), ['a', 'ff', '12'], [
+        passwordFails(Password::min(3), ['a', 'ff', '12'], [
             'validation.min.string',
         ]);
 
-        $this->passes(Password::min(3), ['333', 'abcd']);
-        $this->passes(new Password(8), ['88888888']);
-    }
+        passwordPasses(Password::min(3), ['333', 'abcd']);
+        passwordPasses(new Password(8), ['88888888']);
+    });
 
-    public function testMax()
-    {
-        $this->fails(Password::min(2)->max(4), ['aaaaa', '11111111'], [
+test('max', function () {
+        passwordFails(Password::min(2)->max(4), ['aaaaa', '11111111'], [
             'validation.max.string',
         ]);
 
-        $this->passes(Password::min(2)->max(3), ['aa', '111']);
-    }
+        passwordPasses(Password::min(2)->max(3), ['aa', '111']);
+    });
 
-    public function testConditional()
-    {
+test('conditional', function () {
         $is_privileged_user = true;
         $rule = (new Password(8))->when($is_privileged_user, function ($rule) {
             $rule->symbols();
         });
 
-        $this->fails($rule, ['aaaaaaaa', '11111111'], [
+        passwordFails($rule, ['aaaaaaaa', '11111111'], [
             'validation.password.symbols',
         ]);
 
@@ -67,56 +106,50 @@ class ValidationPasswordRuleTest extends TestCase
             $rule->symbols();
         });
 
-        $this->passes($rule, ['aaaaaaaa', '11111111']);
-    }
+        passwordPasses($rule, ['aaaaaaaa', '11111111']);
+    });
 
-    public function testMixedCase()
-    {
-        $this->fails(Password::min(2)->mixedCase(), ['nn', 'MM'], [
+test('mixed case', function () {
+        passwordFails(Password::min(2)->mixedCase(), ['nn', 'MM'], [
             'validation.password.mixed',
         ]);
 
-        $this->passes(Password::min(2)->mixedCase(), ['Nn', 'Mn', 'âA']);
-    }
+        passwordPasses(Password::min(2)->mixedCase(), ['Nn', 'Mn', 'âA']);
+    });
 
-    public function testLetters()
-    {
-        $this->fails(Password::min(2)->letters(), ['11', '22', '^^', '``', '**'], [
+test('letters', function () {
+        passwordFails(Password::min(2)->letters(), ['11', '22', '^^', '``', '**'], [
             'validation.password.letters',
         ]);
 
-        $this->passes(Password::min(2)->letters(), ['1a', 'b2', 'â1', '1 京都府']);
-    }
+        passwordPasses(Password::min(2)->letters(), ['1a', 'b2', 'â1', '1 京都府']);
+    });
 
-    public function testNumbers()
-    {
-        $this->fails(Password::min(2)->numbers(), ['aa', 'bb', '  a', '京都府'], [
+test('numbers', function () {
+        passwordFails(Password::min(2)->numbers(), ['aa', 'bb', '  a', '京都府'], [
             'validation.password.numbers',
         ]);
 
-        $this->passes(Password::min(2)->numbers(), ['1a', 'b2', '00', '京都府 1']);
-    }
+        passwordPasses(Password::min(2)->numbers(), ['1a', 'b2', '00', '京都府 1']);
+    });
 
-    public function testDefaultRules()
-    {
-        $this->fails(Password::min(3), [null], [
+test('default rules', function () {
+        passwordFails(Password::min(3), [null], [
             'validation.string',
             'validation.min.string',
         ]);
-    }
+    });
 
-    public function testSymbols()
-    {
-        $this->fails(Password::min(2)->symbols(), ['ab', '1v'], [
+test('symbols', function () {
+        passwordFails(Password::min(2)->symbols(), ['ab', '1v'], [
             'validation.password.symbols',
         ]);
 
-        $this->passes(Password::min(2)->symbols(), ['n^d', 'd^!', 'âè$', '金廿土弓竹中；']);
-    }
+        passwordPasses(Password::min(2)->symbols(), ['n^d', 'd^!', 'âè$', '金廿土弓竹中；']);
+    });
 
-    public function testUncompromised()
-    {
-        $this->fails(Password::min(2)->uncompromised(), [
+test('uncompromised', function () {
+        passwordFails(Password::min(2)->uncompromised(), [
             '123456',
             'password',
             'welcome',
@@ -128,11 +161,11 @@ class ValidationPasswordRuleTest extends TestCase
             'validation.password.uncompromised',
         ]);
 
-        $this->passes(Password::min(2)->uncompromised(9999999), [
+        passwordPasses(Password::min(2)->uncompromised(9999999), [
             'nuno',
         ]);
 
-        $this->passes(Password::min(2)->uncompromised(), [
+        passwordPasses(Password::min(2)->uncompromised(), [
             '手田日尸Ｚ難金木水口火女月土廿卜竹弓一十山',
             '!p8VrB',
             '&xe6VeKWF#n4',
@@ -141,67 +174,66 @@ class ValidationPasswordRuleTest extends TestCase
             '7Z^k5EvqQ9g%c!Jt9$ufnNpQy#Kf',
             'NRs*Gz2@hSmB$vVBSPDfqbRtEzk4nF7ZAbM29VMW$BPD%b2U%3VmJAcrY5eZGVxP%z%apnwSX',
         ]);
-    }
+    });
 
-    public function testMessagesOrder()
-    {
+test('messages order', function () {
         $makeRules = function () {
             return ['required', Password::min(8)->mixedCase()->numbers()];
         };
 
-        $this->fails($makeRules(), [null], [
+        passwordFails($makeRules(), [null], [
             'validation.required',
         ]);
 
-        $this->fails($makeRules(), ['foo', 'azdazd'], [
+        passwordFails($makeRules(), ['foo', 'azdazd'], [
             'validation.min.string',
             'validation.password.mixed',
             'validation.password.numbers',
         ]);
 
-        $this->fails($makeRules(), ['1231231'], [
+        passwordFails($makeRules(), ['1231231'], [
             'validation.min.string',
             'validation.password.mixed',
         ]);
 
-        $this->fails($makeRules(), ['4564654564564'], [
+        passwordFails($makeRules(), ['4564654564564'], [
             'validation.password.mixed',
         ]);
 
-        $this->fails($makeRules(), ['aaaaaaaaa', 'TJQSJQSIUQHS'], [
+        passwordFails($makeRules(), ['aaaaaaaaa', 'TJQSJQSIUQHS'], [
             'validation.password.mixed',
             'validation.password.numbers',
         ]);
 
-        $this->passes($makeRules(), ['4564654564564Abc']);
+        passwordPasses($makeRules(), ['4564654564564Abc']);
 
         $makeRules = function () {
             return ['nullable', 'confirmed', Password::min(8)->letters()->symbols()->uncompromised()];
         };
 
-        $this->passes($makeRules(), [null]);
+        passwordPasses($makeRules(), [null]);
 
-        $this->fails($makeRules(), ['foo', 'azdazd'], [
+        passwordFails($makeRules(), ['foo', 'azdazd'], [
             'validation.min.string',
             'validation.password.symbols',
         ]);
 
-        $this->fails($makeRules(), ['1231231'], [
+        passwordFails($makeRules(), ['1231231'], [
             'validation.min.string',
             'validation.password.letters',
             'validation.password.symbols',
         ]);
 
-        $this->fails($makeRules(), ['aaaaaaaaa', 'TJQSJQSIUQHS'], [
+        passwordFails($makeRules(), ['aaaaaaaaa', 'TJQSJQSIUQHS'], [
             'validation.password.symbols',
         ]);
 
-        $this->fails($makeRules(), ['4564654564564'], [
+        passwordFails($makeRules(), ['4564654564564'], [
             'validation.password.letters',
             'validation.password.symbols',
         ]);
 
-        $this->fails($makeRules(), ['abcabcabc!'], [
+        passwordFails($makeRules(), ['abcabcabc!'], [
             'validation.password.uncompromised',
         ]);
 
@@ -211,22 +243,17 @@ class ValidationPasswordRuleTest extends TestCase
             ['my_password' => ['nullable', 'confirmed', Password::min(3)->letters()]]
         );
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertSame(
-            ['my_password' => ['validation.confirmed']],
-            $v->messages()->toArray()
-        );
-    }
+        expect($v->messages()->toArray())->toBe(['my_password' => ['validation.confirmed']]);
+    });
 
-    public function testItCanUseDefault()
-    {
-        $this->assertInstanceOf(Password::class, Password::default());
-    }
+test('it can use default', function () {
+        expect(Password::default())->toBeInstanceOf(Password::class);
+    });
 
-    public function testItCanSetDefaultUsing()
-    {
-        $this->assertInstanceOf(Password::class, Password::default());
+test('it can set default using', function () {
+        expect(Password::default())->toBeInstanceOf(Password::class);
 
         $password = Password::min(3);
         $password2 = Password::min(2)->mixedCase();
@@ -235,28 +262,23 @@ class ValidationPasswordRuleTest extends TestCase
             return $password;
         });
 
-        $this->passes(Password::default(), ['abcd', '454qb^', '接2133手田']);
-        $this->assertSame($password, Password::default());
-        $this->assertInstanceOf(Password::class, Password::required());
-        $this->assertInstanceOf(Password::class, Password::sometimes());
+        passwordPasses(Password::default(), ['abcd', '454qb^', '接2133手田']);
+        expect(Password::default())->toBe($password);
+        expect(Password::required())->toBeInstanceOf(Password::class);
+        expect(Password::sometimes())->toBeInstanceOf(Password::class);
 
         Password::defaults($password2);
-        $this->passes(Password::default(), ['Nn', 'Mn', 'âA']);
-        $this->assertSame($password2, Password::default());
-        $this->assertInstanceOf(Password::class, Password::required());
-        $this->assertInstanceOf(Password::class, Password::sometimes());
-    }
+        passwordPasses(Password::default(), ['Nn', 'Mn', 'âA']);
+        expect(Password::default())->toBe($password2);
+        expect(Password::required())->toBeInstanceOf(Password::class);
+        expect(Password::sometimes())->toBeInstanceOf(Password::class);
+    });
 
-    public function testItCannotSetDefaultUsingGivenString()
-    {
-        $this->expectException('InvalidArgumentException');
-        $this->expectExceptionMessage('given callback should be callable');
-
+test('it cannot set default using given string', function () {
         Password::defaults('required|password');
-    }
+    })->throws(InvalidArgumentException::class, 'given callback should be callable');
 
-    public function testItPassesWithValidDataIfTheSameValidationRulesAreReused()
-    {
+test('it passes with valid data if the same validation rules are reused', function () {
         $rules = [
             'password' => Password::default(),
         ];
@@ -267,7 +289,7 @@ class ValidationPasswordRuleTest extends TestCase
             $rules
         );
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
         $v1 = new Validator(
             resolve('translator'),
@@ -275,11 +297,10 @@ class ValidationPasswordRuleTest extends TestCase
             $rules
         );
 
-        $this->assertTrue($v1->passes());
-    }
+        expect($v1->passes())->toBeTrue();
+    });
 
-    public function testCustomMessages()
-    {
+test('custom messages', function () {
         $rules = [
             'my_password' => Password::min(6)->letters(),
         ];
@@ -296,16 +317,12 @@ class ValidationPasswordRuleTest extends TestCase
             $messages,
         );
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertSame(
-            ['my_password' => array_values($messages)],
-            $v->messages()->toArray()
-        );
-    }
+        expect($v->messages()->toArray())->toBe(['my_password' => array_values($messages)]);
+    });
 
-    public function testPassesWithCustomRules()
-    {
+test('passes with custom rules', function () {
         $closureRule = function ($attribute, $value, $fail) {
             if ($value !== 'aa') {
                 $fail('Custom rule closure failed');
@@ -325,22 +342,21 @@ class ValidationPasswordRuleTest extends TestCase
             }
         };
 
-        $this->passes(Password::min(2)->rules($closureRule), ['aa']);
-        $this->passes(Password::min(2)->rules([$closureRule]), ['aa']);
-        $this->passes(Password::min(2)->rules($ruleObject), ['aa']);
-        $this->passes(Password::min(2)->rules([$closureRule, $ruleObject]), ['aa']);
+        passwordPasses(Password::min(2)->rules($closureRule), ['aa']);
+        passwordPasses(Password::min(2)->rules([$closureRule]), ['aa']);
+        passwordPasses(Password::min(2)->rules($ruleObject), ['aa']);
+        passwordPasses(Password::min(2)->rules([$closureRule, $ruleObject]), ['aa']);
 
-        $this->fails(Password::min(2)->rules($closureRule), ['ab'], [
+        passwordFails(Password::min(2)->rules($closureRule), ['ab'], [
             'Custom rule closure failed',
         ]);
 
-        $this->fails(Password::min(2)->rules($ruleObject), ['ab'], [
+        passwordFails(Password::min(2)->rules($ruleObject), ['ab'], [
             'Custom rule object failed',
         ]);
-    }
+    });
 
-    public function testCanRetrieveAllRulesApplied()
-    {
+test('can retrieve all rules applied', function () {
         $password = Password::min(2)
             ->max(4)
             ->mixedCase()
@@ -348,7 +364,7 @@ class ValidationPasswordRuleTest extends TestCase
             ->letters()
             ->symbols();
 
-        $this->assertSame($password->appliedRules(), [
+        expect([
             'min' => 2,
             'max' => 4,
             'mixedCase' => true,
@@ -358,11 +374,11 @@ class ValidationPasswordRuleTest extends TestCase
             'uncompromised' => false,
             'compromisedThreshold' => 0,
             'customRules' => [],
-        ]);
+        ])->toBe($password->appliedRules());
 
         $password = Password::min(2);
 
-        $this->assertSame($password->appliedRules(), [
+        expect([
             'min' => 2,
             'max' => null,
             'mixedCase' => false,
@@ -372,88 +388,85 @@ class ValidationPasswordRuleTest extends TestCase
             'uncompromised' => false,
             'compromisedThreshold' => 0,
             'customRules' => [],
-        ]);
-    }
+        ])->toBe($password->appliedRules());
+    });
 
-    public function testRequired()
-    {
-        $this->fails(Password::required(), [null], [
+test('required', function () {
+        passwordFails(Password::required(), [null], [
             'validation.required',
         ]);
 
-        $this->passes(Password::required(), ['12345678', 'password123']);
+        passwordPasses(Password::required(), ['12345678', 'password123']);
 
-        $this->fails([Password::required()], ['short'], [
+        passwordFails([Password::required()], ['short'], [
             'validation.min.string',
         ]);
 
-        $this->passes(Password::required()->mixedCase()->numbers(), ['Password1']);
+        passwordPasses(Password::required()->mixedCase()->numbers(), ['Password1']);
 
         // Ensure it still correct when using array
-        $this->passes([Password::required()], ['12345678', 'password123']);
+        passwordPasses([Password::required()], ['12345678', 'password123']);
 
-        $this->fails([Password::required()], ['short'], [
+        passwordFails([Password::required()], ['short'], [
             'validation.min.string',
         ]);
 
-        $this->passes(['string', Password::required()], ['12345678', 'password123']);
+        passwordPasses(['string', Password::required()], ['12345678', 'password123']);
 
-        $this->passes([Password::required()->mixedCase()->numbers()], ['Password1']);
+        passwordPasses([Password::required()->mixedCase()->numbers()], ['Password1']);
 
         // Test with custom defaults
         Password::defaults(Password::min(6)->letters());
 
-        $this->fails(Password::required(), [null], [
+        passwordFails(Password::required(), [null], [
             'validation.required',
         ]);
 
-        $this->passes(Password::required(), ['Password123', 'password123']);
-        $this->passes([Password::required()], ['Password123', 'password123']);
-    }
+        passwordPasses(Password::required(), ['Password123', 'password123']);
+        passwordPasses([Password::required()], ['Password123', 'password123']);
+    });
 
-    public function testSometimes()
-    {
-        $this->fails(Password::sometimes(), ['short'], [
+test('sometimes', function () {
+        passwordFails(Password::sometimes(), ['short'], [
             'validation.min.string',
         ]);
 
-        $this->passes(Password::sometimes(), ['12345678', 'password123']);
+        passwordPasses(Password::sometimes(), ['12345678', 'password123']);
 
-        $this->fails([Password::sometimes()], ['12345'], [
+        passwordFails([Password::sometimes()], ['12345'], [
             'validation.min.string',
         ]);
 
-        $this->passes(Password::sometimes()->mixedCase()->numbers(), ['Password1']);
+        passwordPasses(Password::sometimes()->mixedCase()->numbers(), ['Password1']);
 
         // Ensure it still correct when using array
-        $this->passes([Password::sometimes()], ['12345678', 'password123']);
+        passwordPasses([Password::sometimes()], ['12345678', 'password123']);
 
-        $this->fails([Password::sometimes()], ['12345'], [
+        passwordFails([Password::sometimes()], ['12345'], [
             'validation.min.string',
         ]);
 
-        $this->passes(['string', Password::sometimes()], ['12345678', 'password123']);
+        passwordPasses(['string', Password::sometimes()], ['12345678', 'password123']);
 
-        $this->passes([Password::sometimes()->mixedCase()->numbers()], ['Password1']);
+        passwordPasses([Password::sometimes()->mixedCase()->numbers()], ['Password1']);
 
         // Test with custom defaults
         Password::defaults(Password::min(6)->letters());
 
-        $this->passes(Password::sometimes(), ['Password123', 'password123']);
-        $this->passes([Password::sometimes()], ['Password123', 'password123']);
-    }
+        passwordPasses(Password::sometimes(), ['Password123', 'password123']);
+        passwordPasses([Password::sometimes()], ['Password123', 'password123']);
+    });
 
-    public function testRequiredWithMissingValue()
-    {
+test('required with missing value', function () {
         $v = new Validator(
             resolve('translator'),
             [],
             ['password' => [Password::required()]]
         );
 
-        $this->assertFalse($v->passes());
-        $this->assertArrayHasKey('password', $v->messages()->toArray());
-        $this->assertStringContainsString('required', $v->messages()->first('password'));
+        expect($v->passes())->toBeFalse();
+        expect($v->messages()->toArray())->toHaveKey('password');
+        expect($v->messages()->first('password'))->toContain('required');
 
         $v = \Voyager\NutsAndBolts\MagicAliases\Validator::make(
             [],
@@ -462,18 +475,17 @@ class ValidationPasswordRuleTest extends TestCase
             ]
         );
 
-        $this->assertFalse($v->passes());
-    }
+        expect($v->passes())->toBeFalse();
+    });
 
-    public function testNullableWithEmptyString()
-    {
+test('nullable with empty string', function () {
         $v = new Validator(
             resolve('translator'),
             ['password' => ''],
             ['password' => ['nullable', Password::min(8)->letters()->numbers()]]
         );
 
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
 
         $v = new Validator(
             resolve('translator'),
@@ -481,7 +493,7 @@ class ValidationPasswordRuleTest extends TestCase
             ['password' => ['nullable', Password::min(8)->letters()->numbers()]]
         );
 
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
 
         $v = new Validator(
             resolve('translator'),
@@ -489,68 +501,11 @@ class ValidationPasswordRuleTest extends TestCase
             ['password' => ['nullable', Password::sometimes()->min(8)->letters()->numbers()]]
         );
 
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    public function testItCanReturnsAsUnpackedArray()
-    {
-        $this->assertSame(['required', 'string', 'min:8'], [...Password::required()]);
-        $this->assertSame(['sometimes', 'string', 'min:8'], [...Password::sometimes()]);
-    }
+test('it can returns as unpacked array', function () {
+        expect([...Password::required()])->toBe(['required', 'string', 'min:8']);
+        expect([...Password::sometimes()])->toBe(['sometimes', 'string', 'min:8']);
+    });
 
-    protected function passes($rule, $values)
-    {
-        $this->assertValidationRules($rule, $values, true, []);
-    }
-
-    protected function fails($rule, $values, $messages)
-    {
-        $this->assertValidationRules($rule, $values, false, $messages);
-    }
-
-    protected function assertValidationRules($rule, $values, $result, $messages)
-    {
-        foreach ($values as $value) {
-            $v = new Validator(
-                resolve('translator'),
-                ['my_password' => $value, 'my_password_confirmation' => $value],
-                ['my_password' => is_object($rule) ? clone $rule : $rule]
-            );
-
-            $this->assertSame($result, $v->passes());
-
-            $this->assertSame(
-                $result ? [] : ['my_password' => $messages],
-                $v->messages()->toArray()
-            );
-        }
-    }
-
-    protected function setUp(): void
-    {
-        $container = Vessel::getInstance();
-
-        $container->bind('translator', function () {
-            return new Translator(
-                new ArrayLoader, 'en'
-            );
-        });
-
-        MagicAlias::setMagicAliasApplication($container);
-
-        (new ValidationServiceProvider($container))->register();
-    }
-
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
-
-        MagicAlias::clearResolvedInstances();
-
-        MagicAlias::setMagicAliasApplication(null);
-
-        Password::$defaultCallback = null;
-
-        parent::tearDown();
-    }
-}

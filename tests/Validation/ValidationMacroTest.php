@@ -1,40 +1,34 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Validation\Rule;
-use PHPUnit\Framework\TestCase;
 
-class ValidationMacroTest extends TestCase
-{
-    public function testMacroable()
-    {
-        // Define a phone validation macro
-        Rule::macro('phone', function () {
-            return 'regex:/^([0-9\s\-\+\(\)]*)$/';
-        });
+test('macroable', function () {
+    // Define a phone validation macro
+    Rule::macro('phone', function () {
+        return 'regex:/^([0-9\s\-\+\(\)]*)$/';
+    });
 
-        $actualRule = Rule::phone();
-        $this->assertSame('regex:/^([0-9\s\-\+\(\)]*)$/', $actualRule);
-    }
+    $actualRule = Rule::phone();
 
-    public function testMacroArguments()
-    {
-        Rule::macro('maxLength', function (int $length) {
-            return "max:{$length}";
-        });
+    expect($actualRule)->toBe('regex:/^([0-9\s\-\+\(\)]*)$/');
+});
 
-        $actualRule = Rule::maxLength(10);
-        $this->assertSame('max:10', $actualRule);
-    }
+test('macro arguments', function () {
+    Rule::macro('maxLength', function (int $length) {
+        return "max:{$length}";
+    });
 
-    public function testMacroDefaultArguments()
-    {
-        Rule::macro('maxLength', function ($length = 255) {
-            return "max:{$length}";
-        });
+    $actualRule = Rule::maxLength(10);
 
-        $actualRule = Rule::maxLength();  // No argument provided, should use default value
-        $this->assertSame('max:255', $actualRule);
-    }
-}
+    expect($actualRule)->toBe('max:10');
+});
+
+test('macro default arguments', function () {
+    Rule::macro('maxLength', function ($length = 255) {
+        return "max:{$length}";
+    });
+
+    $actualRule = Rule::maxLength();  // No argument provided, should use default value
+
+    expect($actualRule)->toBe('max:255');
+});

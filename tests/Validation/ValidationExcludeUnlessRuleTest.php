@@ -1,88 +1,67 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\ExcludeUnless;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationExcludeUnlessRuleTest extends TestCase
-{
-    protected Translator $translator;
+beforeEach(function () {
+    $this->translator = new Translator(new ArrayLoader, 'en');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('instance of', function () {
+    expect(Rule::excludeUnless(true))->toBeInstanceOf(ExcludeUnless::class);
+});
 
-        $this->translator = new Translator(new ArrayLoader, 'en');
-    }
+test('boolean condition true', function () {
+    $rule = Rule::excludeUnless(true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testInstanceOf()
-    {
-        $this->assertInstanceOf(ExcludeUnless::class, Rule::excludeUnless(true));
-    }
+test('boolean condition false', function () {
+    $rule = Rule::excludeUnless(false);
+    expect((string) $rule)->toBe('exclude');
+});
 
-    public function testBooleanConditionTrue()
-    {
-        $rule = Rule::excludeUnless(true);
-        $this->assertSame('', (string) $rule);
-    }
+test('closure condition true', function () {
+    $rule = Rule::excludeUnless(fn () => true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testBooleanConditionFalse()
-    {
-        $rule = Rule::excludeUnless(false);
-        $this->assertSame('exclude', (string) $rule);
-    }
+test('closure condition false', function () {
+    $rule = Rule::excludeUnless(fn () => false);
+    expect((string) $rule)->toBe('exclude');
+});
 
-    public function testClosureConditionTrue()
-    {
-        $rule = Rule::excludeUnless(fn () => true);
-        $this->assertSame('', (string) $rule);
-    }
+test('field is excluded when condition false', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor', 'extra' => 'value'],
+        [
+            'name' => 'required|string',
+            'extra' => [Rule::excludeUnless(false), 'string'],
+        ],
+    );
 
-    public function testClosureConditionFalse()
-    {
-        $rule = Rule::excludeUnless(fn () => false);
-        $this->assertSame('exclude', (string) $rule);
-    }
+    expect($validator->passes())->toBeTrue()
+        ->and($validator->validated())->not->toHaveKey('extra');
+});
 
-    public function testFieldIsExcludedWhenConditionFalse()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor', 'extra' => 'value'],
-            [
-                'name' => 'required|string',
-                'extra' => [Rule::excludeUnless(false), 'string'],
-            ],
-        );
+test('field is kept when condition true', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor', 'extra' => 'value'],
+        [
+            'name' => 'required|string',
+            'extra' => [Rule::excludeUnless(true), 'string'],
+        ],
+    );
 
-        $this->assertTrue($validator->passes());
-        $this->assertArrayNotHasKey('extra', $validator->validated());
-    }
+    expect($validator->passes())->toBeTrue()
+        ->and($validator->validated())->toHaveKey('extra');
+});
 
-    public function testFieldIsKeptWhenConditionTrue()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor', 'extra' => 'value'],
-            [
-                'name' => 'required|string',
-                'extra' => [Rule::excludeUnless(true), 'string'],
-            ],
-        );
-
-        $this->assertTrue($validator->passes());
-        $this->assertArrayHasKey('extra', $validator->validated());
-    }
-
-    public function testInvalidConditionThrows()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        Rule::excludeUnless('invalid');
-    }
-}
+test('invalid condition throws', function () {
+    Rule::excludeUnless('invalid');
+})->throws(InvalidArgumentException::class);

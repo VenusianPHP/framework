@@ -1,87 +1,72 @@
 <?php
 
-namespace Tests\Validation;
-
-use Exception;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rules\ProhibitedIf;
 use Voyager\Validation\Validator;
-use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
-use stdClass;
 
-class ValidationProhibitedIfTest extends TestCase
-{
-    public function testItReturnsStringVersionOfRuleWhenCast()
-    {
-        $rule = new ProhibitedIf(function () {
-            return true;
-        });
+test('it returns string version of rule when cast', function () {
+    $rule = new ProhibitedIf(function () {
+        return true;
+    });
 
-        $this->assertSame('prohibited', (string) $rule);
+    expect((string) $rule)->toBe('prohibited');
 
-        $rule = new ProhibitedIf(function () {
-            return false;
-        });
+    $rule = new ProhibitedIf(function () {
+        return false;
+    });
 
-        $this->assertSame('', (string) $rule);
+    expect((string) $rule)->toBe('');
 
-        $rule = new ProhibitedIf(true);
+    $rule = new ProhibitedIf(true);
 
-        $this->assertSame('prohibited', (string) $rule);
+    expect((string) $rule)->toBe('prohibited');
 
-        $rule = new ProhibitedIf(false);
+    $rule = new ProhibitedIf(false);
 
-        $this->assertSame('', (string) $rule);
-    }
+    expect((string) $rule)->toBe('');
+});
 
-    public function testItValidatesCallableAndBooleanAreAcceptableArguments()
-    {
-        new ProhibitedIf(false);
-        new ProhibitedIf(true);
-        new ProhibitedIf(fn () => true);
+test('it validates callable and boolean are acceptable arguments', function () {
+    new ProhibitedIf(false);
+    new ProhibitedIf(true);
+    new ProhibitedIf(fn () => true);
 
-        foreach ([1, 1.1, 'phpinfo', new stdClass] as $condition) {
-            try {
-                new ProhibitedIf($condition);
-                $this->fail('The ProhibitedIf constructor must not accept '.gettype($condition));
-            } catch (InvalidArgumentException $exception) {
-                $this->assertEquals('The provided condition must be a callable or boolean.', $exception->getMessage());
-            }
+    foreach ([1, 1.1, 'phpinfo', new stdClass] as $condition) {
+        try {
+            new ProhibitedIf($condition);
+            $this->fail('The ProhibitedIf constructor must not accept '.gettype($condition));
+        } catch (InvalidArgumentException $exception) {
+            expect($exception->getMessage())->toEqual('The provided condition must be a callable or boolean.');
         }
     }
+});
 
-    public function testItThrowsExceptionIfRuleIsNotSerializable()
-    {
-        $this->expectException(Exception::class);
+test('it throws exception if rule is not serializable', function () {
+    serialize(new ProhibitedIf(function () {
+        return true;
+    }));
+})->throws(Exception::class);
 
-        serialize(new ProhibitedIf(function () {
-            return true;
-        }));
-    }
+test('prohibited if rule validation', function () {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-    public function testProhibitedIfRuleValidation()
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
+    $rule = new ProhibitedIf(true);
 
-        $rule = new ProhibitedIf(true);
+    $v = new Validator($trans, ['y' => 'foo'], ['x' => $rule]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['y' => 'foo'], ['x' => $rule]);
-        $this->assertTrue($v->passes());
+    $v = new Validator($trans, ['y' => 'foo'], ['x' => (string) $rule]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['y' => 'foo'], ['x' => (string) $rule]);
-        $this->assertTrue($v->passes());
+    $v = new Validator($trans, ['y' => 'foo'], ['x' => [$rule]]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['y' => 'foo'], ['x' => [$rule]]);
-        $this->assertTrue($v->passes());
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
+    expect($v->fails())->toBeTrue();
 
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
-        $this->assertTrue($v->fails());
+    $rule = new ProhibitedIf(false);
 
-        $rule = new ProhibitedIf(false);
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
-        $this->assertTrue($v->passes());
-    }
-}
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
+    expect($v->passes())->toBeTrue();
+});

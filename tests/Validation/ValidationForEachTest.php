@@ -1,17 +1,16 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationForEachTest extends TestCase
+function foreachTranslator()
 {
-    public function testForEachCallbacksCanProperlySegmentRules()
-    {
+    return new Translator(new ArrayLoader, 'en');
+}
+
+test('for each callbacks can properly segment rules', function () {
         $data = [
             'items' => [
                 // Contains duplicate ID.
@@ -26,20 +25,19 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.discounts.0.id' => ['validation.distinct'],
             'items.0.discounts.1.id' => ['validation.distinct'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksCanBeRecursivelyNested()
-    {
+test('for each callbacks can be recursively nested', function () {
         $data = [
             'items' => [
                 // Contains duplicate ID.
@@ -58,20 +56,19 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.discounts.0.id' => ['validation.distinct'],
             'items.0.discounts.1.id' => ['validation.distinct'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksCanReturnMultipleValidationRules()
-    {
+test('for each callbacks can return multiple validation rules', function () {
         $data = [
             'items' => [
                 [
@@ -105,13 +102,13 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.discounts.0.id' => ['validation.distinct'],
             'items.0.discounts.1.id' => ['validation.distinct'],
             'items.0.discounts.1.percent' => ['validation.min.numeric'],
@@ -120,11 +117,10 @@ class ValidationForEachTest extends TestCase
             'items.1.discounts.1.percent' => ['validation.numeric'],
             'items.1.discounts.2.percent' => ['validation.numeric'],
             'items.1.discounts.2.discount' => ['validation.numeric'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksCanReturnArraysOfValidationRules()
-    {
+test('for each callbacks can return arrays of validation rules', function () {
         $data = [
             'items' => [
                 // Contains duplicate ID.
@@ -139,21 +135,20 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.discounts.0.id' => ['validation.distinct'],
             'items.0.discounts.1.id' => ['validation.distinct'],
             'items.1.discounts.1.id' => ['validation.numeric'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksCanReturnDifferentRules()
-    {
+test('for each callbacks can return different rules', function () {
         $data = [
             'items' => [
                 [
@@ -186,22 +181,21 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.discounts.0.id' => ['validation.distinct'],
             'items.0.discounts.1.id' => ['validation.distinct'],
             'items.0.discounts.0.discount' => ['validation.max.numeric'],
             'items.1.discounts.0.discount' => ['validation.numeric'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksDoNotBreakRegexRules()
-    {
+test('for each callbacks do not break regex rules', function () {
         $data = [
             'items' => [
                 ['users' => [['type' => 'super'], ['type' => 'invalid']]],
@@ -214,19 +208,18 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.users.1.type' => ['validation.regex'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachCallbacksCanContainMultipleRegexRules()
-    {
+test('for each callbacks can contain multiple regex rules', function () {
         $data = [
             'items' => [
                 ['users' => [['type' => 'super'], ['type' => 'invalid']]],
@@ -242,24 +235,23 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = foreachTranslator();
 
         $v = new Validator($trans, $data, $rules);
 
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'items.0.users.1.type' => [
                 'validation.regex',
                 'validation.notregex',
             ],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testConditionalRulesCanBeAddedToForEachWithAssociativeArray()
-    {
+test('conditional rules can be added to for each with associative array', function () {
         $v = new Validator(
-            $this->getVoyagerArrayTranslator(),
+            foreachTranslator(),
             [
                 'foo' => [
                     ['bar' => true],
@@ -273,15 +265,14 @@ class ValidationForEachTest extends TestCase
             ]
         );
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'foo.1.bar' => ['validation.accepted'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testConditionalRulesCanBeAddedToForEachWithList()
-    {
+test('conditional rules can be added to for each with list', function () {
         $v = new Validator(
-            $this->getVoyagerArrayTranslator(),
+            foreachTranslator(),
             [
                 'foo' => [
                     ['bar' => true],
@@ -294,15 +285,14 @@ class ValidationForEachTest extends TestCase
                 ]),
             ]);
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'foo.1.bar' => ['validation.accepted'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testConditionalRulesCanBeAddedToForEachWithObject()
-    {
+test('conditional rules can be added to for each with object', function () {
         $v = new Validator(
-            $this->getVoyagerArrayTranslator(),
+            foreachTranslator(),
             [
                 'foo' => [
                     ['bar' => true],
@@ -314,13 +304,12 @@ class ValidationForEachTest extends TestCase
                 ),
             ]);
 
-        $this->assertEquals([
+        expect($v->getMessageBag()->toArray())->toEqual([
             'foo.1.bar' => ['validation.accepted'],
-        ], $v->getMessageBag()->toArray());
-    }
+        ]);
+    });
 
-    public function testForEachWithEmptyAndNullValues()
-    {
+test('for each with empty and null values', function () {
         $data = [
             'items' => [
                 ['discounts' => null],
@@ -338,22 +327,12 @@ class ValidationForEachTest extends TestCase
             }),
         ];
 
-        $v = new Validator($this->getVoyagerArrayTranslator(), $data, $rules);
-        $this->assertFalse($v->passes());
-        $this->assertEquals(
-            [
+        $v = new Validator(foreachTranslator(), $data, $rules);
+        expect($v->passes())->toBeFalse();
+        expect($v->getMessageBag()->toArray())->toEqual([
                 'items.0.discounts' => ['validation.required'],
                 'items.1.discounts' => ['validation.required'],
                 'items.2.discounts.0' => ['validation.required'],
-            ],
-            $v->getMessageBag()->toArray()
-        );
-    }
+            ]);
+    });
 
-    public function getVoyagerArrayTranslator()
-    {
-        return new Translator(
-            new ArrayLoader, 'en'
-        );
-    }
-}

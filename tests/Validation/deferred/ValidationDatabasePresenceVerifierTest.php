@@ -1,22 +1,13 @@
 <?php
 
-namespace Tests\Validation;
-
-use Closure;
 use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Validation\DatabasePresenceVerifier;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
-use stdClass;
 
-class ValidationDatabasePresenceVerifierTest extends TestCase
-{
-    public function testBasicCount()
-    {
-        $verifier = new DatabasePresenceVerifier($db = m::mock(ConnectionResolverInterface::class));
+test('basic count', function () {
+        $verifier = new DatabasePresenceVerifier($db = Mockery::mock(ConnectionResolverInterface::class));
         $verifier->setConnection('connection');
-        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = m::mock(stdClass::class));
-        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = m::mock(stdClass::class));
+        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = Mockery::mock(stdClass::class));
+        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = Mockery::mock(stdClass::class));
         $builder->shouldReceive('useWritePdo')->once()->andReturn($builder);
         $builder->shouldReceive('where')->with('column', '=', 'value')->andReturn($builder);
         $extra = ['foo' => 'NULL', 'bar' => 'NOT_NULL', 'baz' => 'taylor', 'faz' => true, 'not' => '!admin'];
@@ -27,15 +18,14 @@ class ValidationDatabasePresenceVerifierTest extends TestCase
         $builder->shouldReceive('where')->with('not', '!=', 'admin');
         $builder->shouldReceive('count')->once()->andReturn(100);
 
-        $this->assertEquals(100, $verifier->getCount('table', 'column', 'value', null, null, $extra));
-    }
+        expect($verifier->getCount('table', 'column', 'value', null, null, $extra))->toEqual(100);
+    });
 
-    public function testBasicCountWithClosures()
-    {
-        $verifier = new DatabasePresenceVerifier($db = m::mock(ConnectionResolverInterface::class));
+test('basic count with closures', function () {
+        $verifier = new DatabasePresenceVerifier($db = Mockery::mock(ConnectionResolverInterface::class));
         $verifier->setConnection('connection');
-        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = m::mock(stdClass::class));
-        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = m::mock(stdClass::class));
+        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = Mockery::mock(stdClass::class));
+        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = Mockery::mock(stdClass::class));
         $builder->shouldReceive('useWritePdo')->once()->andReturn($builder);
         $builder->shouldReceive('where')->with('column', '=', 'value')->andReturn($builder);
         $closure = function ($query) {
@@ -47,26 +37,25 @@ class ValidationDatabasePresenceVerifierTest extends TestCase
         $builder->shouldReceive('where')->with('baz', 'taylor');
         $builder->shouldReceive('where')->with('faz', true);
         $builder->shouldReceive('where')->with('not', '!=', 'admin');
-        $builder->shouldReceive('where')->with(m::type(Closure::class))->andReturnUsing(function () use ($builder, $closure) {
+        $builder->shouldReceive('where')->with(Mockery::type(Closure::class))->andReturnUsing(function () use ($builder, $closure) {
             $closure($builder);
         });
         $builder->shouldReceive('where')->with('closure', 1);
         $builder->shouldReceive('count')->once()->andReturn(100);
 
-        $this->assertEquals(100, $verifier->getCount('table', 'column', 'value', null, null, $extra));
-    }
+        expect($verifier->getCount('table', 'column', 'value', null, null, $extra))->toEqual(100);
+    });
 
-    public function testGetCountWithValidExcludeId()
-    {
-        $verifier = new DatabasePresenceVerifier($db = m::mock(ConnectionResolverInterface::class));
+test('get count with valid exclude id', function () {
+        $verifier = new DatabasePresenceVerifier($db = Mockery::mock(ConnectionResolverInterface::class));
         $verifier->setConnection('connection');
-        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = m::mock(stdClass::class));
-        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = m::mock(stdClass::class));
+        $db->shouldReceive('connection')->once()->with('connection')->andReturn($conn = Mockery::mock(stdClass::class));
+        $conn->shouldReceive('table')->once()->with('table')->andReturn($builder = Mockery::mock(stdClass::class));
         $builder->shouldReceive('useWritePdo')->once()->andReturn($builder);
         $builder->shouldReceive('where')->with('column', '=', 'value')->andReturn($builder);
         $builder->shouldReceive('where')->with('id', '<>', 123)->andReturn($builder);
         $builder->shouldReceive('count')->once()->andReturn(100);
 
-        $this->assertEquals(100, $verifier->getCount('table', 'column', 'value', 123, 'id', []));
-    }
-}
+        expect($verifier->getCount('table', 'column', 'value', 123, 'id', []))->toEqual(100);
+    });
+

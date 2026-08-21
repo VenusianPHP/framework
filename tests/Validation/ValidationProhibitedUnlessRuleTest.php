@@ -1,86 +1,65 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\ProhibitedUnless;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationProhibitedUnlessRuleTest extends TestCase
-{
-    protected Translator $translator;
+beforeEach(function () {
+    $this->translator = new Translator(new ArrayLoader, 'en');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('instance of', function () {
+    expect(Rule::prohibitedUnless(true))->toBeInstanceOf(ProhibitedUnless::class);
+});
 
-        $this->translator = new Translator(new ArrayLoader, 'en');
-    }
+test('boolean condition true', function () {
+    $rule = Rule::prohibitedUnless(true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testInstanceOf()
-    {
-        $this->assertInstanceOf(ProhibitedUnless::class, Rule::prohibitedUnless(true));
-    }
+test('boolean condition false', function () {
+    $rule = Rule::prohibitedUnless(false);
+    expect((string) $rule)->toBe('prohibited');
+});
 
-    public function testBooleanConditionTrue()
-    {
-        $rule = Rule::prohibitedUnless(true);
-        $this->assertSame('', (string) $rule);
-    }
+test('closure condition true', function () {
+    $rule = Rule::prohibitedUnless(fn () => true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testBooleanConditionFalse()
-    {
-        $rule = Rule::prohibitedUnless(false);
-        $this->assertSame('prohibited', (string) $rule);
-    }
+test('closure condition false', function () {
+    $rule = Rule::prohibitedUnless(fn () => false);
+    expect((string) $rule)->toBe('prohibited');
+});
 
-    public function testClosureConditionTrue()
-    {
-        $rule = Rule::prohibitedUnless(fn () => true);
-        $this->assertSame('', (string) $rule);
-    }
+test('field is prohibited when condition false', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor', 'secret' => 'value'],
+        [
+            'name' => 'required|string',
+            'secret' => [Rule::prohibitedUnless(false)],
+        ],
+    );
 
-    public function testClosureConditionFalse()
-    {
-        $rule = Rule::prohibitedUnless(fn () => false);
-        $this->assertSame('prohibited', (string) $rule);
-    }
+    expect($validator->fails())->toBeTrue();
+});
 
-    public function testFieldIsProhibitedWhenConditionFalse()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor', 'secret' => 'value'],
-            [
-                'name' => 'required|string',
-                'secret' => [Rule::prohibitedUnless(false)],
-            ],
-        );
+test('field is allowed when condition true', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor', 'secret' => 'value'],
+        [
+            'name' => 'required|string',
+            'secret' => [Rule::prohibitedUnless(true)],
+        ],
+    );
 
-        $this->assertTrue($validator->fails());
-    }
+    expect($validator->passes())->toBeTrue();
+});
 
-    public function testFieldIsAllowedWhenConditionTrue()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor', 'secret' => 'value'],
-            [
-                'name' => 'required|string',
-                'secret' => [Rule::prohibitedUnless(true)],
-            ],
-        );
-
-        $this->assertTrue($validator->passes());
-    }
-
-    public function testInvalidConditionThrows()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        Rule::prohibitedUnless('invalid');
-    }
-}
+test('invalid condition throws', function () {
+    Rule::prohibitedUnless('invalid');
+})->throws(InvalidArgumentException::class);

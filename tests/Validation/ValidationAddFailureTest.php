@@ -1,40 +1,30 @@
 <?php
 
-namespace Tests\Validation;
-
+use Voyager\Translation\ArrayLoader;
+use Voyager\Translation\Translator;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationAddFailureTest extends TestCase
+function validationAddFailureValidator()
 {
-    /**
-     * Making Validator using ValidationValidatorTest.
-     *
-     * @return \Voyager\Validation\Validator
-     */
-    public function makeValidator()
-    {
-        $mainTest = new ValidationValidatorTest('foo');
-        $trans = $mainTest->getVoyagerArrayTranslator();
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        return new Validator($trans, ['foo' => ['bar' => ['baz' => '']]], ['foo.bar.baz' => 'sometimes|required']);
-    }
-
-    public function testAddFailureExists()
-    {
-        $validator = $this->makeValidator();
-        $method_name = 'addFailure';
-        $this->assertTrue(method_exists($validator, $method_name));
-        $this->assertIsCallable([$validator, $method_name]);
-    }
-
-    public function testAddFailureIsFunctional()
-    {
-        $attribute = 'Eugene';
-        $validator = $this->makeValidator();
-        $validator->addFailure($attribute, 'not_in');
-        $messages = json_decode($validator->messages());
-        $this->assertSame($messages->{'foo.bar.baz'}[0], 'validation.required', 'initial data in messages is lost');
-        $this->assertSame($messages->{$attribute}[0], 'validation.not_in', 'new data in messages was not added');
-    }
+    return new Validator($trans, ['foo' => ['bar' => ['baz' => '']]], ['foo.bar.baz' => 'sometimes|required']);
 }
+
+test('add failure exists', function () {
+    $validator = validationAddFailureValidator();
+    $method_name = 'addFailure';
+
+    expect(method_exists($validator, $method_name))->toBeTrue()
+        ->and(is_callable([$validator, $method_name]))->toBeTrue();
+});
+
+test('add failure is functional', function () {
+    $attribute = 'Eugene';
+    $validator = validationAddFailureValidator();
+    $validator->addFailure($attribute, 'not_in');
+    $messages = json_decode($validator->messages());
+
+    expect($messages->{'foo.bar.baz'}[0])->toBe('validation.required')
+        ->and($messages->{$attribute}[0])->toBe('validation.not_in');
+});

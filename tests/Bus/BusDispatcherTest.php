@@ -1,166 +1,99 @@
 <?php
 
-namespace Tests\Bus;
-
+use Tests\Bus\Fixtures\BusDispatcherBasicCommand;
+use Tests\Bus\Fixtures\BusDispatcherTestCustomQueueCommand;
+use Tests\Bus\Fixtures\BusDispatcherTestSpecificQueueAndDelayCommand;
+use Tests\Bus\Fixtures\ShouldNotBeDispatched;
+use Tests\Bus\Fixtures\StandAloneCommand;
+use Tests\Bus\Fixtures\StandAloneHandler;
 use Voyager\Bus\Dispatcher;
-use Voyager\Bus\Queueable;
 use Voyager\Config\Repository as Config;
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Queue\Queue;
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\Queue\InteractsWithQueue;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
-use RuntimeException;
+use Voyager\Vessel\Vessel;
 
-class BusDispatcherTest extends TestCase
-{
-    public function testCommandsThatShouldQueueIsQueued()
-    {
-        $vessel = new Vessel;
-        $dispatcher = new Dispatcher($vessel, function () {
-            $mock = m::mock(Queue::class);
-            $mock->shouldReceive('push')->once();
+test('commands that should queue is queued', function () {
+    $vessel = new Vessel;
+    $dispatcher = new Dispatcher($vessel, function () {
+        $mock = Mockery::mock(Queue::class);
+        $mock->shouldReceive('push')->once();
 
-            return $mock;
-        });
+        return $mock;
+    });
 
-        $dispatcher->dispatch(m::mock(ShouldQueue::class));
-    }
+    $dispatcher->dispatch(Mockery::mock(ShouldQueue::class));
+});
 
-    public function testCommandsThatShouldQueueIsQueuedUsingCustomHandler()
-    {
-        $vessel = new Vessel;
-        $dispatcher = new Dispatcher($vessel, function () {
-            $mock = m::mock(Queue::class);
-            $mock->shouldReceive('push')->once();
+test('commands that should queue is queued using custom handler', function () {
+    $vessel = new Vessel;
+    $dispatcher = new Dispatcher($vessel, function () {
+        $mock = Mockery::mock(Queue::class);
+        $mock->shouldReceive('push')->once();
 
-            return $mock;
-        });
+        return $mock;
+    });
 
-        $dispatcher->dispatch(new BusDispatcherTestCustomQueueCommand);
-    }
+    $dispatcher->dispatch(new BusDispatcherTestCustomQueueCommand);
+});
 
-    public function testCommandsThatShouldQueueIsQueuedUsingCustomQueueAndDelay()
-    {
-        $vessel = new Vessel;
-        $dispatcher = new Dispatcher($vessel, function () {
-            $mock = m::mock(Queue::class);
-            $mock->shouldReceive('later')->once()->with(10, m::type(BusDispatcherTestSpecificQueueAndDelayCommand::class), '', 'foo');
+test('commands that should queue is queued using custom queue and delay', function () {
+    $vessel = new Vessel;
+    $dispatcher = new Dispatcher($vessel, function () {
+        $mock = Mockery::mock(Queue::class);
+        $mock->shouldReceive('later')->once()->with(10, Mockery::type(BusDispatcherTestSpecificQueueAndDelayCommand::class), '', 'foo');
 
-            return $mock;
-        });
+        return $mock;
+    });
 
-        $dispatcher->dispatch(new BusDispatcherTestSpecificQueueAndDelayCommand);
-    }
+    $dispatcher->dispatch(new BusDispatcherTestSpecificQueueAndDelayCommand);
+});
 
-    public function testDispatchNowShouldNeverQueue()
-    {
-        $vessel = new Vessel;
-        $mock = m::mock(Queue::class);
-        $mock->shouldReceive('push')->never();
-        $dispatcher = new Dispatcher($vessel, function () use ($mock) {
-            return $mock;
-        });
+test('dispatch now should never queue', function () {
+    $vessel = new Vessel;
+    $mock = Mockery::mock(Queue::class);
+    $mock->shouldReceive('push')->never();
+    $dispatcher = new Dispatcher($vessel, function () use ($mock) {
+        return $mock;
+    });
 
-        $dispatcher->dispatch(new BusDispatcherBasicCommand);
-    }
+    $dispatcher->dispatch(new BusDispatcherBasicCommand);
+});
 
-    public function testDispatcherCanDispatchStandAloneHandler()
-    {
-        $vessel = new Vessel;
-        $mock = m::mock(Queue::class);
-        $dispatcher = new Dispatcher($vessel, function () use ($mock) {
-            return $mock;
-        });
+test('dispatcher can dispatch stand alone handler', function () {
+    $vessel = new Vessel;
+    $mock = Mockery::mock(Queue::class);
+    $dispatcher = new Dispatcher($vessel, function () use ($mock) {
+        return $mock;
+    });
 
-        $dispatcher->map([StandAloneCommand::class => StandAloneHandler::class]);
+    $dispatcher->map([StandAloneCommand::class => StandAloneHandler::class]);
 
-        $response = $dispatcher->dispatch(new StandAloneCommand);
+    $response = $dispatcher->dispatch(new StandAloneCommand);
 
-        $this->assertInstanceOf(StandAloneCommand::class, $response);
-    }
+    expect($response)->toBeInstanceOf(StandAloneCommand::class);
+});
 
-    public function testOnConnectionOnJobWhenDispatching()
-    {
-        $vessel = new Vessel;
-        $vessel->singleton('config', function () {
-            return new Config([
-                'queue' => [
-                    'default' => 'null',
-                    'connections' => [
-                        'null' => ['driver' => 'null'],
-                    ],
+test('on connection on job when dispatching', function () {
+    $vessel = new Vessel;
+    $vessel->singleton('config', function () {
+        return new Config([
+            'queue' => [
+                'default' => 'null',
+                'connections' => [
+                    'null' => ['driver' => 'null'],
                 ],
-            ]);
-        });
+            ],
+        ]);
+    });
 
-        $dispatcher = new Dispatcher($vessel, function () {
-            $mock = m::mock(Queue::class);
-            $mock->shouldReceive('push')->once();
+    $dispatcher = new Dispatcher($vessel, function () {
+        $mock = Mockery::mock(Queue::class);
+        $mock->shouldReceive('push')->once();
 
-            return $mock;
-        });
+        return $mock;
+    });
 
-        $job = (new ShouldNotBeDispatched)->onConnection('null');
+    $job = (new ShouldNotBeDispatched)->onConnection('null');
 
-        $dispatcher->dispatch($job);
-    }
-}
-
-class BusInjectionStub
-{
-    //
-}
-
-class BusDispatcherBasicCommand
-{
-    public $name;
-
-    public function __construct($name = null)
-    {
-        $this->name = $name;
-    }
-
-    public function handle(BusInjectionStub $stub)
-    {
-        //
-    }
-}
-
-class BusDispatcherTestCustomQueueCommand implements ShouldQueue
-{
-    public function queue($queue, $command)
-    {
-        $queue->push($command);
-    }
-}
-
-class BusDispatcherTestSpecificQueueAndDelayCommand implements ShouldQueue
-{
-    public $queue = 'foo';
-    public $delay = 10;
-}
-
-class StandAloneCommand
-{
-    //
-}
-
-class StandAloneHandler
-{
-    public function handle(StandAloneCommand $command)
-    {
-        return $command;
-    }
-}
-
-class ShouldNotBeDispatched implements ShouldQueue
-{
-    use InteractsWithQueue, Queueable;
-
-    public function handle()
-    {
-        throw new RuntimeException('This should not be run');
-    }
-}
+    $dispatcher->dispatch($job);
+});

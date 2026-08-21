@@ -1,68 +1,57 @@
 <?php
 
-namespace Tests\Bus;
-
 use Voyager\Bus\Batchable;
 use Voyager\Bus\BatchRepository;
-use Voyager\Vessel\Vessel;
 use Voyager\Testing\Fakes\BatchFake;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class BusBatchableTest extends TestCase
-{
-    public function test_batch_may_be_retrieved()
+test('batch may be retrieved', function () {
+    $class = new class
     {
-        $class = new class
-        {
-            use Batchable;
-        };
+        use Batchable;
+    };
 
-        $this->assertSame($class, $class->withBatchId('test-batch-id'));
-        $this->assertSame('test-batch-id', $class->batchId);
+    expect($class->withBatchId('test-batch-id'))->toBe($class)
+        ->and($class->batchId)->toBe('test-batch-id');
 
-        Vessel::setInstance($vessel = new Vessel);
+    Vessel::setInstance($vessel = new Vessel);
 
-        $repository = m::mock(BatchRepository::class);
-        $repository->shouldReceive('find')->once()->with('test-batch-id')->andReturn('test-batch');
-        $vessel->instance(BatchRepository::class, $repository);
+    $repository = Mockery::mock(BatchRepository::class);
+    $repository->shouldReceive('find')->once()->with('test-batch-id')->andReturn('test-batch');
+    $vessel->instance(BatchRepository::class, $repository);
 
-        $this->assertSame('test-batch', $class->batch());
+    expect($class->batch())->toBe('test-batch');
 
-        Vessel::setInstance(null);
-    }
+    Vessel::setInstance(null);
+});
 
-    public function test_with_fake_batch_sets_and_returns_fake()
+test('with fake batch sets and returns fake', function () {
+    $job = new class
     {
-        $job = new class
-        {
-            use Batchable;
-        };
+        use Batchable;
+    };
 
-        [$self, $batch] = $job->withFakeBatch('test-batch-id', 'test-batch-name', 3, 3, 0, [], []);
+    [$self, $batch] = $job->withFakeBatch('test-batch-id', 'test-batch-name', 3, 3, 0, [], []);
 
-        $this->assertSame($job, $self);
-        $this->assertInstanceOf(BatchFake::class, $batch);
-        $this->assertSame($batch, $job->batch());
-        $this->assertSame('test-batch-id', $job->batch()->id);
-        $this->assertSame('test-batch-name', $job->batch()->name);
-        $this->assertSame(3, $job->batch()->totalJobs);
-    }
+    expect($self)->toBe($job)
+        ->and($batch)->toBeInstanceOf(BatchFake::class)
+        ->and($job->batch())->toBe($batch)
+        ->and($job->batch()->id)->toBe('test-batch-id')
+        ->and($job->batch()->name)->toBe('test-batch-name')
+        ->and($job->batch()->totalJobs)->toBe(3);
+});
 
-    public function test_batching_reflects_cancelled_state()
+test('batching reflects cancelled state', function () {
+    $job = new class
     {
-        $job = new class
-        {
-            use Batchable;
-        };
+        use Batchable;
+    };
 
-        $job->withFakeBatch('test-batch-id', 'test-batch-name');
+    $job->withFakeBatch('test-batch-id', 'test-batch-name');
 
-        // Initially not cancelled
-        $this->assertTrue($job->batching());
+    expect($job->batching())->toBeTrue();
 
-        // Cancel the batch and ensure batching() returns false
-        $job->batch()->cancel();
-        $this->assertFalse($job->batching());
-    }
-}
+    $job->batch()->cancel();
+
+    expect($job->batching())->toBeFalse();
+});

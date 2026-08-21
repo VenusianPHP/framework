@@ -127,7 +127,8 @@
             "tests/NutsAndBolts/Fixtures/functions.php",
             "tests/Vessel/Fixtures/AttributeTargets.php",
             "tests/Vessel/Fixtures/functions.php",
-            "tests/Database/Enums.php"
+            "tests/Database/Enums.php",
+            "tests/Validation/Enums.php"
         ]
     },
     "extra": {

@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Contracts\Validation\DataAwareRule;
 use Voyager\Contracts\Validation\ValidationRule;
 use Voyager\Contracts\Validation\ValidatorAwareRule;
@@ -9,13 +7,17 @@ use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\InvokableValidationRule;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationInvokableRuleTest extends TestCase
+function invokableArrayTranslator()
 {
-    public function testItCanPass()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+    return new Translator(
+        new ArrayLoader(),
+        'en'
+    );
+}
+
+test('it can pass', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -26,13 +28,12 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->passes());
-        $this->assertSame([], $validator->messages()->messages());
-    }
+        expect($validator->passes())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([]);
+    });
 
-    public function testItCanFail()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can fail', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -43,17 +44,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 "The foo attribute is not 'foo'. Got 'bar' instead.",
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanReturnMultipleErrorMessages()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can return multiple error messages', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -65,18 +65,17 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'Error message 1.',
                 'Error message 2.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanTranslateMessages()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can translate messages', function () {
+        $trans = invokableArrayTranslator();
         $trans->addLines(['validation.translated-error' => 'Translated error message.'], 'en');
         $rule = new class() implements ValidationRule
         {
@@ -88,17 +87,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'Translated error message.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItPerformsReplacementsWhenTranslating()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it performs replacements when translating', function () {
+        $trans = invokableArrayTranslator();
         $trans->addLines(['validation.translated-error' => 'attribute: :attribute input: :input position: :position index: :index baz: :baz'], 'en');
         $rule = new class() implements ValidationRule
         {
@@ -114,17 +112,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => [null, 'bar']], ['foo.*' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo.1' => [
                 'attribute: foo.1 input: bar position: 2 index: 1 baz: xxxx',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItLooksForLanguageFileCustomisations()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it looks for language file customisations', function () {
+        $trans = invokableArrayTranslator();
         $trans->addLines(['validation.translated-error' => 'attribute: :attribute'], 'en');
         $trans->addLines(['validation.attributes.foo' => 'email address'], 'en');
         $rule = new class() implements ValidationRule
@@ -139,17 +136,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'attribute: email address',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanSpecifyLocaleWhenTranslating()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can specify locale when translating', function () {
+        $trans = invokableArrayTranslator();
         $trans->addLines(['validation.translated-error' => 'English'], 'en');
         $trans->addLines(['validation.translated-error' => 'French'], 'fr');
         $rule = new class() implements ValidationRule
@@ -163,18 +159,17 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'English',
                 'French',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanAccessDataDuringValidation()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can access data during validation', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule, DataAwareRule
         {
             public $data = [];
@@ -194,16 +189,15 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar', 'bar' => 'baz'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeTrue();
+        expect($rule->data)->toBe([
             'foo' => 'bar',
             'bar' => 'baz',
-        ], $rule->data);
-    }
+        ]);
+    });
 
-    public function testItCanAccessValidatorDuringValidation()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can access validator during validation', function () {
+        $trans = invokableArrayTranslator();
 
         $rule = new class() implements ValidationRule, ValidatorAwareRule
         {
@@ -224,13 +218,12 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar', 'bar' => 'baz'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->passes());
-        $this->assertSame($validator, $rule->validator);
-    }
+        expect($validator->passes())->toBeTrue();
+        expect($rule->validator)->toBe($validator);
+    });
 
-    public function testItCanBeExplicit()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can be explicit', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public $implicit = false;
@@ -243,13 +236,12 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => ''], ['foo' => $rule]);
 
-        $this->assertTrue($validator->passes());
-        $this->assertSame([], $validator->messages()->messages());
-    }
+        expect($validator->passes())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([]);
+    });
 
-    public function testItCanBeImplicit()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can be implicit', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public $implicit = true;
@@ -262,17 +254,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => ''], ['foo' => $rule]);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'xxxx',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItIsExplicitByDefault()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it is explicit by default', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -283,13 +274,12 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => ''], ['foo' => $rule]);
 
-        $this->assertTrue($validator->passes());
-        $this->assertSame([], $validator->messages()->messages());
-    }
+        expect($validator->passes())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([]);
+    });
 
-    public function testItCanSpecifyTheValidationErrorKeyForTheErrorMessage()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can specify the validation error key for the error message', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -301,20 +291,19 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'xxxx'], ['foo' => $rule]);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'bar.baz' => [
                 'Another attribute error.',
             ],
             'foo' => [
                 'This attribute error.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanTranslateWithChoices()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('it can translate with choices', function () {
+        $trans = invokableArrayTranslator();
         $trans->addLines(['validation.translated-error' => 'There is one error.|There are many errors.'], 'en');
         $rule = new class() implements ValidationRule
         {
@@ -326,17 +315,16 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule]);
 
-        $this->assertTrue($validator->fails());
-        $this->assertSame([
+        expect($validator->fails())->toBeTrue();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'There are many errors.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testExplicitRuleCanUseInlineValidationMessages()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('explicit rule can use inline validation messages', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public $implicit = false;
@@ -349,26 +337,25 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule], [$rule::class => ':attribute custom.']);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'foo custom.',
             ],
-        ], $validator->messages()->messages());
+        ]);
 
         $validator = new Validator($trans, ['foo' => 'bar'], ['foo' => $rule], ['foo.'.$rule::class => ':attribute custom with key.']);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'foo custom with key.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testImplicitRuleCanUseInlineValidationMessages()
-    {
-        $trans = $this->getVoyagerArrayTranslator();
+test('implicit rule can use inline validation messages', function () {
+        $trans = invokableArrayTranslator();
         $rule = new class() implements ValidationRule
         {
             public $implicit = true;
@@ -381,25 +368,24 @@ class ValidationInvokableRuleTest extends TestCase
 
         $validator = new Validator($trans, ['foo' => ''], ['foo' => $rule], [$rule::class => ':attribute custom.']);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'foo custom.',
             ],
-        ], $validator->messages()->messages());
+        ]);
 
         $validator = new Validator($trans, ['foo' => ''], ['foo' => $rule], ['foo.'.$rule::class => ':attribute custom with key.']);
 
-        $this->assertFalse($validator->passes());
-        $this->assertSame([
+        expect($validator->passes())->toBeFalse();
+        expect($validator->messages()->messages())->toBe([
             'foo' => [
                 'foo custom with key.',
             ],
-        ], $validator->messages()->messages());
-    }
+        ]);
+    });
 
-    public function testItCanReturnInvokableRule()
-    {
+test('it can return invokable rule', function () {
         $rule = new class() implements ValidationRule
         {
             public function validate($attribute, $value, $fail): void
@@ -410,14 +396,6 @@ class ValidationInvokableRuleTest extends TestCase
 
         $invokableValidationRule = InvokableValidationRule::make($rule);
 
-        $this->assertSame($rule, $invokableValidationRule->invokable());
-    }
+        expect($invokableValidationRule->invokable())->toBe($rule);
+    });
 
-    private function getVoyagerArrayTranslator()
-    {
-        return new Translator(
-            new ArrayLoader(),
-            'en'
-        );
-    }
-}

@@ -1,30 +1,74 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
+use Tests\Validation\fixtures\TaggedUnionDiscriminatorType;
 use Voyager\MagicAliases\MagicAlias;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\ValidationServiceProvider;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-enum TaggedUnionDiscriminatorType: string
-{
-    case EMAIL = 'email';
-    case URL = 'url';
-}
+beforeEach(function () {
+    $container = Vessel::getInstance();
+    $container->bind('translator', function () {
+        return new Translator(
+            new ArrayLoader,
+            'en'
+        );
+    });
 
-class ValidationAnyOfRuleTest extends TestCase
-{
-    private array $taggedUnionRules;
-    private array $dotNotationNestedRules;
-    private array $nestedRules;
+    MagicAlias::setMagicAliasApplication($container);
+    (new ValidationServiceProvider($container))->register();
 
-    public function testBasicValidation()
-    {
+    $this->taggedUnionRules = [
+        [
+            'type' => ['required', Rule::in([TaggedUnionDiscriminatorType::EMAIL])],
+            'email' => ['required', 'email:rfc'],
+        ],
+        [
+            'type' => ['required', Rule::in([TaggedUnionDiscriminatorType::URL])],
+            'url' => ['required', 'url:http,https'],
+        ],
+    ];
+
+    // Using AnyOf as nesting feature
+    $this->nestedRules = [
+        'user' => Rule::anyOf([
+            [
+                'identifier' => ['required', Rule::anyOf([
+                    'email:rfc',
+                    'integer',
+                ])],
+                'properties' => ['required', Rule::anyOf([
+                    [
+                        'bio' => 'nullable',
+                        'name' => 'required',
+                        'surname' => 'required',
+                    ],
+                ])],
+            ],
+        ]),
+    ];
+
+    $this->dotNotationNestedRules = [
+        'user.identifier' => ['required', Rule::anyOf([
+            'email:rfc',
+            'integer',
+        ])],
+        'user.properties.bio' => 'nullable',
+        'user.properties.name' => 'required',
+        'user.properties.surname' => 'required',
+    ];
+});
+
+afterEach(function () {
+    Vessel::setInstance(null);
+    MagicAlias::clearResolvedInstances();
+    MagicAlias::setMagicAliasApplication(null);
+});
+
+test('basic validation', function () {
         $rule = Rule::anyOf([
             ['required', 'uuid:4'],
             ['required', 'email'],
@@ -35,42 +79,41 @@ class ValidationAnyOfRuleTest extends TestCase
         $validator = new Validator(resolve('translator'), [
             'id' => 'taylor@laravel.com',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [], $requiredIdRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '3c8ff5cb-4bc1-457b-a477-1833c477b254',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'id' => null,
         ], $idRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '',
         ], $requiredIdRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => 'abc',
         ], $idRule);
-        $this->assertFalse($validator->passes());
-    }
+        expect($validator->passes())->toBeFalse();
+    });
 
-    public function testBasicStringValidation()
-    {
+test('basic string validation', function () {
         $rule = Rule::anyOf([
             'required|uuid:4',
             'required|email',
@@ -81,49 +124,48 @@ class ValidationAnyOfRuleTest extends TestCase
         $validator = new Validator(resolve('translator'), [
             'id' => 'test@example.com',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [], $requiredIdRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '3c8ff5cb-4bc1-457b-a477-1833c477b254',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'id' => null,
         ], $idRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '',
         ], $idRule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'id' => '',
         ], $requiredIdRule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'id' => 'abc',
         ], $idRule);
-        $this->assertFalse($validator->passes());
-    }
+        expect($validator->passes())->toBeFalse();
+    });
 
-    public function testTaggedUnionObjects()
-    {
+test('tagged union objects', function () {
         $validator = new Validator(resolve('translator'), [
             'data' => [
                 'type' => TaggedUnionDiscriminatorType::EMAIL->value,
                 'email' => 'taylor@laravel.com',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'data' => [
@@ -131,7 +173,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 'email' => 'invalid-email',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'data' => [
@@ -139,7 +181,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 'url' => 'http://laravel.com',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'data' => [
@@ -147,7 +189,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 'url' => 'not-a-url',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'data' => [
@@ -155,7 +197,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 'url' => 'url-should-not-be-present-with-email-discriminator',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'data' => [
@@ -163,11 +205,10 @@ class ValidationAnyOfRuleTest extends TestCase
                 'email' => 'taylor@laravel.com',
             ],
         ], ['data' => Rule::anyOf($this->taggedUnionRules)]);
-        $this->assertFalse($validator->passes());
-    }
+        expect($validator->passes())->toBeFalse();
+    });
 
-    public function testNestedValidation()
-    {
+test('nested validation', function () {
         $validator = new Validator(resolve('translator'), [
             'user' => [
                 'identifier' => 1,
@@ -177,9 +218,9 @@ class ValidationAnyOfRuleTest extends TestCase
                 ],
             ],
         ], $this->nestedRules);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
         $validator->setRules($this->dotNotationNestedRules);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'user' => [
@@ -191,9 +232,9 @@ class ValidationAnyOfRuleTest extends TestCase
                 ],
             ],
         ], $this->nestedRules);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
         $validator->setRules($this->dotNotationNestedRules);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'user' => [
@@ -204,9 +245,9 @@ class ValidationAnyOfRuleTest extends TestCase
                 ],
             ],
         ], $this->nestedRules);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
         $validator->setRules($this->dotNotationNestedRules);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'user' => [
@@ -216,13 +257,12 @@ class ValidationAnyOfRuleTest extends TestCase
                 ],
             ],
         ], $this->nestedRules);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
         $validator->setRules($this->dotNotationNestedRules);
-        $this->assertFalse($validator->passes());
-    }
+        expect($validator->passes())->toBeFalse();
+    });
 
-    public function testStarRuleSimple()
-    {
+test('star rule simple', function () {
         $rule = [
             'persons.*.age' => ['required', Rule::anyOf([
                 ['min:10'],
@@ -236,7 +276,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 ['age' => 'foobar'],
             ],
         ], $rule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
@@ -244,7 +284,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 ['month' => 12],
             ],
         ], $rule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
@@ -252,11 +292,10 @@ class ValidationAnyOfRuleTest extends TestCase
                 ['age' => 'foobarbazqux'],
             ],
         ], $rule);
-        $this->assertTrue($validator->passes());
-    }
+        expect($validator->passes())->toBeTrue();
+    });
 
-    public function testStarRuleNested()
-    {
+test('star rule nested', function () {
         $rule = [
             'persons.*.birth' => ['required', Rule::anyOf([
                 ['year' => 'required|integer'],
@@ -269,21 +308,21 @@ class ValidationAnyOfRuleTest extends TestCase
                 ['age' => ['year' => 12]],
             ],
         ], $rule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
                 ['birth' => ['month' => 12]],
             ],
         ], $rule);
-        $this->assertFalse($validator->passes());
+        expect($validator->passes())->toBeFalse();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
                 ['birth' => ['year' => 12]],
             ],
         ], $rule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
@@ -293,7 +332,7 @@ class ValidationAnyOfRuleTest extends TestCase
                 ]],
             ],
         ], $rule);
-        $this->assertTrue($validator->passes());
+        expect($validator->passes())->toBeTrue();
 
         $validator = new Validator(resolve('translator'), [
             'persons' => [
@@ -303,54 +342,10 @@ class ValidationAnyOfRuleTest extends TestCase
                 ]],
             ],
         ], $rule);
-        $this->assertFalse($validator->passes());
-    }
+        expect($validator->passes())->toBeFalse();
+    });
 
-    protected function setUpRuleSets()
-    {
-        $this->taggedUnionRules = [
-            [
-                'type' => ['required', Rule::in([TaggedUnionDiscriminatorType::EMAIL])],
-                'email' => ['required', 'email:rfc'],
-            ],
-            [
-                'type' => ['required', Rule::in([TaggedUnionDiscriminatorType::URL])],
-                'url' => ['required', 'url:http,https'],
-            ],
-        ];
-
-        // Using AnyOf as nesting feature
-        $this->nestedRules = [
-            'user' => Rule::anyOf([
-                [
-                    'identifier' => ['required', Rule::anyOf([
-                        'email:rfc',
-                        'integer',
-                    ])],
-                    'properties' => ['required', Rule::anyOf([
-                        [
-                            'bio' => 'nullable',
-                            'name' => 'required',
-                            'surname' => 'required',
-                        ],
-                    ])],
-                ],
-            ]),
-        ];
-
-        $this->dotNotationNestedRules = [
-            'user.identifier' => ['required', Rule::anyOf([
-                'email:rfc',
-                'integer',
-            ])],
-            'user.properties.bio' => 'nullable',
-            'user.properties.name' => 'required',
-            'user.properties.surname' => 'required',
-        ];
-    }
-
-    public function testCustomMessageUsingDotNotationAndFqcnWorks()
-    {
+test('custom message using dot notation and fqcn works', function () {
         $v = new Validator(
             resolve('translator'),
             [
@@ -367,38 +362,11 @@ class ValidationAnyOfRuleTest extends TestCase
             ]
         );
 
-        $this->assertTrue($v->fails());
+        expect($v->fails())->toBeTrue();
 
-        $this->assertSame([
+        expect($v->messages()->all())->toBe([
             'Please choose a valid string (dot notation)',
             'Please choose a valid string (fqcn)',
-        ], $v->messages()->all());
-    }
+        ]);
+    });
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $container = Vessel::getInstance();
-        $container->bind('translator', function () {
-            return new Translator(
-                new ArrayLoader,
-                'en'
-            );
-        });
-
-        MagicAlias::setMagicAliasApplication($container);
-        (new ValidationServiceProvider($container))->register();
-
-        $this->setUpRuleSets();
-    }
-
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
-        MagicAlias::clearResolvedInstances();
-        MagicAlias::setMagicAliasApplication(null);
-
-        parent::tearDown();
-    }
-}

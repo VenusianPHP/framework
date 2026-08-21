@@ -1,138 +1,117 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\StringRule;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationStringRuleTest extends TestCase
-{
-    public function testDefaultStringRule()
-    {
+test('default string rule', function () {
         $rule = Rule::string();
-        $this->assertSame('string', (string) $rule);
+        expect((string) $rule)->toBe('string');
 
         $rule = new StringRule();
-        $this->assertSame('string', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string');
+    });
 
-    public function testMinRule()
-    {
+test('min rule', function () {
         $rule = Rule::string()->min(3);
-        $this->assertSame('string|min:3', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|min:3');
+    });
 
-    public function testMaxRule()
-    {
+test('max rule', function () {
         $rule = Rule::string()->max(255);
-        $this->assertSame('string|max:255', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|max:255');
+    });
 
-    public function testBetweenRule()
-    {
+test('between rule', function () {
         $rule = Rule::string()->between(3, 255);
-        $this->assertSame('string|between:3,255', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|between:3,255');
+    });
 
-    public function testExactlyRule()
-    {
+test('exactly rule', function () {
         $rule = Rule::string()->exactly(10);
-        $this->assertSame('string|size:10', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|size:10');
+    });
 
-    public function testAlphaRule()
-    {
+test('alpha rule', function () {
         $rule = Rule::string()->alpha();
-        $this->assertSame('string|alpha', (string) $rule);
+        expect((string) $rule)->toBe('string|alpha');
 
         $rule = Rule::string()->alpha(ascii: true);
-        $this->assertSame('string|alpha:ascii', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|alpha:ascii');
+    });
 
-    public function testAlphaNumericRule()
-    {
+test('alpha numeric rule', function () {
         $rule = Rule::string()->alphaNumeric();
-        $this->assertSame('string|alpha_num', (string) $rule);
+        expect((string) $rule)->toBe('string|alpha_num');
 
         $rule = Rule::string()->alphaNumeric(ascii: true);
-        $this->assertSame('string|alpha_num:ascii', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|alpha_num:ascii');
+    });
 
-    public function testAlphaDashRule()
-    {
+test('alpha dash rule', function () {
         $rule = Rule::string()->alphaDash();
-        $this->assertSame('string|alpha_dash', (string) $rule);
+        expect((string) $rule)->toBe('string|alpha_dash');
 
         $rule = Rule::string()->alphaDash(ascii: true);
-        $this->assertSame('string|alpha_dash:ascii', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|alpha_dash:ascii');
+    });
 
-    public function testAsciiRule()
-    {
+test('ascii rule', function () {
         $rule = Rule::string()->ascii();
-        $this->assertSame('string|ascii', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|ascii');
+    });
 
-    public function testUppercaseRule()
-    {
+test('uppercase rule', function () {
         $rule = Rule::string()->uppercase();
-        $this->assertSame('string|uppercase', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|uppercase');
+    });
 
-    public function testLowercaseRule()
-    {
+test('lowercase rule', function () {
         $rule = Rule::string()->lowercase();
-        $this->assertSame('string|lowercase', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|lowercase');
+    });
 
-    public function testStartsWithRule()
-    {
+test('starts with rule', function () {
         $rule = Rule::string()->startsWith('foo');
-        $this->assertSame('string|starts_with:foo', (string) $rule);
+        expect((string) $rule)->toBe('string|starts_with:foo');
 
         $rule = Rule::string()->startsWith('foo', 'bar');
-        $this->assertSame('string|starts_with:foo,bar', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|starts_with:foo,bar');
+    });
 
-    public function testEndsWithRule()
-    {
+test('ends with rule', function () {
         $rule = Rule::string()->endsWith('.com');
-        $this->assertSame('string|ends_with:.com', (string) $rule);
+        expect((string) $rule)->toBe('string|ends_with:.com');
 
         $rule = Rule::string()->endsWith('.com', '.org');
-        $this->assertSame('string|ends_with:.com,.org', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|ends_with:.com,.org');
+    });
 
-    public function testDoesntStartWithRule()
-    {
+test('doesnt start with rule', function () {
         $rule = Rule::string()->doesntStartWith('foo');
-        $this->assertSame('string|doesnt_start_with:foo', (string) $rule);
+        expect((string) $rule)->toBe('string|doesnt_start_with:foo');
 
         $rule = Rule::string()->doesntStartWith('foo', 'bar');
-        $this->assertSame('string|doesnt_start_with:foo,bar', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|doesnt_start_with:foo,bar');
+    });
 
-    public function testDoesntEndWithRule()
-    {
+test('doesnt end with rule', function () {
         $rule = Rule::string()->doesntEndWith('.exe');
-        $this->assertSame('string|doesnt_end_with:.exe', (string) $rule);
+        expect((string) $rule)->toBe('string|doesnt_end_with:.exe');
 
         $rule = Rule::string()->doesntEndWith('.exe', '.bat');
-        $this->assertSame('string|doesnt_end_with:.exe,.bat', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|doesnt_end_with:.exe,.bat');
+    });
 
-    public function testChainedRules()
-    {
+test('chained rules', function () {
         $rule = Rule::string()
             ->min(3)
             ->max(255)
             ->alpha()
             ->uppercase();
-        $this->assertSame('string|min:3|max:255|alpha|uppercase', (string) $rule);
+        expect((string) $rule)->toBe('string|min:3|max:255|alpha|uppercase');
 
         $rule = Rule::string()
             ->between(1, 100)
@@ -142,11 +121,10 @@ class ValidationStringRuleTest extends TestCase
             ->unless(true, function ($rule) {
                 $rule->endsWith('suffix');
             });
-        $this->assertSame('string|between:1,100|starts_with:prefix', (string) $rule);
-    }
+        expect((string) $rule)->toBe('string|between:1,100|starts_with:prefix');
+    });
 
-    public function testStringValidation()
-    {
+test('string validation', function () {
         $trans = new Translator(new ArrayLoader, 'en');
 
         $rule = Rule::string();
@@ -157,10 +135,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertSame(
-            $trans->get('validation.string'),
-            $validator->errors()->first('field')
-        );
+        expect($validator->errors()->first('field'))->toBe($trans->get('validation.string'));
 
         $validator = new Validator(
             $trans,
@@ -168,7 +143,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('field'));
+        expect($validator->errors()->first('field'))->toBeEmpty();
 
         $rule = Rule::string()->min(3)->max(10);
 
@@ -178,7 +153,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('field'));
+        expect($validator->errors()->first('field'))->toBeEmpty();
 
         $rule = Rule::string()->min(3)->max(10);
 
@@ -188,7 +163,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertNotEmpty($validator->errors()->first('field'));
+        expect($validator->errors()->first('field'))->not->toBeEmpty();
 
         $rule = Rule::string()->min(3)->max(10);
 
@@ -198,7 +173,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertNotEmpty($validator->errors()->first('field'));
+        expect($validator->errors()->first('field'))->not->toBeEmpty();
 
         $rule = Rule::string()->uppercase();
 
@@ -208,7 +183,7 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('field'));
+        expect($validator->errors()->first('field'))->toBeEmpty();
 
         $rule = Rule::string()->uppercase();
 
@@ -218,12 +193,11 @@ class ValidationStringRuleTest extends TestCase
             ['field' => $rule]
         );
 
-        $this->assertNotEmpty($validator->errors()->first('field'));
-    }
+        expect($validator->errors()->first('field'))->not->toBeEmpty();
+    });
 
-    public function testUniquenessOfConstraints()
-    {
+test('uniqueness of constraints', function () {
         $rule = Rule::string()->alpha()->alpha();
-        $this->assertSame('string|alpha', (string) $rule);
-    }
-}
+        expect((string) $rule)->toBe('string|alpha');
+    });
+

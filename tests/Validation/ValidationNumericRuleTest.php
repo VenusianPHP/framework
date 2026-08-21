@@ -1,150 +1,126 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\Numeric;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationNumericRuleTest extends TestCase
-{
-    public function testDefaultNumericRule()
-    {
+test('default numeric rule', function () {
         $rule = Rule::numeric();
-        $this->assertEquals('numeric', (string) $rule);
+        expect((string) $rule)->toEqual('numeric');
 
         $rule = new Numeric();
-        $this->assertSame('numeric', (string) $rule);
-    }
+        expect((string) $rule)->toBe('numeric');
+    });
 
-    public function testBetweenRule()
-    {
+test('between rule', function () {
         $rule = Rule::numeric()->between(1, 10);
-        $this->assertEquals('numeric|between:1,10', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|between:1,10');
 
         $rule = Rule::numeric()->between(1.5, 10.5);
-        $this->assertEquals('numeric|between:1.5,10.5', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|between:1.5,10.5');
+    });
 
-    public function testDecimalRule()
-    {
+test('decimal rule', function () {
         $rule = Rule::numeric()->decimal(2, 4);
-        $this->assertEquals('numeric|decimal:2,4', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|decimal:2,4');
 
         $rule = Rule::numeric()->decimal(2);
-        $this->assertEquals('numeric|decimal:2', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|decimal:2');
+    });
 
-    public function testDifferentRule()
-    {
+test('different rule', function () {
         $rule = Rule::numeric()->different('some_field');
-        $this->assertEquals('numeric|different:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|different:some_field');
+    });
 
-    public function testDigitsRule()
-    {
+test('digits rule', function () {
         $rule = Rule::numeric()->digits(10);
-        $this->assertEquals('numeric|integer|digits:10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|integer|digits:10');
+    });
 
-    public function testDigitsBetweenRule()
-    {
+test('digits between rule', function () {
         $rule = Rule::numeric()->digitsBetween(2, 10);
-        $this->assertEquals('numeric|integer|digits_between:2,10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|integer|digits_between:2,10');
+    });
 
-    public function testGreaterThanRule()
-    {
+test('greater than rule', function () {
         $rule = Rule::numeric()->greaterThan('some_field');
-        $this->assertEquals('numeric|gt:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|gt:some_field');
+    });
 
-    public function testGreaterThanOrEqualRule()
-    {
+test('greater than or equal rule', function () {
         $rule = Rule::numeric()->greaterThanOrEqualTo('some_field');
-        $this->assertEquals('numeric|gte:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|gte:some_field');
+    });
 
-    public function testIntegerRule()
-    {
+test('integer rule', function () {
         $rule = Rule::numeric()->integer();
-        $this->assertEquals('numeric|integer', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|integer');
 
         $rule = Rule::numeric()->integer(strict: true);
-        $this->assertEquals('numeric|integer:strict', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|integer:strict');
+    });
 
-    public function testLessThanRule()
-    {
+test('less than rule', function () {
         $rule = Rule::numeric()->lessThan('some_field');
-        $this->assertEquals('numeric|lt:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|lt:some_field');
+    });
 
-    public function testLessThanOrEqualRule()
-    {
+test('less than or equal rule', function () {
         $rule = Rule::numeric()->lessThanOrEqualTo('some_field');
-        $this->assertEquals('numeric|lte:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|lte:some_field');
+    });
 
-    public function testMaxRule()
-    {
+test('max rule', function () {
         $rule = Rule::numeric()->max(10);
-        $this->assertEquals('numeric|max:10', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|max:10');
 
         $rule = Rule::numeric()->max(10.5);
-        $this->assertEquals('numeric|max:10.5', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|max:10.5');
+    });
 
-    public function testMaxDigitsRule()
-    {
+test('max digits rule', function () {
         $rule = Rule::numeric()->maxDigits(10);
-        $this->assertEquals('numeric|max_digits:10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|max_digits:10');
+    });
 
-    public function testMinRule()
-    {
+test('min rule', function () {
         $rule = Rule::numeric()->min(10);
-        $this->assertEquals('numeric|min:10', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|min:10');
 
         $rule = Rule::numeric()->min(10.5);
-        $this->assertEquals('numeric|min:10.5', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|min:10.5');
+    });
 
-    public function testMinDigitsRule()
-    {
+test('min digits rule', function () {
         $rule = Rule::numeric()->minDigits(10);
-        $this->assertEquals('numeric|min_digits:10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|min_digits:10');
+    });
 
-    public function testMultipleOfRule()
-    {
+test('multiple of rule', function () {
         $rule = Rule::numeric()->multipleOf(10);
-        $this->assertEquals('numeric|multiple_of:10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|multiple_of:10');
+    });
 
-    public function testSameRule()
-    {
+test('same rule', function () {
         $rule = Rule::numeric()->same('some_field');
-        $this->assertEquals('numeric|same:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|same:some_field');
+    });
 
-    public function testSizeRule()
-    {
+test('size rule', function () {
         $rule = Rule::numeric()->exactly(10);
-        $this->assertEquals('numeric|integer|size:10', (string) $rule);
-    }
+        expect((string) $rule)->toEqual('numeric|integer|size:10');
+    });
 
-    public function testChainedRules()
-    {
+test('chained rules', function () {
         $rule = Rule::numeric()
             ->integer()
             ->multipleOf(10)
             ->lessThanOrEqualTo('some_field')
             ->max(100);
-        $this->assertEquals('numeric|integer|multiple_of:10|lte:some_field|max:100', (string) $rule);
+        expect((string) $rule)->toEqual('numeric|integer|multiple_of:10|lte:some_field|max:100');
 
         $rule = Rule::numeric()
             ->decimal(2)
@@ -154,11 +130,10 @@ class ValidationNumericRuleTest extends TestCase
             ->unless(true, function ($rule) {
                 $rule->different('some_field_2');
             });
-        $this->assertSame('numeric|decimal:2|same:some_field', (string) $rule);
-    }
+        expect((string) $rule)->toBe('numeric|decimal:2|same:some_field');
+    });
 
-    public function testNumericValidation()
-    {
+test('numeric validation', function () {
         $trans = new Translator(new ArrayLoader, 'en');
 
         $rule = Rule::numeric();
@@ -169,10 +144,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => $rule]
         );
 
-        $this->assertSame(
-            $trans->get('validation.numeric'),
-            $validator->errors()->first('numeric')
-        );
+        expect($validator->errors()->first('numeric'))->toBe($trans->get('validation.numeric'));
 
         $validator = new Validator(
             $trans,
@@ -180,7 +152,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->between(10, 100);
 
@@ -190,7 +162,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->different('some_field');
 
@@ -200,7 +172,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->digits(2);
 
@@ -210,7 +182,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->digitsBetween(2, 4);
 
@@ -220,7 +192,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->greaterThan('some_field');
 
@@ -230,7 +202,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->greaterThanOrEqualTo('some_field');
 
@@ -240,7 +212,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->integer();
 
@@ -250,7 +222,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->lessThan('some_field');
 
@@ -260,7 +232,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->lessThanOrEqualTo('some_field');
 
@@ -270,7 +242,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->max(200);
 
@@ -280,7 +252,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->maxDigits(3);
 
@@ -290,7 +262,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->min(2);
 
@@ -300,7 +272,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->minDigits(2);
 
@@ -310,7 +282,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->multipleOf(10);
 
@@ -320,7 +292,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->same('some_field');
 
@@ -330,7 +302,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->exactly(10);
 
@@ -340,7 +312,7 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => (string) $rule]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
 
         $rule = Rule::numeric()->exactly(10);
 
@@ -350,12 +322,11 @@ class ValidationNumericRuleTest extends TestCase
             ['numeric' => [$rule]]
         );
 
-        $this->assertEmpty($validator->errors()->first('numeric'));
-    }
+        expect($validator->errors()->first('numeric'))->toBeEmpty();
+    });
 
-    public function testUniquenessValidation()
-    {
+test('uniqueness validation', function () {
         $rule = Rule::numeric()->integer()->digits(2)->exactly(2);
-        $this->assertEquals('numeric|integer|digits:2|size:2', (string) $rule);
-    }
-}
+        expect((string) $rule)->toEqual('numeric|integer|digits:2|size:2');
+    });
+

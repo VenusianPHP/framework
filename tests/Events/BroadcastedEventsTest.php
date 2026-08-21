@@ -1,37 +1,34 @@
 <?php
 
-namespace Tests\Events;
-
+use Tests\Events\Fixtures\AlwaysBroadcastEvent;
+use Tests\Events\Fixtures\BroadcastableNamedArgumentsEvent;
+use Tests\Events\Fixtures\BroadcastEvent;
+use Tests\Events\Fixtures\BroadcastFalseCondition;
+use Tests\Events\Fixtures\ExampleEvent;
 use Voyager\Broadcasting\PendingBroadcast;
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Broadcasting\Factory as BroadcastFactory;
 use Voyager\Contracts\Broadcasting\ShouldBroadcast;
 use Voyager\Events\Dispatcher;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class BroadcastedEventsTest extends TestCase
-{
-    public function testShouldBroadcastSuccess()
-    {
-        $d = m::mock(Dispatcher::class);
+test('should broadcast success', function () {
+        $d = Mockery::mock(Dispatcher::class);
 
         $d->makePartial()->shouldAllowMockingProtectedMethods();
 
         $event = new BroadcastEvent;
 
-        $this->assertTrue($d->shouldBroadcast([$event]));
+        expect($d->shouldBroadcast([$event]))->toBeTrue();
 
         $event = new AlwaysBroadcastEvent;
 
-        $this->assertTrue($d->shouldBroadcast([$event]));
-    }
+        expect($d->shouldBroadcast([$event]))->toBeTrue();
+    });
 
-    public function testShouldBroadcastAsQueuedAndCallNormalListeners()
-    {
+test('should broadcast as queued and call normal listeners', function () {
         unset($_SERVER['__event.test']);
-        $d = new Dispatcher($vessel = m::mock(Vessel::class));
-        $broadcast = m::mock(BroadcastFactory::class);
+        $d = new Dispatcher($vessel = Mockery::mock(Vessel::class));
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $broadcast->shouldReceive('queue')->once();
         $vessel->shouldReceive('make')->once()->with(BroadcastFactory::class)->andReturn($broadcast);
 
@@ -41,28 +38,26 @@ class BroadcastedEventsTest extends TestCase
 
         $d->dispatch($e = new AlwaysBroadcastEvent);
 
-        $this->assertSame($e, $_SERVER['__event.test']);
-    }
+        expect($_SERVER['__event.test'])->toBe($e);
+    });
 
-    public function testShouldBroadcastFail()
-    {
-        $d = m::mock(Dispatcher::class);
+test('should broadcast fail', function () {
+        $d = Mockery::mock(Dispatcher::class);
 
         $d->makePartial()->shouldAllowMockingProtectedMethods();
 
         $event = new BroadcastFalseCondition;
 
-        $this->assertFalse($d->shouldBroadcast([$event]));
+        expect($d->shouldBroadcast([$event]))->toBeFalse();
 
         $event = new ExampleEvent;
 
-        $this->assertFalse($d->shouldBroadcast([$event]));
-    }
+        expect($d->shouldBroadcast([$event]))->toBeFalse();
+    });
 
-    public function testBroadcastWithMultipleChannels()
-    {
-        $d = new Dispatcher($vessel = m::mock(Vessel::class));
-        $broadcast = m::mock(BroadcastFactory::class);
+test('broadcast with multiple channels', function () {
+        $d = new Dispatcher($vessel = Mockery::mock(Vessel::class));
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $broadcast->shouldReceive('queue')->once();
         $vessel->shouldReceive('make')->once()->with(BroadcastFactory::class)->andReturn($broadcast);
 
@@ -75,12 +70,11 @@ class BroadcastedEventsTest extends TestCase
         };
 
         $d->dispatch($event);
-    }
+    });
 
-    public function testBroadcastWithCustomConnectionName()
-    {
-        $d = new Dispatcher($vessel = m::mock(Vessel::class));
-        $broadcast = m::mock(BroadcastFactory::class);
+test('broadcast with custom connection name', function () {
+        $d = new Dispatcher($vessel = Mockery::mock(Vessel::class));
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $broadcast->shouldReceive('queue')->once();
         $vessel->shouldReceive('make')->once()->with(BroadcastFactory::class)->andReturn($broadcast);
 
@@ -95,12 +89,11 @@ class BroadcastedEventsTest extends TestCase
         };
 
         $d->dispatch($event);
-    }
+    });
 
-    public function testBroadcastWithCustomEventName()
-    {
-        $d = new Dispatcher($vessel = m::mock(Vessel::class));
-        $broadcast = m::mock(BroadcastFactory::class);
+test('broadcast with custom event name', function () {
+        $d = new Dispatcher($vessel = Mockery::mock(Vessel::class));
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $broadcast->shouldReceive('queue')->once();
         $vessel->shouldReceive('make')->once()->with(BroadcastFactory::class)->andReturn($broadcast);
 
@@ -118,12 +111,11 @@ class BroadcastedEventsTest extends TestCase
         };
 
         $d->dispatch($event);
-    }
+    });
 
-    public function testBroadcastWithCustomPayload()
-    {
-        $d = new Dispatcher($vessel = m::mock(Vessel::class));
-        $broadcast = m::mock(BroadcastFactory::class);
+test('broadcast with custom payload', function () {
+        $d = new Dispatcher($vessel = Mockery::mock(Vessel::class));
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $broadcast->shouldReceive('queue')->once();
         $vessel->shouldReceive('make')->once()->with(BroadcastFactory::class)->andReturn($broadcast);
 
@@ -143,77 +135,33 @@ class BroadcastedEventsTest extends TestCase
         };
 
         $d->dispatch($event);
-    }
+    });
 
-    public function testEventBroadcastsUsingNamedArguments()
-    {
+test('event broadcasts using named arguments', function () {
         $vessel = new Vessel;
-        $broadcast = m::mock(BroadcastFactory::class);
+        $broadcast = Mockery::mock(BroadcastFactory::class);
         $vessel->instance(BroadcastFactory::class, $broadcast);
 
         $originalContainer = Vessel::getInstance();
         Vessel::setInstance($vessel);
 
         try {
-            $pendingBroadcast = m::mock(PendingBroadcast::class);
+            $pendingBroadcast = Mockery::mock(PendingBroadcast::class);
 
             $broadcast->shouldReceive('event')
                 ->once()
-                ->with(m::on(function ($event) {
-                    $this->assertInstanceOf(BroadcastableNamedArgumentsEvent::class, $event);
-                    $this->assertSame('first-value', $event->first);
-                    $this->assertSame('second-value', $event->second);
+                ->with(Mockery::on(function ($event) {
+                    expect($event)->toBeInstanceOf(BroadcastableNamedArgumentsEvent::class);
+                    expect($event->first)->toBe('first-value');
+                    expect($event->second)->toBe('second-value');
 
                     return true;
                 }))
                 ->andReturn($pendingBroadcast);
 
-            $this->assertSame(
-                $pendingBroadcast,
-                BroadcastableNamedArgumentsEvent::broadcast(second: 'second-value', first: 'first-value')
-            );
+            expect(BroadcastableNamedArgumentsEvent::broadcast(second: 'second-value', first: 'first-value'))->toBe($pendingBroadcast);
         } finally {
             Vessel::setInstance($originalContainer);
         }
-    }
-}
+    });
 
-class BroadcastEvent implements ShouldBroadcast
-{
-    public function broadcastOn()
-    {
-        return ['test-channel'];
-    }
-
-    public function broadcastWhen()
-    {
-        return true;
-    }
-}
-
-class AlwaysBroadcastEvent implements ShouldBroadcast
-{
-    public function broadcastOn()
-    {
-        return ['test-channel'];
-    }
-}
-
-class BroadcastFalseCondition extends BroadcastEvent
-{
-    public function broadcastWhen()
-    {
-        return false;
-    }
-}
-
-class BroadcastableNamedArgumentsEvent
-{
-    use \Voyager\System\Events\Dispatchable;
-
-    public function __construct(
-        public string $first,
-        public string $second,
-    ) {
-    }
-}

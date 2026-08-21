@@ -1,16 +1,10 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\NutsAndBolts\Fluent;
 use Voyager\Validation\Rule;
 use Voyager\Validation\ValidationRuleParser;
-use PHPUnit\Framework\TestCase;
 
-class ValidationRuleParserTest extends TestCase
-{
-    public function testConditionalRulesAreProperlyExpandedAndFiltered()
-    {
+test('conditional rules are properly expanded and filtered', function () {
         $isAdmin = true;
 
         $rules = ValidationRuleParser::filterConditionalRules([
@@ -34,7 +28,7 @@ class ValidationRuleParserTest extends TestCase
             'unless_cb_false' => Rule::unless(fn () => false, ['required'], ['nullable']),
         ]);
 
-        $this->assertEquals([
+        expect($rules)->toEqual([
             'name' => ['required', 'min:2'],
             'email' => [],
             'password' => ['required', 'min:2'],
@@ -47,11 +41,10 @@ class ValidationRuleParserTest extends TestCase
             'when_cb_false' => ['nullable'],
             'unless_cb_true' => ['nullable'],
             'unless_cb_false' => ['required'],
-        ], $rules);
-    }
+        ]);
+    });
 
-    public function testEmptyRulesArePreserved()
-    {
+test('empty rules are preserved', function () {
         $isAdmin = true;
 
         $rules = ValidationRuleParser::filterConditionalRules([
@@ -61,23 +54,21 @@ class ValidationRuleParserTest extends TestCase
             'gender' => Rule::unless($isAdmin, 'required'),
         ]);
 
-        $this->assertEquals([
+        expect($rules)->toEqual([
             'name' => [],
             'email' => '',
             'password' => ['required', 'min:2'],
             'gender' => [],
-        ], $rules);
-    }
+        ]);
+    });
 
-    public function testEmptyRulesCanBeExploded()
-    {
+test('empty rules can be exploded', function () {
         $parser = new ValidationRuleParser(['foo' => 'bar']);
 
-        $this->assertIsObject($parser->explode(['foo' => []]));
-    }
+        expect($parser->explode(['foo' => []]))->toBeObject();
+    });
 
-    public function testConditionalRulesWithDefault()
-    {
+test('conditional rules with default', function () {
         $isAdmin = true;
 
         $rules = ValidationRuleParser::filterConditionalRules([
@@ -88,17 +79,16 @@ class ValidationRuleParserTest extends TestCase
             'address' => ['required', Rule::unless($isAdmin, ['min:2'], ['string', 'max:10'])],
         ]);
 
-        $this->assertEquals([
+        expect($rules)->toEqual([
             'name' => ['required', 'min:2'],
             'email' => ['string', 'max:10'],
             'password' => ['string', 'max:10'],
             'username' => ['required', 'min:2'],
             'address' => ['required', 'string', 'max:10'],
-        ], $rules);
-    }
+        ]);
+    });
 
-    public function testEmptyConditionalRulesArePreserved()
-    {
+test('empty conditional rules are preserved', function () {
         $isAdmin = true;
 
         $rules = ValidationRuleParser::filterConditionalRules([
@@ -107,76 +97,70 @@ class ValidationRuleParserTest extends TestCase
             'password' => Rule::unless($isAdmin, 'required|min:2', 'string|max:10'),
         ]);
 
-        $this->assertEquals([
+        expect($rules)->toEqual([
             'name' => [],
             'email' => [],
             'password' => ['string', 'max:10'],
-        ], $rules);
-    }
+        ]);
+    });
 
-    public function testExplodeFailsParsingSingleRegexRuleContainingPipe()
-    {
+test('explode fails parsing single regex rule containing pipe', function () {
         $data = ['items' => [['type' => 'foo']]];
 
         $exploded = (new ValidationRuleParser($data))->explode(
             ['items.*.type' => 'regex:/^(foo|bar)$/i']
         );
 
-        $this->assertSame('regex:/^(foo', $exploded->rules['items.0.type'][0]);
-        $this->assertSame('bar)$/i', $exploded->rules['items.0.type'][1]);
-    }
+        expect($exploded->rules['items.0.type'][0])->toBe('regex:/^(foo');
+        expect($exploded->rules['items.0.type'][1])->toBe('bar)$/i');
+    });
 
-    public function testExplodeProperlyParsesSingleRegexRuleNotContainingPipe()
-    {
+test('explode properly parses single regex rule not containing pipe', function () {
         $data = ['items' => [['type' => 'foo']]];
 
         $exploded = (new ValidationRuleParser($data))->explode(
             ['items.*.type' => 'regex:/^[\d\-]*$/|max:20']
         );
 
-        $this->assertSame('regex:/^[\d\-]*$/', $exploded->rules['items.0.type'][0]);
-        $this->assertSame('max:20', $exploded->rules['items.0.type'][1]);
-    }
+        expect($exploded->rules['items.0.type'][0])->toBe('regex:/^[\d\-]*$/');
+        expect($exploded->rules['items.0.type'][1])->toBe('max:20');
+    });
 
-    public function testExplodeProperlyParsesRegexWithArrayOfRules()
-    {
+test('explode properly parses regex with array of rules', function () {
         $data = ['items' => [['type' => 'foo']]];
 
         $exploded = (new ValidationRuleParser($data))->explode(
             ['items.*.type' => ['in:foo', 'regex:/^(foo|bar)$/i']]
         );
 
-        $this->assertSame('in:foo', $exploded->rules['items.0.type'][0]);
-        $this->assertSame('regex:/^(foo|bar)$/i', $exploded->rules['items.0.type'][1]);
-    }
+        expect($exploded->rules['items.0.type'][0])->toBe('in:foo');
+        expect($exploded->rules['items.0.type'][1])->toBe('regex:/^(foo|bar)$/i');
+    });
 
-    public function testExplodeProperlyParsesRegexThatDoesNotContainPipe()
-    {
+test('explode properly parses regex that does not contain pipe', function () {
         $data = ['items' => [['type' => 'foo']]];
 
         $exploded = (new ValidationRuleParser($data))->explode(
             ['items.*.type' => 'in:foo|regex:/^(bar)$/i']
         );
 
-        $this->assertSame('in:foo', $exploded->rules['items.0.type'][0]);
-        $this->assertSame('regex:/^(bar)$/i', $exploded->rules['items.0.type'][1]);
-    }
+        expect($exploded->rules['items.0.type'][0])->toBe('in:foo');
+        expect($exploded->rules['items.0.type'][1])->toBe('regex:/^(bar)$/i');
+    });
 
-    public function testExplodeFailsParsingRegexWithOtherRulesInSingleString()
-    {
+test('explode fails parsing regex with other rules in single string', function () {
         $data = ['items' => [['type' => 'foo']]];
 
         $exploded = (new ValidationRuleParser($data))->explode(
             ['items.*.type' => 'in:foo|regex:/^(foo|bar)$/i']
         );
 
-        $this->assertSame('in:foo', $exploded->rules['items.0.type'][0]);
-        $this->assertSame('regex:/^(foo', $exploded->rules['items.0.type'][1]);
-        $this->assertSame('bar)$/i', $exploded->rules['items.0.type'][2]);
-    }
+        expect($exploded->rules['items.0.type'][0])->toBe('in:foo');
+        expect($exploded->rules['items.0.type'][1])->toBe('regex:/^(foo');
+        expect($exploded->rules['items.0.type'][2])->toBe('bar)$/i');
+    });
 
-    public function testExplodeGeneratesNestedRules()
-    {
+test('explode generates nested rules', function () {
         $parser = (new ValidationRuleParser([
             'users' => [
                 ['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com'],
@@ -185,21 +169,20 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode([
             'users.*.name' => Rule::forEach(function ($value, $attribute, $data, $context) {
-                $this->assertSame('Taylor Otwell', $value);
-                $this->assertSame('users.0.name', $attribute);
-                $this->assertEquals($data['users.0.name'], 'Taylor Otwell');
-                $this->assertEquals(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com'], $context);
+                expect($value)->toBe('Taylor Otwell');
+                expect($attribute)->toBe('users.0.name');
+                expect('Taylor Otwell')->toEqual($data['users.0.name']);
+                expect($context)->toEqual(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com']);
 
                 return [Rule::requiredIf(true)];
             }),
         ]);
 
-        $this->assertEquals(['users.0.name' => ['required']], $results->rules);
-        $this->assertEquals(['users.*.name' => ['users.0.name']], $results->implicitAttributes);
-    }
+        expect($results->rules)->toEqual(['users.0.name' => ['required']]);
+        expect($results->implicitAttributes)->toEqual(['users.*.name' => ['users.0.name']]);
+    });
 
-    public function testExplodeGeneratesNestedRulesForNonNestedData()
-    {
+test('explode generates nested rules for non nested data', function () {
         $parser = (new ValidationRuleParser([
             'name' => 'Taylor Otwell',
             'email' => 'taylor@laravel.com',
@@ -207,21 +190,20 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode([
             'name' => Rule::forEach(function ($value, $attribute, $data, $context) {
-                $this->assertSame('Taylor Otwell', $value);
-                $this->assertSame('name', $attribute);
-                $this->assertEquals(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com'], $data);
-                $this->assertEquals(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com'], $context);
+                expect($value)->toBe('Taylor Otwell');
+                expect($attribute)->toBe('name');
+                expect($data)->toEqual(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com']);
+                expect($context)->toEqual(['name' => 'Taylor Otwell', 'email' => 'taylor@laravel.com']);
 
                 return 'required';
             }),
         ]);
 
-        $this->assertEquals(['name' => ['required']], $results->rules);
-        $this->assertEquals([], $results->implicitAttributes);
-    }
+        expect($results->rules)->toEqual(['name' => ['required']]);
+        expect($results->implicitAttributes)->toEqual([]);
+    });
 
-    public function testExplodeHandlesForwardSlashesInWildcardRule()
-    {
+test('explode handles forward slashes in wildcard rule', function () {
         $parser = (new ValidationRuleParser([
             'redirects' => [
                 'directory/subdirectory/file' => [
@@ -234,16 +216,15 @@ class ValidationRuleParserTest extends TestCase
             'redirects.directory/subdirectory/file.*' => 'string',
         ]);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'redirects.directory/subdirectory/file.0' => ['string'],
-        ], $results->rules);
-        $this->assertEquals([
+        ]);
+        expect($results->implicitAttributes)->toEqual([
             'redirects.directory/subdirectory/file.*' => ['redirects.directory/subdirectory/file.0'],
-        ], $results->implicitAttributes);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesArraysOfNestedRules()
-    {
+test('explode handles arrays of nested rules', function () {
         $parser = (new ValidationRuleParser([
             'users' => [
                 ['name' => 'Taylor Otwell'],
@@ -253,10 +234,10 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode([
             'users.*.name' => Rule::forEach(function ($value, $attribute, $data) {
-                $this->assertEquals([
+                expect($data)->toEqual([
                     'users.0.name' => 'Taylor Otwell',
                     'users.1.name' => 'Abigail Otwell',
-                ], $data);
+                ]);
 
                 return [
                     Rule::requiredIf(true),
@@ -267,40 +248,39 @@ class ValidationRuleParserTest extends TestCase
             }),
         ]);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'users.0.name' => ['required', 'in:"taylor"'],
             'users.1.name' => ['required', 'in:"abigail"'],
-        ], $results->rules);
+        ]);
 
-        $this->assertEquals([
+        expect($results->implicitAttributes)->toEqual([
             'users.*.name' => [
                 'users.0.name',
                 'users.1.name',
             ],
-        ], $results->implicitAttributes);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesRecursivelyNestedRules()
-    {
+test('explode handles recursively nested rules', function () {
         $parser = (new ValidationRuleParser([
             'users' => [['name' => 'Taylor Otwell']],
         ]));
 
         $results = $parser->explode([
             'users.*.name' => Rule::forEach(function ($value, $attribute, $data) {
-                $this->assertSame('Taylor Otwell', $value);
-                $this->assertSame('users.0.name', $attribute);
-                $this->assertEquals(['users.0.name' => 'Taylor Otwell'], $data);
+                expect($value)->toBe('Taylor Otwell');
+                expect($attribute)->toBe('users.0.name');
+                expect($data)->toEqual(['users.0.name' => 'Taylor Otwell']);
 
                 return Rule::forEach(function ($value, $attribute, $data) {
-                    $this->assertNull($value);
-                    $this->assertSame('users.0.name', $attribute);
-                    $this->assertEquals(['users.0.name' => 'Taylor Otwell'], $data);
+                    expect($value)->toBeNull();
+                    expect($attribute)->toBe('users.0.name');
+                    expect($data)->toEqual(['users.0.name' => 'Taylor Otwell']);
 
                     return Rule::forEach(function ($value, $attribute, $data) {
-                        $this->assertNull($value);
-                        $this->assertSame('users.0.name', $attribute);
-                        $this->assertEquals(['users.0.name' => 'Taylor Otwell'], $data);
+                        expect($value)->toBeNull();
+                        expect($attribute)->toBe('users.0.name');
+                        expect($data)->toEqual(['users.0.name' => 'Taylor Otwell']);
 
                         return [Rule::requiredIf(true)];
                     });
@@ -308,12 +288,11 @@ class ValidationRuleParserTest extends TestCase
             }),
         ]);
 
-        $this->assertEquals(['users.0.name' => ['required']], $results->rules);
-        $this->assertEquals(['users.*.name' => ['users.0.name']], $results->implicitAttributes);
-    }
+        expect($results->rules)->toEqual(['users.0.name' => ['required']]);
+        expect($results->implicitAttributes)->toEqual(['users.*.name' => ['users.0.name']]);
+    });
 
-    public function testExplodeHandlesSegmentingNestedRules()
-    {
+test('explode handles segmenting nested rules', function () {
         $parser = (new ValidationRuleParser([
             'items' => [
                 ['discounts' => [['id' => 1], ['id' => 2]]],
@@ -329,14 +308,14 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'items.0.discounts.0.id' => ['distinct'],
             'items.0.discounts.1.id' => ['distinct'],
             'items.1.discounts.0.id' => ['distinct'],
             'items.1.discounts.1.id' => ['distinct'],
-        ], $results->rules);
+        ]);
 
-        $this->assertEquals([
+        expect($results->implicitAttributes)->toEqual([
             'items.1.discounts.*.id' => [
                 'items.1.discounts.0.id',
                 'items.1.discounts.1.id',
@@ -349,11 +328,10 @@ class ValidationRuleParserTest extends TestCase
                 'items.0',
                 'items.1',
             ],
-        ], $results->implicitAttributes);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesStringDateRule()
-    {
+test('explode handles string date rule', function () {
         $parser = (new ValidationRuleParser([
             'date' => '2021-01-01',
         ]));
@@ -364,16 +342,15 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'date' => [
                 'date',
                 'date_format:Y-m-d',
             ],
-        ], $results->rules);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesDateRule()
-    {
+test('explode handles date rule', function () {
         $parser = (new ValidationRuleParser([
             'date' => '2021-01-01',
         ]));
@@ -384,15 +361,14 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'date' => [
                 'date',
             ],
-        ], $results->rules);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesDateRuleWithAdditionalRules()
-    {
+test('explode handles date rule with additional rules', function () {
         $parser = (new ValidationRuleParser([
             'date' => '2021-01-01',
         ]));
@@ -403,16 +379,15 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'date' => [
                 'date',
                 'after:today',
             ],
-        ], $results->rules);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesNumericStringRule()
-    {
+test('explode handles numeric string rule', function () {
         $parser = (new ValidationRuleParser([
             'number' => 42,
         ]));
@@ -423,16 +398,15 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'number' => [
                 'numeric',
                 'max:100',
             ],
-        ], $results->rules);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesNumericRule()
-    {
+test('explode handles numeric rule', function () {
         $parser = (new ValidationRuleParser([
             'number' => 42,
         ]));
@@ -443,15 +417,14 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'number' => [
                 'numeric',
             ],
-        ], $results->rules);
-    }
+        ]);
+    });
 
-    public function testExplodeHandlesNumericRuleWithAdditionalRules()
-    {
+test('explode handles numeric rule with additional rules', function () {
         $parser = (new ValidationRuleParser([
             'number' => 42,
         ]));
@@ -462,11 +435,11 @@ class ValidationRuleParserTest extends TestCase
 
         $results = $parser->explode($rules);
 
-        $this->assertEquals([
+        expect($results->rules)->toEqual([
             'number' => [
                 'numeric',
                 'max:100',
             ],
-        ], $results->rules);
-    }
-}
+        ]);
+    });
+

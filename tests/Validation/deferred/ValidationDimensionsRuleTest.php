@@ -1,38 +1,32 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Http\UploadedFile;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\Dimensions;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationDimensionsRuleTest extends TestCase
-{
-    public function testItCorrectlyFormatsAStringVersionOfTheRule()
-    {
+test('it correctly formats a string version of the rule', function () {
         $rule = new Dimensions(['min_width' => 100, 'min_height' => 100]);
 
-        $this->assertSame('dimensions:min_width=100,min_height=100', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:min_width=100,min_height=100');
 
         $rule = Rule::dimensions()->width(200)->height(100);
 
-        $this->assertSame('dimensions:width=200,height=100', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:width=200,height=100');
 
         $rule = Rule::dimensions()->maxWidth(1000)->maxHeight(500)->ratio(3 / 2);
 
-        $this->assertSame('dimensions:max_width=1000,max_height=500,ratio=1.5', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:max_width=1000,max_height=500,ratio=1.5');
 
         $rule = new Dimensions(['ratio' => '2/3']);
 
-        $this->assertSame('dimensions:ratio=2/3', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:ratio=2/3');
 
         $rule = Rule::dimensions()->minWidth(300)->minHeight(400);
 
-        $this->assertSame('dimensions:min_width=300,min_height=400', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:min_width=300,min_height=400');
 
         $rule = Rule::dimensions()
             ->when(true, function ($rule) {
@@ -41,56 +35,51 @@ class ValidationDimensionsRuleTest extends TestCase
             ->unless(true, function ($rule) {
                 $rule->width('200');
             });
-        $this->assertSame('dimensions:height=100', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:height=100');
 
         $rule = Rule::dimensions()
             ->minRatio(1 / 2)
             ->maxRatio(1 / 3);
-        $this->assertSame('dimensions:min_ratio=0.5,max_ratio=0.33333333333333', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:min_ratio=0.5,max_ratio=0.33333333333333');
 
         $rule = Rule::dimensions()
             ->ratioBetween(min: 1 / 2, max: 1 / 3);
-        $this->assertSame('dimensions:min_ratio=0.5,max_ratio=0.33333333333333', (string) $rule);
-    }
+        expect((string) $rule)->toBe('dimensions:min_ratio=0.5,max_ratio=0.33333333333333');
+    });
 
-    public function testItCorrectlyFormatsWithSpecialValues()
-    {
+test('it correctly formats with special values', function () {
         $rule = new Dimensions();
 
-        $this->assertSame('dimensions:', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:');
 
         $rule = Rule::dimensions()->width(-100)->height(-200);
 
-        $this->assertSame('dimensions:width=-100,height=-200', (string) $rule);
+        expect((string) $rule)->toBe('dimensions:width=-100,height=-200');
 
         $rule = Rule::dimensions()->width('300')->height('400');
 
-        $this->assertSame('dimensions:width=300,height=400', (string) $rule);
-    }
+        expect((string) $rule)->toBe('dimensions:width=300,height=400');
+    });
 
-    public function testDimensionsRuleMaintainsCorrectOrder()
-    {
+test('dimensions rule maintains correct order', function () {
         $rule = Rule::dimensions()->minWidth(100)->width(200)->maxWidth(300);
 
-        $this->assertSame('dimensions:min_width=100,width=200,max_width=300', (string) $rule);
-    }
+        expect((string) $rule)->toBe('dimensions:min_width=100,width=200,max_width=300');
+    });
 
-    public function testOverridingValues()
-    {
+test('overriding values', function () {
         $rule = Rule::dimensions()->width(100)->width(500);
 
-        $this->assertSame('dimensions:width=500', (string) $rule);
-    }
+        expect((string) $rule)->toBe('dimensions:width=500');
+    });
 
-    public function testRatioBetweenOverridesMinAndMaxRatio()
-    {
+test('ratio between overrides min and max ratio', function () {
         $rule = Rule::dimensions()->minRatio(0.5)->maxRatio(2.0)->ratioBetween(1, 1.5);
 
-        $this->assertSame('dimensions:min_ratio=1,max_ratio=1.5', (string) $rule);
-    }
+        expect((string) $rule)->toBe('dimensions:min_ratio=1,max_ratio=1.5');
+    });
 
-    public function testGeneratesTheCorrectValidationMessages()
-    {
+test('generates the correct validation messages', function () {
         $rule = Rule::dimensions()
             ->width(100)->height(100)
             ->ratioBetween(min: 1 / 2, max: 2 / 5);
@@ -105,10 +94,7 @@ class ValidationDimensionsRuleTest extends TestCase
             ['image' => $rule]
         );
 
-        $this->assertSame(
-            $trans->get('validation.dimensions', ['width' => 100, 'height' => 100, 'min_ratio' => 0.5, 'max_ratio' => 0.4]),
-            $validator->errors()->first('image')
-        );
+        expect($validator->errors()->first('image'))->toBe($trans->get('validation.dimensions', ['width' => 100, 'height' => 100, 'min_ratio' => 0.5, 'max_ratio' => 0.4]));
 
         $validator = new Validator(
             $trans,
@@ -116,9 +102,6 @@ class ValidationDimensionsRuleTest extends TestCase
             ['image' => [$rule]]
         );
 
-        $this->assertSame(
-            $trans->get('validation.dimensions', ['width' => 100, 'height' => 100, 'min_ratio' => 0.5, 'max_ratio' => 0.4]),
-            $validator->errors()->first('image')
-        );
-    }
-}
+        expect($validator->errors()->first('image'))->toBe($trans->get('validation.dimensions', ['width' => 100, 'height' => 100, 'min_ratio' => 0.5, 'max_ratio' => 0.4]));
+    });
+

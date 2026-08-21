@@ -1,10 +1,5 @@
 <?php
 
-namespace Tests\Concurrency;
-
-use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
-use RuntimeException;
 use Voyager\Concurrency\ConcurrencyManager;
 use Voyager\Concurrency\ProcessDriver;
 use Voyager\Concurrency\SyncDriver;
@@ -12,140 +7,108 @@ use Voyager\Config\Repository;
 use Voyager\Process\Factory as ProcessFactory;
 use Voyager\Vessel\Vessel;
 
-class ConcurrencyManagerTest extends TestCase
+/**
+ * Build the smallest container the manager needs.
+ *
+ * The manager only ever asks the application for its configuration, for a
+ * process factory, and whether it is running in the console, so a plain
+ * Vessel carrying those three answers stands in for a booted application.
+ */
+function concurrencyManagerApp(array $config = [], bool $runningInConsole = true)
 {
-    protected $previousVessel;
-
-    protected function setUp(): void
+    $vessel = new class($runningInConsole) extends Vessel
     {
-        parent::setUp();
-
-        $this->previousVessel = Vessel::getInstance();
-    }
-
-    protected function tearDown(): void
-    {
-        Vessel::setInstance($this->previousVessel);
-
-        parent::tearDown();
-    }
-
-    public function testItResolvesTheSyncDriver()
-    {
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->assertInstanceOf(SyncDriver::class, $manager->driver('sync'));
-    }
-
-    public function testItResolvesTheProcessDriver()
-    {
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->assertInstanceOf(ProcessDriver::class, $manager->driver('process'));
-    }
-
-    public function testItDefaultsToTheProcessDriver()
-    {
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->assertSame('process', $manager->getDefaultInstance());
-        $this->assertInstanceOf(ProcessDriver::class, $manager->driver());
-    }
-
-    public function testTheDefaultInstanceIsReadFromConfiguration()
-    {
-        $manager = new ConcurrencyManager($this->app(['concurrency.default' => 'sync']));
-
-        $this->assertSame('sync', $manager->getDefaultInstance());
-        $this->assertInstanceOf(SyncDriver::class, $manager->driver());
-    }
-
-    public function testTheLegacyDriverConfigurationKeyIsHonored()
-    {
-        $manager = new ConcurrencyManager($this->app(['concurrency.driver' => 'sync']));
-
-        $this->assertSame('sync', $manager->getDefaultInstance());
-    }
-
-    public function testTheDefaultInstanceCanBeSet()
-    {
-        $manager = new ConcurrencyManager($app = $this->app());
-
-        $manager->setDefaultInstance('sync');
-
-        $this->assertSame('sync', $manager->getDefaultInstance());
-        $this->assertSame('sync', $app['config']['concurrency.default']);
-        $this->assertSame('sync', $app['config']['concurrency.driver']);
-    }
-
-    public function testInstancesAreResolvedOnce()
-    {
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->assertSame($manager->driver('sync'), $manager->driver('sync'));
-    }
-
-    public function testUnknownDriversAreRejected()
-    {
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Instance driver [swoole] is not supported.');
-
-        $manager->driver('swoole');
-    }
-
-    public function testTheForkDriverMayNotBeUsedOutsideTheConsole()
-    {
-        $manager = new ConcurrencyManager($this->app(runningInConsole: false));
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Due to PHP limitations, the fork driver may not be used within web requests.');
-
-        $manager->driver('fork');
-    }
-
-    public function testTheForkDriverRequiresTheSpatieForkPackage()
-    {
-        if (class_exists(\Spatie\Fork\Fork::class)) {
-            $this->markTestSkipped('The spatie/fork package is installed.');
+        public function __construct(protected bool $console)
+        {
+            //
         }
 
-        $manager = new ConcurrencyManager($this->app());
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Please install the "spatie/fork" Composer package in order to utilize the "fork" driver.');
-
-        $manager->driver('fork');
-    }
-
-    /**
-     * Build the smallest container the manager needs.
-     *
-     * The manager only ever asks the application for its configuration, for a
-     * process factory, and whether it is running in the console, so a plain
-     * Vessel carrying those three answers stands in for a booted application.
-     */
-    protected function app(array $config = [], bool $runningInConsole = true)
-    {
-        $vessel = new class($runningInConsole) extends Vessel
+        public function runningInConsole()
         {
-            public function __construct(protected bool $console)
-            {
-                //
-            }
+            return $this->console;
+        }
+    };
 
-            public function runningInConsole()
-            {
-                return $this->console;
-            }
-        };
+    $vessel->instance('config', new Repository($config));
+    $vessel->instance(ProcessFactory::class, new ProcessFactory);
 
-        $vessel->instance('config', new Repository($config));
-        $vessel->instance(ProcessFactory::class, new ProcessFactory);
+    Vessel::setInstance($vessel);
 
-        Vessel::setInstance($vessel);
-
-        return $vessel;
-    }
+    return $vessel;
 }
+
+beforeEach(function () {
+    $this->previousVessel = Vessel::getInstance();
+});
+
+afterEach(function () {
+    Vessel::setInstance($this->previousVessel);
+});
+
+test('it resolves the sync driver', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    expect($manager->driver('sync'))->toBeInstanceOf(SyncDriver::class);
+});
+
+test('it resolves the process driver', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    expect($manager->driver('process'))->toBeInstanceOf(ProcessDriver::class);
+});
+
+test('it defaults to the process driver', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    expect($manager->getDefaultInstance())->toBe('process')
+        ->and($manager->driver())->toBeInstanceOf(ProcessDriver::class);
+});
+
+test('the default instance is read from configuration', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp(['concurrency.default' => 'sync']));
+
+    expect($manager->getDefaultInstance())->toBe('sync')
+        ->and($manager->driver())->toBeInstanceOf(SyncDriver::class);
+});
+
+test('the legacy driver configuration key is honored', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp(['concurrency.driver' => 'sync']));
+
+    expect($manager->getDefaultInstance())->toBe('sync');
+});
+
+test('the default instance can be set', function () {
+    $app = concurrencyManagerApp();
+    $manager = new ConcurrencyManager($app);
+
+    $manager->setDefaultInstance('sync');
+
+    expect($manager->getDefaultInstance())->toBe('sync')
+        ->and($app['config']['concurrency.default'])->toBe('sync')
+        ->and($app['config']['concurrency.driver'])->toBe('sync');
+});
+
+test('instances are resolved once', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    expect($manager->driver('sync'))->toBe($manager->driver('sync'));
+});
+
+test('unknown drivers are rejected', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    $manager->driver('swoole');
+})->throws(InvalidArgumentException::class, 'Instance driver [swoole] is not supported.');
+
+test('the fork driver may not be used outside the console', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp(runningInConsole: false));
+
+    $manager->driver('fork');
+})->throws(RuntimeException::class, 'Due to PHP limitations, the fork driver may not be used within web requests.');
+
+test('the fork driver requires the spatie fork package', function () {
+    $manager = new ConcurrencyManager(concurrencyManagerApp());
+
+    $manager->driver('fork');
+})->throws(RuntimeException::class, 'Please install the "spatie/fork" Composer package in order to utilize the "fork" driver.')
+    ->skip(fn () => class_exists(\Spatie\Fork\Fork::class), 'The spatie/fork package is installed.');

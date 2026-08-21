@@ -1,5 +1,44 @@
 # Update Log
 
+## 2026-08-21
+* **Update**: Converted the wave 4 test directories (`tests/Bus`, `tests/Translation`,
+  `tests/Concurrency`, `tests/Events`, `tests/Validation` — 48 files, including
+  every `deferred/` subdirectory in both `Bus` and `Validation`) to Pest v4.
+  `tests/Validation/ValidationValidatorTest.php` alone is 274 upstream test
+  methods across 9,995 lines — by far the largest single file converted in any
+  wave so far, ~10x the previous record (`FoundationApplicationTest.php` at 550
+  lines). Verified per-file and directory-wide against the pre-conversion
+  PHPUnit baseline: identical pass/fail/risky counts throughout, 0 fixed, 0
+  regressed. Assertion counts rose in the usual places (Mockery expectations
+  counted as assertions under Pest, continuing the wave 2 effect).
+  Five of six files in `tests/Validation/deferred` were converted against
+  their exact recorded pass/fail profile, following the wave 0/3 precedent for
+  deferred files that cannot be green yet — see [known gaps](known-gaps.md)
+  for what blocks each one. `tests/Bus/deferred/BusBatchTest.php` looked like
+  a sixth such case (0/19 passing) but wasn't: its failures traced to two
+  leftover `Illuminate`-era call sites — `bootEloquent()` and a
+  `Voyager\MagicAliases\Facade` that never existed — that this package's own
+  naming rule (`AGENTS.md`) says must not survive a port. Fixed as a naming
+  correction rather than preserved as a Database blocker, which took the file
+  to 16/19 passing and surfaced two real remaining `src/` bugs, left for a
+  human call — see [known gaps](known-gaps.md).
+* **Update**: Found and fixed a real bug in the ad hoc Python conversion
+  tooling used for this and prior waves' mechanical PHPUnit-to-Pest
+  transforms: its brace/paren balance tracker treated an apostrophe inside a
+  `//` comment (e.g. "there's", "doesn't") as a string-literal delimiter,
+  which could silently misplace a method body's boundaries. It stayed latent
+  through waves 0-3 by chance — no affected comment happened to precede a real
+  brace before the tracker's bogus "string" resynced on the next genuine
+  quote — until `ValidationValidatorTest.php`'s `testValidateArrayKeys`
+  (`// The array is valid if there's a missing key.`) finally hit the failure
+  mode outright: unmatched-brace, not silent corruption. Fixed by teaching the
+  tracker to skip `//`, `#` and `/* */` comments before checking for quotes.
+  Every file already converted before the fix was spot-checked against this
+  risk (grepped for apostrophes in comments) and re-verified against its
+  baseline pass/fail count; none were affected, since a real corruption event
+  is rare enough that the two prior near-misses (`ValidationRuleDoesntContainTest`,
+  `ValidationEnumRuleTest`) also happened not to straddle a live brace.
+
 ## 2026-08-20
 * **Update**: Wave 5 of the Laravel port — `Queue`, `Broadcasting` and
   `Notifications` from `laravel/framework@v12.67.0`. Suite: 3205 → 3424 passing,

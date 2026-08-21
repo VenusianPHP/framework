@@ -1,86 +1,65 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\RequiredUnless;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationRequiredUnlessRuleTest extends TestCase
-{
-    protected Translator $translator;
+beforeEach(function () {
+    $this->translator = new Translator(new ArrayLoader, 'en');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('instance of', function () {
+    expect(Rule::requiredUnless(true))->toBeInstanceOf(RequiredUnless::class);
+});
 
-        $this->translator = new Translator(new ArrayLoader, 'en');
-    }
+test('boolean condition true', function () {
+    $rule = Rule::requiredUnless(true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testInstanceOf()
-    {
-        $this->assertInstanceOf(RequiredUnless::class, Rule::requiredUnless(true));
-    }
+test('boolean condition false', function () {
+    $rule = Rule::requiredUnless(false);
+    expect((string) $rule)->toBe('required');
+});
 
-    public function testBooleanConditionTrue()
-    {
-        $rule = Rule::requiredUnless(true);
-        $this->assertSame('', (string) $rule);
-    }
+test('closure condition true', function () {
+    $rule = Rule::requiredUnless(fn () => true);
+    expect((string) $rule)->toBe('');
+});
 
-    public function testBooleanConditionFalse()
-    {
-        $rule = Rule::requiredUnless(false);
-        $this->assertSame('required', (string) $rule);
-    }
+test('closure condition false', function () {
+    $rule = Rule::requiredUnless(fn () => false);
+    expect((string) $rule)->toBe('required');
+});
 
-    public function testClosureConditionTrue()
-    {
-        $rule = Rule::requiredUnless(fn () => true);
-        $this->assertSame('', (string) $rule);
-    }
+test('field is required when condition false', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor'],
+        [
+            'name' => 'required|string',
+            'age' => [Rule::requiredUnless(false), 'integer'],
+        ],
+    );
 
-    public function testClosureConditionFalse()
-    {
-        $rule = Rule::requiredUnless(fn () => false);
-        $this->assertSame('required', (string) $rule);
-    }
+    expect($validator->fails())->toBeTrue();
+});
 
-    public function testFieldIsRequiredWhenConditionFalse()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor'],
-            [
-                'name' => 'required|string',
-                'age' => [Rule::requiredUnless(false), 'integer'],
-            ],
-        );
+test('field is optional when condition true', function () {
+    $validator = new Validator(
+        $this->translator,
+        ['name' => 'Taylor'],
+        [
+            'name' => 'required|string',
+            'age' => [Rule::requiredUnless(true), 'integer'],
+        ],
+    );
 
-        $this->assertTrue($validator->fails());
-    }
+    expect($validator->passes())->toBeTrue();
+});
 
-    public function testFieldIsOptionalWhenConditionTrue()
-    {
-        $validator = new Validator(
-            $this->translator,
-            ['name' => 'Taylor'],
-            [
-                'name' => 'required|string',
-                'age' => [Rule::requiredUnless(true), 'integer'],
-            ],
-        );
-
-        $this->assertTrue($validator->passes());
-    }
-
-    public function testInvalidConditionThrows()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        Rule::requiredUnless('invalid');
-    }
-}
+test('invalid condition throws', function () {
+    Rule::requiredUnless('invalid');
+})->throws(InvalidArgumentException::class);

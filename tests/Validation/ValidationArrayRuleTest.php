@@ -1,79 +1,65 @@
 <?php
 
-namespace Tests\Validation;
-
+use Tests\Validation\ArrayKeys;
+use Tests\Validation\ArrayKeysBacked;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-include_once 'Enums.php';
+test('it correctly formats a string version of the rule', function () {
+    $rule = Rule::array();
+    expect((string) $rule)->toBe('array');
 
-class ValidationArrayRuleTest extends TestCase
-{
-    public function testItCorrectlyFormatsAStringVersionOfTheRule()
-    {
-        $rule = Rule::array();
+    $rule = Rule::array([]);
+    expect((string) $rule)->toBe('array');
 
-        $this->assertSame('array', (string) $rule);
+    $rule = Rule::array('key_1', 'key_2', 'key_3');
+    expect((string) $rule)->toBe('array:key_1,key_2,key_3');
 
-        $rule = Rule::array([]);
-        $this->assertSame('array', (string) $rule);
+    $rule = Rule::array(['key_1', 'key_2', 'key_3']);
+    expect((string) $rule)->toBe('array:key_1,key_2,key_3');
 
-        $rule = Rule::array('key_1', 'key_2', 'key_3');
+    $rule = Rule::array(collect(['key_1', 'key_2', 'key_3']));
+    expect((string) $rule)->toBe('array:key_1,key_2,key_3');
 
-        $this->assertSame('array:key_1,key_2,key_3', (string) $rule);
+    $rule = Rule::array([ArrayKeys::key_1, ArrayKeys::key_2, ArrayKeys::key_3]);
+    expect((string) $rule)->toBe('array:key_1,key_2,key_3');
 
-        $rule = Rule::array(['key_1', 'key_2', 'key_3']);
+    $rule = Rule::array([ArrayKeysBacked::key_1, ArrayKeysBacked::key_2, ArrayKeysBacked::key_3]);
+    expect((string) $rule)->toBe('array:key_1,key_2,key_3');
 
-        $this->assertSame('array:key_1,key_2,key_3', (string) $rule);
+    $rule = Rule::array(['key_1', 'key_1']);
+    expect((string) $rule)->toBe('array:key_1,key_1');
 
-        $rule = Rule::array(collect(['key_1', 'key_2', 'key_3']));
+    $rule = Rule::array([1, 2, 3]);
+    expect((string) $rule)->toBe('array:1,2,3');
+});
 
-        $this->assertSame('array:key_1,key_2,key_3', (string) $rule);
+test('array validation', function () {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $rule = Rule::array([ArrayKeys::key_1, ArrayKeys::key_2, ArrayKeys::key_3]);
+    $v = new Validator($trans, ['foo' => 'not an array'], ['foo' => Rule::array()]);
+    expect($v->fails())->toBeTrue();
 
-        $this->assertSame('array:key_1,key_2,key_3', (string) $rule);
+    $v = new Validator($trans, ['foo' => (object) ['key_1' => 'bar']], ['foo' => Rule::array()]);
+    expect($v->fails())->toBeTrue();
 
-        $rule = Rule::array([ArrayKeysBacked::key_1, ArrayKeysBacked::key_2, ArrayKeysBacked::key_3]);
+    $v = new Validator($trans, ['foo' => null], ['foo' => ['nullable', Rule::array()]]);
+    expect($v->passes())->toBeTrue();
 
-        $this->assertSame('array:key_1,key_2,key_3', (string) $rule);
+    $v = new Validator($trans, ['foo' => []], ['foo' => Rule::array()]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = Rule::array(['key_1', 'key_1']);
-        $this->assertSame('array:key_1,key_1', (string) $rule);
+    $v = new Validator($trans, ['foo' => ['key_1' => []]], ['foo' => Rule::array(['key_1'])]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = Rule::array([1, 2, 3]);
-        $this->assertSame('array:1,2,3', (string) $rule);
-    }
+    $v = new Validator($trans, ['foo' => ['bar']], ['foo' => (string) Rule::array()]);
+    expect($v->passes())->toBeTrue();
 
-    public function testArrayValidation()
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
+    $v = new Validator($trans, ['foo' => ['key_1' => 'bar', 'key_2' => '']], ['foo' => Rule::array(['key_1', 'key_2'])]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['foo' => 'not an array'], ['foo' => Rule::array()]);
-        $this->assertTrue($v->fails());
-
-        $v = new Validator($trans, ['foo' => (object) ['key_1' => 'bar']], ['foo' => Rule::array()]);
-        $this->assertTrue($v->fails());
-
-        $v = new Validator($trans, ['foo' => null], ['foo' => ['nullable', Rule::array()]]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['foo' => []], ['foo' => Rule::array()]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['foo' => ['key_1' => []]], ['foo' => Rule::array(['key_1'])]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['foo' => ['bar']], ['foo' => (string) Rule::array()]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['foo' => ['key_1' => 'bar', 'key_2' => '']], ['foo' => Rule::array(['key_1', 'key_2'])]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['foo' => ['key_1' => 'bar', 'key_2' => '']], ['foo' => ['required', Rule::array(['key_1', 'key_2'])]]);
-        $this->assertTrue($v->passes());
-    }
-}
+    $v = new Validator($trans, ['foo' => ['key_1' => 'bar', 'key_2' => '']], ['foo' => ['required', Rule::array(['key_1', 'key_2'])]]);
+    expect($v->passes())->toBeTrue();
+});

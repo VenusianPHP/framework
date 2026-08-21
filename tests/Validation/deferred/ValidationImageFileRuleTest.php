@@ -1,161 +1,145 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
 use Voyager\Http\UploadedFile;
-use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\MagicAliases\MagicAlias;
+use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\File;
 use Voyager\Validation\ValidationServiceProvider;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class ValidationImageFileRuleTest extends TestCase
+function imageFileAssertValidationRules($rule, $values, $result, $messages)
 {
-    public function testDimensions()
-    {
-        $this->fails(
+    $values = Arr::wrap($values);
+
+    foreach ($values as $value) {
+        $v = new Validator(
+            resolve('translator'),
+            ['my_file' => $value],
+            ['my_file' => is_object($rule) ? clone $rule : $rule]
+        );
+
+        expect($v->passes())->toBe($result);
+
+        expect($v->messages()->toArray())->toBe(
+            $result ? [] : ['my_file' => $messages]
+        );
+    }
+}
+
+function imageFileFails($rule, $values, $messages)
+{
+    imageFileAssertValidationRules($rule, $values, false, $messages);
+}
+
+function imageFilePasses($rule, $values)
+{
+    imageFileAssertValidationRules($rule, $values, true, []);
+}
+
+beforeEach(function () {
+    $container = Vessel::getInstance();
+
+    $container->bind('translator', function () {
+        return new Translator(
+            new ArrayLoader, 'en'
+        );
+    });
+
+    MagicAlias::setMagicAliasApplication($container);
+
+    (new ValidationServiceProvider($container))->register();
+});
+
+afterEach(function () {
+    Vessel::setInstance(null);
+
+    MagicAlias::clearResolvedInstances();
+
+    MagicAlias::setMagicAliasApplication(null);
+});
+
+test('dimensions', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->width(100)->height(100)),
             UploadedFile::fake()->image('foo.png', 101, 101),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->width(100)->height(100)),
             UploadedFile::fake()->image('foo.png', 100, 100),
         );
-    }
+    });
 
-    public function testDimensionsWithCustomImageSizeMethod()
-    {
-        $this->fails(
+test('dimensions with custom image size method', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->width(100)->height(100)),
             new UploadedFileWithCustomImageSizeMethod(stream_get_meta_data($tmpFile = tmpfile())['uri'], 'foo.png'),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->width(200)->height(200)),
             new UploadedFileWithCustomImageSizeMethod(stream_get_meta_data($tmpFile = tmpfile())['uri'], 'foo.png'),
         );
-    }
+    });
 
-    public function testDimensionWithTheRatioMethod()
-    {
-        $this->fails(
+test('dimension with the ratio method', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->ratio(1)),
             UploadedFile::fake()->image('foo.png', 105, 100),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->ratio(1)),
             UploadedFile::fake()->image('foo.png', 100, 100),
         );
-    }
+    });
 
-    public function testDimensionWithTheMinRatioMethod()
-    {
-        $this->fails(
+test('dimension with the min ratio method', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->minRatio(1 / 2)),
             UploadedFile::fake()->image('foo.png', 100, 100),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->minRatio(1 / 2)),
             UploadedFile::fake()->image('foo.png', 100, 200),
         );
-    }
+    });
 
-    public function testDimensionWithTheMaxRatioMethod()
-    {
-        $this->fails(
+test('dimension with the max ratio method', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->maxRatio(1 / 2)),
             UploadedFile::fake()->image('foo.png', 100, 300),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->maxRatio(1 / 2)),
             UploadedFile::fake()->image('foo.png', 100, 100),
         );
-    }
+    });
 
-    public function testDimensionWithTheRatioBetweenMethod()
-    {
-        $this->fails(
+test('dimension with the ratio between method', function () {
+        imageFileFails(
             File::image()->dimensions(Rule::dimensions()->ratioBetween(1 / 2, 1 / 3)),
             UploadedFile::fake()->image('foo.png', 100, 100),
             ['validation.dimensions'],
         );
 
-        $this->passes(
+        imageFilePasses(
             File::image()->dimensions(Rule::dimensions()->ratioBetween(1 / 2, 1 / 3)),
             UploadedFile::fake()->image('foo.png', 100, 200),
         );
-    }
+    });
 
-    protected function fails($rule, $values, $messages)
-    {
-        $this->assertValidationRules($rule, $values, false, $messages);
-    }
-
-    protected function assertValidationRules($rule, $values, $result, $messages)
-    {
-        $values = Arr::wrap($values);
-
-        foreach ($values as $value) {
-            $v = new Validator(
-                resolve('translator'),
-                ['my_file' => $value],
-                ['my_file' => is_object($rule) ? clone $rule : $rule]
-            );
-
-            $this->assertSame($result, $v->passes());
-
-            $this->assertSame(
-                $result ? [] : ['my_file' => $messages],
-                $v->messages()->toArray()
-            );
-        }
-    }
-
-    protected function passes($rule, $values)
-    {
-        $this->assertValidationRules($rule, $values, true, []);
-    }
-
-    protected function setUp(): void
-    {
-        $container = Vessel::getInstance();
-
-        $container->bind('translator', function () {
-            return new Translator(
-                new ArrayLoader, 'en'
-            );
-        });
-
-        MagicAlias::setMagicAliasApplication($container);
-
-        (new ValidationServiceProvider($container))->register();
-    }
-
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
-
-        MagicAlias::clearResolvedInstances();
-
-        MagicAlias::setMagicAliasApplication(null);
-
-        parent::tearDown();
-    }
-}
 
 class UploadedFileWithCustomImageSizeMethod extends UploadedFile
 {

@@ -1,86 +1,70 @@
 <?php
 
-namespace Tests\Validation;
-
-use Exception;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rules\RequiredIf;
 use Voyager\Validation\Validator;
-use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 
-class ValidationRequiredIfTest extends TestCase
-{
-    public function testItClosureReturnsFormatsAStringVersionOfTheRule()
-    {
-        $rule = new RequiredIf(function () {
-            return true;
-        });
+test('it closure returns formats a string version of the rule', function () {
+    $rule = new RequiredIf(function () {
+        return true;
+    });
 
-        $this->assertSame('required', (string) $rule);
+    expect((string) $rule)->toBe('required');
 
-        $rule = new RequiredIf(function () {
-            return false;
-        });
+    $rule = new RequiredIf(function () {
+        return false;
+    });
 
-        $this->assertSame('', (string) $rule);
+    expect((string) $rule)->toBe('');
 
-        $rule = new RequiredIf(true);
+    $rule = new RequiredIf(true);
 
-        $this->assertSame('required', (string) $rule);
+    expect((string) $rule)->toBe('required');
 
-        $rule = new RequiredIf(false);
+    $rule = new RequiredIf(false);
 
-        $this->assertSame('', (string) $rule);
-    }
+    expect((string) $rule)->toBe('');
+});
 
-    public function testItOnlyCallableAndBooleanAreAcceptableArgumentsOfTheRule()
-    {
-        $rule = new RequiredIf(false);
+test('it only callable and boolean are acceptable arguments of the rule', function () {
+    $rule = new RequiredIf(false);
 
-        $rule = new RequiredIf(true);
+    $rule = new RequiredIf(true);
 
-        $this->expectException(InvalidArgumentException::class);
+    $rule = new RequiredIf('phpinfo');
+})->throws(InvalidArgumentException::class);
 
-        $rule = new RequiredIf('phpinfo');
-    }
+test('it returned rule is not serializable', function () {
+    $rule = serialize(new RequiredIf(function () {
+        return true;
+    }));
+})->throws(Exception::class);
 
-    public function testItReturnedRuleIsNotSerializable()
-    {
-        $this->expectException(Exception::class);
+test('required if rule validation', function () {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $rule = serialize(new RequiredIf(function () {
-            return true;
-        }));
-    }
+    $rule = new RequiredIf(true);
 
-    public function testRequiredIfRuleValidation()
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => $rule]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = new RequiredIf(true);
+    $v = new Validator($trans, ['x' => ''], ['x' => (string) $rule]);
+    expect($v->fails())->toBeTrue();
 
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => $rule]);
-        $this->assertTrue($v->passes());
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => [$rule]]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['x' => ''], ['x' => (string) $rule]);
-        $this->assertTrue($v->fails());
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
+    expect($v->passes())->toBeTrue();
 
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => [$rule]]);
-        $this->assertTrue($v->passes());
+    $rule = new RequiredIf(false);
 
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
-        $this->assertTrue($v->passes());
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = new RequiredIf(false);
+    $rule = new RequiredIf(null);
 
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
-        $this->assertTrue($v->passes());
-
-        $rule = new RequiredIf(null);
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
-        $this->assertTrue($v->passes());
-    }
-}
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['string', $rule]]);
+    expect($v->passes())->toBeTrue();
+});

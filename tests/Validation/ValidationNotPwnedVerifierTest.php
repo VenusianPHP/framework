@@ -1,44 +1,33 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Debug\ExceptionHandler;
 use Voyager\Http\Client\ConnectionException;
 use Voyager\Http\Client\Factory as HttpFactory;
 use Voyager\Http\Client\Response;
 use Voyager\Validation\NotPwnedVerifier;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class ValidationNotPwnedVerifierTest extends TestCase
-{
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
+afterEach(function () {
+    Vessel::setInstance(null);
+});
 
-        parent::tearDown();
-    }
-
-    public function testEmptyValues()
-    {
-        $httpFactory = m::mock(HttpFactory::class);
+test('empty values', function () {
+        $httpFactory = Mockery::mock(HttpFactory::class);
         $verifier = new NotPwnedVerifier($httpFactory);
 
         foreach (['', false, 0] as $password) {
-            $this->assertFalse($verifier->verify([
+            expect($verifier->verify([
                 'value' => $password,
                 'threshold' => 0,
-            ]));
+            ]))->toBeFalse();
         }
-    }
+    });
 
-    public function testApiResponseGoesWrong()
-    {
-        $httpFactory = m::mock(HttpFactory::class);
-        $response = m::mock(Response::class);
+test('api response goes wrong', function () {
+        $httpFactory = Mockery::mock(HttpFactory::class);
+        $response = Mockery::mock(Response::class);
 
-        $httpFactory = m::mock(HttpFactory::class);
+        $httpFactory = Mockery::mock(HttpFactory::class);
 
         $httpFactory
             ->shouldReceive('withHeaders')
@@ -66,16 +55,15 @@ class ValidationNotPwnedVerifierTest extends TestCase
 
         $verifier = new NotPwnedVerifier($httpFactory);
 
-        $this->assertTrue($verifier->verify([
+        expect($verifier->verify([
             'value' => 123123123,
             'threshold' => 0,
-        ]));
-    }
+        ]))->toBeTrue();
+    });
 
-    public function testApiGoesDown()
-    {
-        $httpFactory = m::mock(HttpFactory::class);
-        $response = m::mock(Response::class);
+test('api goes down', function () {
+        $httpFactory = Mockery::mock(HttpFactory::class);
+        $response = Mockery::mock(Response::class);
 
         $httpFactory
             ->shouldReceive('withHeaders')
@@ -99,24 +87,23 @@ class ValidationNotPwnedVerifierTest extends TestCase
 
         $verifier = new NotPwnedVerifier($httpFactory);
 
-        $this->assertTrue($verifier->verify([
+        expect($verifier->verify([
             'value' => 123123123,
             'threshold' => 0,
-        ]));
-    }
+        ]))->toBeTrue();
+    });
 
-    public function testDnsDown()
-    {
+test('dns down', function () {
         $container = Vessel::getInstance();
         $exception = new ConnectionException();
 
-        $exceptionHandler = m::mock(ExceptionHandler::class);
+        $exceptionHandler = Mockery::mock(ExceptionHandler::class);
         $exceptionHandler->shouldReceive('report')->once()->with($exception);
         $container->bind(ExceptionHandler::class, function () use ($exceptionHandler) {
             return $exceptionHandler;
         });
 
-        $httpFactory = m::mock(HttpFactory::class);
+        $httpFactory = Mockery::mock(HttpFactory::class);
 
         $httpFactory
             ->shouldReceive('withHeaders')
@@ -136,11 +123,11 @@ class ValidationNotPwnedVerifierTest extends TestCase
             ->andThrow($exception);
 
         $verifier = new NotPwnedVerifier($httpFactory);
-        $this->assertTrue($verifier->verify([
+        expect($verifier->verify([
             'value' => 123123123,
             'threshold' => 0,
-        ]));
+        ]))->toBeTrue();
 
         unset($container[ExceptionHandler::class]);
-    }
-}
+    });
+

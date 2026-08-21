@@ -1,90 +1,75 @@
 <?php
 
-namespace Tests\Validation;
-
-use Exception;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rules\ExcludeIf;
 use Voyager\Validation\Validator;
-use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
-use stdClass;
 
-class ValidationExcludeIfTest extends TestCase
-{
-    public function testItReturnsStringVersionOfRuleWhenCast()
-    {
-        $rule = new ExcludeIf(function () {
-            return true;
-        });
+test('it returns string version of rule when cast', function () {
+    $rule = new ExcludeIf(function () {
+        return true;
+    });
 
-        $this->assertSame('exclude', (string) $rule);
+    expect((string) $rule)->toBe('exclude');
 
-        $rule = new ExcludeIf(function () {
-            return false;
-        });
+    $rule = new ExcludeIf(function () {
+        return false;
+    });
 
-        $this->assertSame('', (string) $rule);
+    expect((string) $rule)->toBe('');
 
-        $rule = new ExcludeIf(true);
+    $rule = new ExcludeIf(true);
 
-        $this->assertSame('exclude', (string) $rule);
+    expect((string) $rule)->toBe('exclude');
 
-        $rule = new ExcludeIf(false);
+    $rule = new ExcludeIf(false);
 
-        $this->assertSame('', (string) $rule);
-    }
+    expect((string) $rule)->toBe('');
+});
 
-    public function testItValidatesCallableAndBooleanAreAcceptableArguments()
-    {
-        new ExcludeIf(false);
-        new ExcludeIf(true);
-        new ExcludeIf(fn () => true);
+test('it validates callable and boolean are acceptable arguments', function () {
+    new ExcludeIf(false);
+    new ExcludeIf(true);
+    new ExcludeIf(fn () => true);
 
-        foreach ([1, 1.1, 'phpinfo', new stdClass, null] as $condition) {
-            try {
-                new ExcludeIf($condition);
-                $this->fail('The ExcludeIf constructor must not accept '.gettype($condition));
-            } catch (InvalidArgumentException $exception) {
-                $this->assertEquals('The provided condition must be a callable or boolean.', $exception->getMessage());
-            }
+    foreach ([1, 1.1, 'phpinfo', new stdClass, null] as $condition) {
+        try {
+            new ExcludeIf($condition);
+            $this->fail('The ExcludeIf constructor must not accept '.gettype($condition));
+        } catch (InvalidArgumentException $exception) {
+            expect($exception->getMessage())->toEqual('The provided condition must be a callable or boolean.');
         }
     }
+});
 
-    public function testItThrowsExceptionIfRuleIsNotSerializable()
-    {
-        $this->expectException(Exception::class);
+test('it throws exception if rule is not serializable', function () {
+    serialize(new ExcludeIf(function () {
+        return true;
+    }));
+})->throws(Exception::class);
 
-        serialize(new ExcludeIf(function () {
-            return true;
-        }));
-    }
+test('exclude if rule validation', function () {
+    $ruleTrue = new ExcludeIf(true);
 
-    public function testExcludeIfRuleValidation()
-    {
-        $ruleTrue = new ExcludeIf(true);
+    $ruleFalse = new ExcludeIf(false);
 
-        $ruleFalse = new ExcludeIf(false);
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $trans = new Translator(new ArrayLoader, 'en');
+    $data = ['foo' => 'FOO', 'bar' => 'BAR'];
 
-        $data = ['foo' => 'FOO', 'bar' => 'BAR'];
+    $v = new Validator($trans, $data, ['foo' => $ruleTrue, 'bar' => 'nullable']);
+    expect($v->passes())->toBeTrue()
+        ->and($v->validated())->toBe(['bar' => 'BAR']);
 
-        $v = new Validator($trans, $data, ['foo' => $ruleTrue, 'bar' => 'nullable']);
-        $this->assertTrue($v->passes());
-        $this->assertSame(['bar' => 'BAR'], $v->validated());
+    $v = new Validator($trans, $data, ['foo' => (string) $ruleTrue, 'bar' => 'nullable']);
+    expect($v->passes())->toBeTrue()
+        ->and($v->validated())->toBe(['bar' => 'BAR']);
 
-        $v = new Validator($trans, $data, ['foo' => (string) $ruleTrue, 'bar' => 'nullable']);
-        $this->assertTrue($v->passes());
-        $this->assertSame(['bar' => 'BAR'], $v->validated());
+    $v = new Validator($trans, $data, ['foo' => [$ruleTrue], 'bar' => 'nullable']);
+    expect($v->passes())->toBeTrue()
+        ->and($v->validated())->toBe(['bar' => 'BAR']);
 
-        $v = new Validator($trans, $data, ['foo' => [$ruleTrue], 'bar' => 'nullable']);
-        $this->assertTrue($v->passes());
-        $this->assertSame(['bar' => 'BAR'], $v->validated());
-
-        $v = new Validator($trans, $data, ['foo' => $ruleFalse, 'bar' => 'nullable']);
-        $this->assertTrue($v->passes());
-        $this->assertSame($data, $v->validated());
-    }
-}
+    $v = new Validator($trans, $data, ['foo' => $ruleFalse, 'bar' => 'nullable']);
+    expect($v->passes())->toBeTrue()
+        ->and($v->validated())->toBe($data);
+});

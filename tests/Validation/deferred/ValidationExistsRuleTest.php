@@ -1,7 +1,10 @@
 <?php
 
-namespace Tests\Validation;
-
+use Tests\Validation\deferred\Fixtures\ClassWithRequiredConstructorParameters;
+use Tests\Validation\deferred\Fixtures\NoTableNameModel;
+use Tests\Validation\deferred\Fixtures\User;
+use Tests\Validation\deferred\Fixtures\UserWithConnection;
+use Tests\Validation\deferred\Fixtures\UserWithPrefixedTable;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Translation\ArrayLoader;
@@ -9,71 +12,89 @@ use Voyager\Translation\Translator;
 use Voyager\Validation\DatabasePresenceVerifier;
 use Voyager\Validation\Rules\Exists;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationExistsRuleTest extends TestCase
+function existsArrayTranslator()
 {
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        $db = new DB;
+    return new Translator(
+        new ArrayLoader, 'en'
+    );
+}
 
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
+function existsConnectionResolver()
+{
+    return Instrument::getConnectionResolver();
+}
 
-        $db->bootInstrument();
-        $db->setAsGlobal();
+function existsConnection($connection = 'default')
+{
+    return existsConnectionResolver()->connection($connection);
+}
 
-        $this->createSchema();
-    }
+function existsSchema($connection = 'default')
+{
+    return existsConnection($connection)->getSchemaBuilder();
+}
 
-    public function testItCorrectlyFormatsAStringVersionOfTheRule()
-    {
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    existsSchema('default')->create('users', function ($table) {
+        $table->unsignedInteger('id');
+        $table->string('type');
+    });
+});
+
+afterEach(function () {
+    existsSchema('default')->drop('users');
+});
+
+test('it correctly formats a string version of the rule', function () {
         $rule = new Exists('table');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:table,NULL,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:table,NULL,foo,"bar"');
 
         $rule = new Exists(User::class);
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:users,NULL,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:users,NULL,foo,"bar"');
 
         $rule = new Exists(UserWithPrefixedTable::class);
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:'.UserWithPrefixedTable::class.',NULL,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:'.UserWithPrefixedTable::class.',NULL,foo,"bar"');
 
         $rule = new Exists('table', 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:table,column,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:table,column,foo,"bar"');
 
         $rule = new Exists(User::class, 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:users,column,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:users,column,foo,"bar"');
 
         $rule = new Exists(UserWithConnection::class, 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:mysql.users,column,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:mysql.users,column,foo,"bar"');
 
-        $rule = new Exists('Tests\Validation\User', 'column');
+        $rule = new Exists('Tests\Validation\deferred\Fixtures\User', 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:users,column,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:users,column,foo,"bar"');
 
         $rule = new Exists(NoTableNameModel::class, 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:no_table_name_models,column,foo,"bar"', (string) $rule);
+        expect((string) $rule)->toBe('exists:no_table_name_models,column,foo,"bar"');
 
         $rule = new Exists(ClassWithRequiredConstructorParameters::class, 'column');
         $rule->where('foo', 'bar');
-        $this->assertSame('exists:'.ClassWithRequiredConstructorParameters::class.',column,foo,"bar"', (string) $rule);
-    }
+        expect((string) $rule)->toBe('exists:'.ClassWithRequiredConstructorParameters::class.',column,foo,"bar"');
+    });
 
-    public function testItChoosesValidRecordsUsingWhereInRule()
-    {
+test('it chooses valid records using where in rule', function () {
         $rule = new Exists('users', 'id');
         $rule->whereIn('type', ['foo', 'bar']);
 
@@ -82,28 +103,27 @@ class ValidationExistsRuleTest extends TestCase
         User::create(['id' => '3', 'type' => 'baz']);
         User::create(['id' => '4', 'type' => 'other']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => $rule]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 1]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 2]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 3]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 4]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
         // array values
         $v->setData(['id' => [1, 2]]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => [3, 4]]);
-        $this->assertFalse($v->passes());
-    }
+        expect($v->passes())->toBeFalse();
+    });
 
-    public function testItChoosesValidRecordsUsingWhereNotInRule()
-    {
+test('it chooses valid records using where not in rule', function () {
         $rule = new Exists('users', 'id');
         $rule->whereNotIn('type', ['foo', 'bar']);
 
@@ -112,28 +132,27 @@ class ValidationExistsRuleTest extends TestCase
         User::create(['id' => '3', 'type' => 'baz']);
         User::create(['id' => '4', 'type' => 'other']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => $rule]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 1]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 2]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 3]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 4]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
 
         // array values
         $v->setData(['id' => [1, 2]]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => [3, 4]]);
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    public function testItChoosesValidRecordsUsingConditionalModifiers()
-    {
+test('it chooses valid records using conditional modifiers', function () {
         $rule = new Exists('users', 'id');
         $rule->when(true, function ($rule) {
             $rule->whereNotIn('type', ['foo', 'bar']);
@@ -147,28 +166,27 @@ class ValidationExistsRuleTest extends TestCase
         User::create(['id' => '3', 'type' => 'baz']);
         User::create(['id' => '4', 'type' => 'other']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => $rule]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 1]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 2]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 3]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 4]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
 
         // array values
         $v->setData(['id' => [1, 2]]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => [3, 4]]);
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    public function testItChoosesValidRecordsUsingWhereNotInAndWhereNotInRulesTogether()
-    {
+test('it chooses valid records using where not in and where not in rules together', function () {
         $rule = new Exists('users', 'id');
         $rule->whereIn('type', ['foo', 'bar', 'baz'])->whereNotIn('type', ['foo', 'bar']);
 
@@ -178,30 +196,29 @@ class ValidationExistsRuleTest extends TestCase
         User::create(['id' => '4', 'type' => 'other']);
         User::create(['id' => '5', 'type' => 'baz']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => $rule]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 1]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 2]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 3]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 4]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => 5]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
 
         // array values
         $v->setData(['id' => [1, 2, 4]]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
         $v->setData(['id' => [3, 5]]);
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    public function testItChoosesValidRecordsUsingWhereNotRule()
-    {
+test('it chooses valid records using where not rule', function () {
         $rule = new Exists('users', 'id');
 
         $rule->whereNot('type', 'baz');
@@ -212,151 +229,51 @@ class ValidationExistsRuleTest extends TestCase
         User::create(['id' => '4', 'type' => 'other']);
         User::create(['id' => '5', 'type' => 'baz']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => $rule]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 3]);
-        $this->assertFalse($v->passes());
+        expect($v->passes())->toBeFalse();
 
         $v->setData(['id' => 4]);
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    public function testItIgnoresSoftDeletes()
-    {
+test('it ignores soft deletes', function () {
         $rule = new Exists('table');
         $rule->withoutTrashed();
-        $this->assertSame('exists:table,NULL,deleted_at,"NULL"', (string) $rule);
+        expect((string) $rule)->toBe('exists:table,NULL,deleted_at,"NULL"');
 
         $rule = new Exists('table');
         $rule->withoutTrashed('softdeleted_at');
-        $this->assertSame('exists:table,NULL,softdeleted_at,"NULL"', (string) $rule);
-    }
+        expect((string) $rule)->toBe('exists:table,NULL,softdeleted_at,"NULL"');
+    });
 
-    public function testItOnlyTrashedSoftDeletes()
-    {
+test('it only trashed soft deletes', function () {
         $rule = new Exists('table');
         $rule->onlyTrashed();
-        $this->assertSame('exists:table,NULL,deleted_at,"NOT_NULL"', (string) $rule);
+        expect((string) $rule)->toBe('exists:table,NULL,deleted_at,"NOT_NULL"');
 
         $rule = new Exists('table');
         $rule->onlyTrashed('softdeleted_at');
-        $this->assertSame('exists:table,NULL,softdeleted_at,"NOT_NULL"', (string) $rule);
-    }
+        expect((string) $rule)->toBe('exists:table,NULL,softdeleted_at,"NOT_NULL"');
+    });
 
-    public function testItIsAPartOfListRules()
-    {
+test('it is a part of list rules', function () {
         $rule = new Exists('users', 'id');
 
         User::create(['id' => '1', 'type' => 'foo']);
         User::create(['id' => '2', 'type' => 'bar']);
         User::create(['id' => '3', 'type' => 'baz']);
 
-        $trans = $this->getVoyagerArrayTranslator();
+        $trans = existsArrayTranslator();
         $v = new Validator($trans, [], ['id' => ['required', $rule]]);
         $v->setPresenceVerifier(new DatabasePresenceVerifier(Instrument::getConnectionResolver()));
 
         $v->setData(['id' => 1]);
-        $this->assertTrue($v->passes());
+        expect($v->passes())->toBeTrue();
         $v->setData(['id' => 2]);
-        $this->assertTrue($v->passes());
-    }
+        expect($v->passes())->toBeTrue();
+    });
 
-    protected function createSchema()
-    {
-        $this->schema('default')->create('users', function ($table) {
-            $table->unsignedInteger('id');
-            $table->string('type');
-        });
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema($connection = 'default')
-    {
-        return $this->connection($connection)->getSchemaBuilder();
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection($connection = 'default')
-    {
-        return $this->getConnectionResolver()->connection($connection);
-    }
-
-    /**
-     * Get connection resolver.
-     *
-     * @return \Voyager\Database\ConnectionResolverInterface
-     */
-    protected function getConnectionResolver()
-    {
-        return Instrument::getConnectionResolver();
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema('default')->drop('users');
-
-        parent::tearDown();
-    }
-
-    public function getVoyagerArrayTranslator()
-    {
-        return new Translator(
-            new ArrayLoader, 'en'
-        );
-    }
-}
-
-/**
- * Instrument Models.
- */
-class User extends Instrument
-{
-    protected $table = 'users';
-    protected $guarded = [];
-    public $timestamps = false;
-}
-
-class UserWithPrefixedTable extends Instrument
-{
-    protected $table = 'public.users';
-    protected $guarded = [];
-    public $timestamps = false;
-}
-
-class UserWithConnection extends User
-{
-    protected $connection = 'mysql';
-}
-
-class NoTableNameModel extends Instrument
-{
-    protected $guarded = [];
-    public $timestamps = false;
-}
-
-class ClassWithRequiredConstructorParameters
-{
-    private $bar;
-    private $baz;
-
-    public function __construct($bar, $baz)
-    {
-        $this->bar = $bar;
-        $this->baz = $baz;
-    }
-}

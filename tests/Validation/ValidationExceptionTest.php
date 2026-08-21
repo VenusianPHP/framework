@@ -1,170 +1,152 @@
 <?php
 
-namespace Tests\Validation;
-
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\ValidationException;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
 
-class ValidationExceptionTest extends TestCase
+function validationExceptionTranslator($locale = 'en', $loaded = [])
 {
-    public function testExceptionSummarizesZeroErrors()
-    {
-        $exception = $this->getException([], []);
+    $translator = new Translator(new ArrayLoader, $locale);
+    $translator->setLoaded($loaded);
 
-        $this->assertSame('The given data was invalid.', $exception->getMessage());
-    }
-
-    public function testExceptionSummarizesOneError()
-    {
-        $exception = $this->getException([], ['foo' => 'required']);
-
-        $this->assertSame('validation.required', $exception->getMessage());
-    }
-
-    public function testExceptionSummarizesTwoErrors()
-    {
-        $exception = $this->getException([], ['foo' => 'required', 'bar' => 'required']);
-
-        $this->assertSame('validation.required (and 1 more error)', $exception->getMessage());
-    }
-
-    public function testExceptionSummarizesThreeOrMoreErrors()
-    {
-        $exception = $this->getException([], [
-            'foo' => 'required',
-            'bar' => 'required',
-            'baz' => 'required',
-        ]);
-
-        $this->assertSame('validation.required (and 2 more errors)', $exception->getMessage());
-    }
-
-    public function testExceptionTranslatedSummarizesTwoErrors()
-    {
-        $translator = $this->getTranslator('uk', [
-            '*' => [
-                '*' => [
-                    'uk' => [
-                        '(and :count more error)' => '(та ще :count помилка)',
-                        '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
-                    ],
-                ],
-            ],
-        ]);
-
-        $exception = $this->getException([], [
-            'foo' => 'required',
-            'bar' => 'required',
-        ], $translator);
-
-        $this->assertSame('validation.required (та ще 1 помилка)', $exception->getMessage());
-    }
-
-    public function testExceptionTranslatedSummarizesThreeOrMoreErrors()
-    {
-        $translator = $this->getTranslator('uk', [
-            '*' => [
-                '*' => [
-                    'uk' => [
-                        '(and :count more error)' => '(та ще :count помилка)',
-                        '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
-                    ],
-                ],
-            ],
-        ]);
-
-        $exception = $this->getException([], [
-            'foo' => 'required',
-            'bar' => 'required',
-            'baz' => 'required',
-        ], $translator);
-
-        $this->assertSame('validation.required (та ще 2 помилки)', $exception->getMessage());
-    }
-
-    public function testExceptionTranslatedSummarizesFiveOrMoreErrors()
-    {
-        $translator = $this->getTranslator('uk', [
-            '*' => [
-                '*' => [
-                    'uk' => [
-                        '(and :count more error)' => '(та ще :count помилка)',
-                        '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
-                    ],
-                ],
-            ],
-        ]);
-
-        $exception = $this->getException([], [
-            'foo' => 'required',
-            'bar' => 'required',
-            'baz' => 'required',
-            'baq' => 'required',
-            'baw' => 'required',
-            'bae' => 'required',
-        ], $translator);
-
-        $this->assertSame('validation.required (та ще 5 помилок)', $exception->getMessage());
-    }
-
-    public function testExceptionErrorZeroErrors()
-    {
-        $exception = $this->getException([], []);
-
-        $this->assertSame([], $exception->errors());
-    }
-
-    public function testExceptionErrorOneError()
-    {
-        $exception = $this->getException([], ['foo' => 'required']);
-
-        $this->assertSame(['foo' => ['validation.required']], $exception->errors());
-    }
-
-    public function testExceptionErrorBagOneError()
-    {
-        $exception = $this->getException([], ['foo' => 'required']);
-        $exception->errorBag('milwad');
-
-        $this->assertEquals('milwad', $exception->errorBag);
-    }
-
-    // Laravel also covers `status()`, `redirectTo()` and `getResponse()` here.
-    // Those shape an HTTP response, so they are cut from ValidationException
-    // along with the rest of the response surface.
-
-    public function testGetExceptionClassFromValidator()
-    {
-        $validator = $this->getValidator();
-
-        $exception = $validator->getException();
-
-        $this->assertEquals(ValidationException::class, $exception);
-    }
-
-    protected function getException($data = [], $rules = [], $translator = null)
-    {
-        $validator = $this->getValidator($data, $rules, $translator);
-
-        return new ValidationException($validator);
-    }
-
-    protected function getValidator($data = [], $rules = [], $translator = null)
-    {
-        $translator ??= $this->getTranslator();
-
-        return new Validator($translator, $data, $rules);
-    }
-
-    protected function getTranslator($locale = 'en', $loaded = [])
-    {
-        $translator ??= new Translator(new ArrayLoader, $locale);
-
-        $translator->setLoaded($loaded);
-
-        return $translator;
-    }
+    return $translator;
 }
+
+function validationExceptionValidator($data = [], $rules = [], $translator = null)
+{
+    $translator ??= validationExceptionTranslator();
+
+    return new Validator($translator, $data, $rules);
+}
+
+function validationExceptionFor($data = [], $rules = [], $translator = null)
+{
+    $validator = validationExceptionValidator($data, $rules, $translator);
+
+    return new ValidationException($validator);
+}
+
+test('exception summarizes zero errors', function () {
+    $exception = validationExceptionFor([], []);
+
+    expect($exception->getMessage())->toBe('The given data was invalid.');
+});
+
+test('exception summarizes one error', function () {
+    $exception = validationExceptionFor([], ['foo' => 'required']);
+
+    expect($exception->getMessage())->toBe('validation.required');
+});
+
+test('exception summarizes two errors', function () {
+    $exception = validationExceptionFor([], ['foo' => 'required', 'bar' => 'required']);
+
+    expect($exception->getMessage())->toBe('validation.required (and 1 more error)');
+});
+
+test('exception summarizes three or more errors', function () {
+    $exception = validationExceptionFor([], [
+        'foo' => 'required',
+        'bar' => 'required',
+        'baz' => 'required',
+    ]);
+
+    expect($exception->getMessage())->toBe('validation.required (and 2 more errors)');
+});
+
+test('exception translated summarizes two errors', function () {
+    $translator = validationExceptionTranslator('uk', [
+        '*' => [
+            '*' => [
+                'uk' => [
+                    '(and :count more error)' => '(та ще :count помилка)',
+                    '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
+                ],
+            ],
+        ],
+    ]);
+
+    $exception = validationExceptionFor([], [
+        'foo' => 'required',
+        'bar' => 'required',
+    ], $translator);
+
+    expect($exception->getMessage())->toBe('validation.required (та ще 1 помилка)');
+});
+
+test('exception translated summarizes three or more errors', function () {
+    $translator = validationExceptionTranslator('uk', [
+        '*' => [
+            '*' => [
+                'uk' => [
+                    '(and :count more error)' => '(та ще :count помилка)',
+                    '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
+                ],
+            ],
+        ],
+    ]);
+
+    $exception = validationExceptionFor([], [
+        'foo' => 'required',
+        'bar' => 'required',
+        'baz' => 'required',
+    ], $translator);
+
+    expect($exception->getMessage())->toBe('validation.required (та ще 2 помилки)');
+});
+
+test('exception translated summarizes five or more errors', function () {
+    $translator = validationExceptionTranslator('uk', [
+        '*' => [
+            '*' => [
+                'uk' => [
+                    '(and :count more error)' => '(та ще :count помилка)',
+                    '(and :count more errors)' => '(та ще :count помилка)|(та ще :count помилки)|(та ще :count помилок)',
+                ],
+            ],
+        ],
+    ]);
+
+    $exception = validationExceptionFor([], [
+        'foo' => 'required',
+        'bar' => 'required',
+        'baz' => 'required',
+        'baq' => 'required',
+        'baw' => 'required',
+        'bae' => 'required',
+    ], $translator);
+
+    expect($exception->getMessage())->toBe('validation.required (та ще 5 помилок)');
+});
+
+test('exception error zero errors', function () {
+    $exception = validationExceptionFor([], []);
+
+    expect($exception->errors())->toBe([]);
+});
+
+test('exception error one error', function () {
+    $exception = validationExceptionFor([], ['foo' => 'required']);
+
+    expect($exception->errors())->toBe(['foo' => ['validation.required']]);
+});
+
+test('exception error bag one error', function () {
+    $exception = validationExceptionFor([], ['foo' => 'required']);
+    $exception->errorBag('milwad');
+
+    expect($exception->errorBag)->toEqual('milwad');
+});
+
+// Laravel also covers `status()`, `redirectTo()` and `getResponse()` here.
+// Those shape an HTTP response, so they are cut from ValidationException
+// along with the rest of the response surface.
+
+test('get exception class from validator', function () {
+    $validator = validationExceptionValidator();
+
+    $exception = $validator->getException();
+
+    expect($exception)->toEqual(ValidationException::class);
+});

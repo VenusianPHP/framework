@@ -1,111 +1,89 @@
 <?php
 
-namespace Tests\Validation;
-
 use Tests\Validation\fixtures\Values;
+use Tests\Validation\IntegerStatus;
+use Tests\Validation\PureEnum;
+use Tests\Validation\StringStatus;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\In;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\Attributes\TestWith;
-use PHPUnit\Framework\TestCase;
 
-include_once 'Enums.php';
+test('it correctly formats a string version of the rule', function () {
+    $rule = new In(['Laravel', 'Framework', 'PHP']);
+    expect((string) $rule)->toBe('in:"Laravel","Framework","PHP"');
 
-class ValidationInRuleTest extends TestCase
-{
-    public function testItCorrectlyFormatsAStringVersionOfTheRule()
-    {
-        $rule = new In(['Laravel', 'Framework', 'PHP']);
+    $rule = new In(collect(['Taylor', 'Michael', 'Tim']));
+    expect((string) $rule)->toBe('in:"Taylor","Michael","Tim"');
 
-        $this->assertSame('in:"Laravel","Framework","PHP"', (string) $rule);
+    $rule = new In(['Life, the Universe and Everything', 'this is a "quote"']);
+    expect((string) $rule)->toBe('in:"Life, the Universe and Everything","this is a ""quote"""');
 
-        $rule = new In(collect(['Taylor', 'Michael', 'Tim']));
+    $rule = Rule::in(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $this->assertSame('in:"Taylor","Michael","Tim"', (string) $rule);
+    $rule = Rule::in(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $rule = new In(['Life, the Universe and Everything', 'this is a "quote"']);
+    $rule = new In(["a,b\nc,d"]);
+    expect((string) $rule)->toBe("in:\"a,b\nc,d\"");
 
-        $this->assertSame('in:"Life, the Universe and Everything","this is a ""quote"""', (string) $rule);
+    $rule = Rule::in([1, 2, 3, 4]);
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $rule = Rule::in(collect([1, 2, 3, 4]));
+    $rule = Rule::in(collect([1, 2, 3, 4]));
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+    $rule = Rule::in(new Values);
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $rule = Rule::in(collect([1, 2, 3, 4]));
+    $rule = Rule::in('1', '2', '3', '4');
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+    $rule = new In('1', '2', '3', '4');
+    expect((string) $rule)->toBe('in:"1","2","3","4"');
 
-        $rule = new In(["a,b\nc,d"]);
+    $rule = Rule::in([StringStatus::done]);
+    expect((string) $rule)->toBe('in:"done"');
 
-        $this->assertSame("in:\"a,b\nc,d\"", (string) $rule);
+    $rule = Rule::in([IntegerStatus::done]);
+    expect((string) $rule)->toBe('in:"2"');
 
-        $rule = Rule::in([1, 2, 3, 4]);
+    $rule = Rule::in([PureEnum::one]);
+    expect((string) $rule)->toBe('in:"one"');
+});
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+test('in rule validation', function () {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $rule = Rule::in(collect([1, 2, 3, 4]));
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => Rule::in('foo', 'bar')]);
+    expect($v->passes())->toBeTrue();
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => (string) Rule::in('foo', 'bar')]);
+    expect($v->passes())->toBeTrue();
 
-        $rule = Rule::in(new Values);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => [Rule::in('bar', 'baz')]]);
+    expect($v->passes())->toBeFalse();
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+    $v = new Validator($trans, ['x' => 'foo'], ['x' => ['required', Rule::in('foo', 'bar')]]);
+    expect($v->passes())->toBeTrue();
+});
 
-        $rule = Rule::in('1', '2', '3', '4');
+test('in rule is not loosy bypassed', function (mixed $value, bool $expectation) {
+    $trans = new Translator(new ArrayLoader, 'en');
 
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
+    $v = new Validator($trans, ['x' => $value], ['x' => ['in:1,2,3']]);
 
-        $rule = new In('1', '2', '3', '4');
-
-        $this->assertSame('in:"1","2","3","4"', (string) $rule);
-
-        $rule = Rule::in([StringStatus::done]);
-
-        $this->assertSame('in:"done"', (string) $rule);
-
-        $rule = Rule::in([IntegerStatus::done]);
-
-        $this->assertSame('in:"2"', (string) $rule);
-
-        $rule = Rule::in([PureEnum::one]);
-
-        $this->assertSame('in:"one"', (string) $rule);
-    }
-
-    public function testInRuleValidation()
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => Rule::in('foo', 'bar')]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => (string) Rule::in('foo', 'bar')]);
-        $this->assertTrue($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => [Rule::in('bar', 'baz')]]);
-        $this->assertFalse($v->passes());
-
-        $v = new Validator($trans, ['x' => 'foo'], ['x' => ['required', Rule::in('foo', 'bar')]]);
-        $this->assertTrue($v->passes());
-    }
-
-    #[TestWith([' 1', false])]
-    #[TestWith(['1 ', false])]
-    #[TestWith(["\t1", false])]
-    #[TestWith(["1\n", false])]
-    #[TestWith(['01', false])]
-    #[TestWith(['+1', false])]
-    #[TestWith(['1.0', false])]
-    #[TestWith(['1e0', false])]
-    #[TestWith(['1', true])]
-    public function testInRuleIsNotLoosyBypassed(mixed $value, bool $expectation)
-    {
-        $trans = new Translator(new ArrayLoader, 'en');
-
-        $v = new Validator($trans, ['x' => $value], ['x' => ['in:1,2,3']]);
-
-        $this->assertSame($expectation, $v->passes());
-    }
-}
+    expect($v->passes())->toBe($expectation);
+})->with([
+    [' 1', false],
+    ['1 ', false],
+    ["\t1", false],
+    ["1\n", false],
+    ['01', false],
+    ['+1', false],
+    ['1.0', false],
+    ['1e0', false],
+    ['1', true],
+]);

@@ -1,27 +1,20 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Translation\Translator as TranslatorInterface;
 use Voyager\Validation\Factory;
 use Voyager\Validation\PresenceVerifierInterface;
 use Voyager\Validation\Validator;
-use Mockery as m;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class ValidationFactoryTest extends TestCase
-{
-    public function testMakeMethodCreatesValidValidator()
-    {
-        $translator = m::mock(TranslatorInterface::class);
+test('make method creates valid validator', function () {
+        $translator = Mockery::mock(TranslatorInterface::class);
         $factory = new Factory($translator);
         $validator = $factory->make(['foo' => 'bar'], ['baz' => 'boom']);
-        $this->assertEquals($translator, $validator->getTranslator());
-        $this->assertEquals(['foo' => 'bar'], $validator->getData());
-        $this->assertEquals(['baz' => ['boom']], $validator->getRules());
+        expect($validator->getTranslator())->toEqual($translator);
+        expect($validator->getData())->toEqual(['foo' => 'bar']);
+        expect($validator->getRules())->toEqual(['baz' => ['boom']]);
 
-        $presence = m::mock(PresenceVerifierInterface::class);
+        $presence = Mockery::mock(PresenceVerifierInterface::class);
         $noop1 = function () {
             //
         };
@@ -37,26 +30,25 @@ class ValidationFactoryTest extends TestCase
         $factory->replacer('replacer', $noop3);
         $factory->setPresenceVerifier($presence);
         $validator = $factory->make([], []);
-        $this->assertEquals(['foo' => $noop1, 'implicit' => $noop2, 'dependent' => $noop3], $validator->extensions);
-        $this->assertEquals(['replacer' => $noop3], $validator->replacers);
-        $this->assertEquals($presence, $validator->getPresenceVerifier());
+        expect($validator->extensions)->toEqual(['foo' => $noop1, 'implicit' => $noop2, 'dependent' => $noop3]);
+        expect($validator->replacers)->toEqual(['replacer' => $noop3]);
+        expect($validator->getPresenceVerifier())->toEqual($presence);
 
-        $presence = m::mock(PresenceVerifierInterface::class);
+        $presence = Mockery::mock(PresenceVerifierInterface::class);
         $factory->extend('foo', $noop1, 'foo!');
         $factory->extendImplicit('implicit', $noop2, 'implicit!');
         $factory->extendImplicit('dependent', $noop3, 'dependent!');
         $factory->setPresenceVerifier($presence);
         $validator = $factory->make([], []);
-        $this->assertEquals(['foo' => $noop1, 'implicit' => $noop2, 'dependent' => $noop3], $validator->extensions);
-        $this->assertEquals(['foo' => 'foo!', 'implicit' => 'implicit!', 'dependent' => 'dependent!'], $validator->fallbackMessages);
-        $this->assertEquals($presence, $validator->getPresenceVerifier());
-    }
+        expect($validator->extensions)->toEqual(['foo' => $noop1, 'implicit' => $noop2, 'dependent' => $noop3]);
+        expect($validator->fallbackMessages)->toEqual(['foo' => 'foo!', 'implicit' => 'implicit!', 'dependent' => 'dependent!']);
+        expect($validator->getPresenceVerifier())->toEqual($presence);
+    });
 
-    public function testValidateCallsValidateOnTheValidator()
-    {
-        $validator = m::mock(Validator::class);
-        $translator = m::mock(TranslatorInterface::class);
-        $factory = m::mock(Factory::class.'[make]', [$translator]);
+test('validate calls validate on the validator', function () {
+        $validator = Mockery::mock(Validator::class);
+        $translator = Mockery::mock(TranslatorInterface::class);
+        $factory = Mockery::mock(Factory::class.'[make]', [$translator]);
 
         $factory->shouldReceive('make')->once()
             ->with(['foo' => 'bar', 'baz' => 'boom'], ['foo' => 'required'], [], [])
@@ -69,13 +61,12 @@ class ValidationFactoryTest extends TestCase
             ['foo' => 'required']
         );
 
-        $this->assertEquals(['foo' => 'bar'], $validated);
-    }
+        expect($validated)->toEqual(['foo' => 'bar']);
+    });
 
-    public function testCustomResolverIsCalled()
-    {
+test('custom resolver is called', function () {
         unset($_SERVER['__validator.factory']);
-        $translator = m::mock(TranslatorInterface::class);
+        $translator = Mockery::mock(TranslatorInterface::class);
         $factory = new Factory($translator);
         $factory->resolver(function ($translator, $data, $rules) {
             $_SERVER['__validator.factory'] = true;
@@ -84,66 +75,63 @@ class ValidationFactoryTest extends TestCase
         });
         $validator = $factory->make(['foo' => 'bar'], ['baz' => 'boom']);
 
-        $this->assertTrue($_SERVER['__validator.factory']);
-        $this->assertEquals($translator, $validator->getTranslator());
-        $this->assertEquals(['foo' => 'bar'], $validator->getData());
-        $this->assertEquals(['baz' => ['boom']], $validator->getRules());
+        expect($_SERVER['__validator.factory'])->toBeTrue();
+        expect($validator->getTranslator())->toEqual($translator);
+        expect($validator->getData())->toEqual(['foo' => 'bar']);
+        expect($validator->getRules())->toEqual(['baz' => ['boom']]);
         unset($_SERVER['__validator.factory']);
-    }
+    });
 
-    public function testValidateMethodCanBeCalledPublicly()
-    {
-        $translator = m::mock(TranslatorInterface::class);
+test('validate method can be called publicly', function () {
+        $translator = Mockery::mock(TranslatorInterface::class);
         $factory = new Factory($translator);
         $factory->extend('foo', function ($attribute, $value, $parameters, $validator) {
             return $validator->validateArray($attribute, $value);
         });
 
         $validator = $factory->make(['bar' => ['baz']], ['bar' => 'foo']);
-        $this->assertTrue($validator->passes());
-    }
+        expect($validator->passes())->toBeTrue();
+    });
 
-    public function testExcludeAndIncludeUnvalidatedArrayKeys()
-    {
-        $translator = m::mock(TranslatorInterface::class);
+test('exclude and include unvalidated array keys', function () {
+        $translator = Mockery::mock(TranslatorInterface::class);
 
         $factory = new Factory($translator);
         // check the default behaviour.
         $validator1 = $factory->make(['key' => ['val']], ['key' => 'required']);
-        $this->assertTrue($validator1->excludeUnvalidatedArrayKeys);
+        expect($validator1->excludeUnvalidatedArrayKeys)->toBeTrue();
 
         $factory->excludeUnvalidatedArrayKeys();
         $validator2 = $factory->make(['key' => ['val']], ['key' => 'required']);
-        $this->assertTrue($validator2->excludeUnvalidatedArrayKeys);
+        expect($validator2->excludeUnvalidatedArrayKeys)->toBeTrue();
 
         $factory->includeUnvalidatedArrayKeys();
         $validator3 = $factory->make(['key' => ['val']], ['key' => 'required']);
-        $this->assertFalse($validator3->excludeUnvalidatedArrayKeys);
+        expect($validator3->excludeUnvalidatedArrayKeys)->toBeFalse();
 
         // checks it does not switch behaviour automatically.
         $validator4 = $factory->make(['key' => ['val']], ['key' => 'required']);
-        $this->assertFalse($validator4->excludeUnvalidatedArrayKeys);
+        expect($validator4->excludeUnvalidatedArrayKeys)->toBeFalse();
 
         // checks it can switch.
         $factory->excludeUnvalidatedArrayKeys();
         $validator5 = $factory->make(['key' => ['val']], ['key' => 'required']);
-        $this->assertTrue($validator5->excludeUnvalidatedArrayKeys);
+        expect($validator5->excludeUnvalidatedArrayKeys)->toBeTrue();
 
         // checks switching does not affect previously created validator objects.
-        $this->assertTrue($validator1->excludeUnvalidatedArrayKeys);
-        $this->assertTrue($validator2->excludeUnvalidatedArrayKeys);
-        $this->assertFalse($validator3->excludeUnvalidatedArrayKeys);
-        $this->assertFalse($validator4->excludeUnvalidatedArrayKeys);
-    }
+        expect($validator1->excludeUnvalidatedArrayKeys)->toBeTrue();
+        expect($validator2->excludeUnvalidatedArrayKeys)->toBeTrue();
+        expect($validator3->excludeUnvalidatedArrayKeys)->toBeFalse();
+        expect($validator4->excludeUnvalidatedArrayKeys)->toBeFalse();
+    });
 
-    public function testSetContainer()
-    {
-        $translator = m::mock(TranslatorInterface::class);
+test('set container', function () {
+        $translator = Mockery::mock(TranslatorInterface::class);
         $container = new Vessel;
         $factory = new Factory($translator);
 
-        $this->assertNull($factory->getContainer());
+        expect($factory->getContainer())->toBeNull();
 
-        $this->assertSame($container, $factory->setContainer($container)->getContainer());
-    }
-}
+        expect($factory->setContainer($container)->getContainer())->toBe($container);
+    });
+

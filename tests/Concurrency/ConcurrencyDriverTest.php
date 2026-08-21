@@ -1,9 +1,6 @@
 <?php
 
-namespace Tests\Concurrency;
-
-use Exception;
-use PHPUnit\Framework\TestCase;
+use Tests\Concurrency\Fixtures\ExceptionWithParam;
 use Voyager\Concurrency\ProcessDriver;
 use Voyager\Concurrency\SyncDriver;
 use Voyager\NutsAndBolts\Defer\DeferredCallback;
@@ -11,204 +8,158 @@ use Voyager\NutsAndBolts\Defer\DeferredCallbackCollection;
 use Voyager\Process\Factory as ProcessFactory;
 use Voyager\Vessel\Vessel;
 
-class ConcurrencyDriverTest extends TestCase
+/**
+ * Build a process factory whose pooled children answer with the given output in order.
+ */
+function concurrencyFactoryReturning(array $outputs): ProcessFactory
 {
-    protected $previousVessel;
+    $factory = new ProcessFactory;
 
-    protected function setUp(): void
+    $factory->fake(['*' => $factory->sequence(
+        array_map(fn ($output) => $factory->result(output: $output), $outputs)
+    )]);
+
+    return $factory;
+}
+
+/**
+ * Build the JSON payload a successful child process writes to stdout.
+ */
+function concurrencySuccessful(mixed $result): string
+{
+    return json_encode(['successful' => true, 'result' => serialize($result)]);
+}
+
+beforeEach(function () {
+    $this->previousVessel = Vessel::getInstance();
+
+    $vessel = new class extends Vessel
     {
-        parent::setUp();
-
-        $this->previousVessel = Vessel::getInstance();
-
-        $vessel = new class extends Vessel
+        public function basePath($path = '')
         {
-            public function basePath($path = '')
-            {
-                return __DIR__.($path != '' ? DIRECTORY_SEPARATOR.$path : $path);
-            }
-        };
+            return __DIR__.($path != '' ? DIRECTORY_SEPARATOR.$path : $path);
+        }
+    };
 
-        $vessel->singleton(DeferredCallbackCollection::class);
+    $vessel->singleton(DeferredCallbackCollection::class);
 
-        Vessel::setInstance($vessel);
-    }
+    Vessel::setInstance($vessel);
+});
 
-    protected function tearDown(): void
-    {
-        Vessel::setInstance($this->previousVessel);
+afterEach(function () {
+    Vessel::setInstance($this->previousVessel);
+});
 
-        parent::tearDown();
-    }
+test('the sync driver runs tasks and preserves keys', function () {
+    $results = new SyncDriver()->run([
+        'first' => fn () => 1 + 1,
+        'second' => fn () => 2 + 2,
+    ]);
 
-    public function testTheSyncDriverRunsTasksAndPreservesKeys()
-    {
-        $results = new SyncDriver()->run([
-            'first' => fn () => 1 + 1,
-            'second' => fn () => 2 + 2,
-        ]);
+    expect($results)->toBe(['first' => 2, 'second' => 4]);
+});
 
-        $this->assertSame(['first' => 2, 'second' => 4], $results);
-    }
+test('the sync driver preserves callback order', function () {
+    $results = new SyncDriver()->run([
+        fn () => 'first',
+        fn () => 'second',
+        fn () => 'third',
+    ]);
 
-    public function testTheSyncDriverPreservesCallbackOrder()
-    {
-        $results = new SyncDriver()->run([
-            fn () => 'first',
-            fn () => 'second',
-            fn () => 'third',
-        ]);
+    expect($results)->toBe(['first', 'second', 'third']);
+});
 
-        $this->assertSame(['first', 'second', 'third'], $results);
-    }
+test('the sync driver wraps a single closure', function () {
+    expect(new SyncDriver()->run(fn () => 1 + 1))->toBe([2]);
+});
 
-    public function testTheSyncDriverWrapsASingleClosure()
-    {
-        $this->assertSame([2], new SyncDriver()->run(fn () => 1 + 1));
-    }
+test('the sync driver lets exceptions surface', function () {
+    new SyncDriver()->run([fn () => throw new Exception('Task failed.')]);
+})->throws(Exception::class, 'Task failed.');
 
-    public function testTheSyncDriverLetsExceptionsSurface()
-    {
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Task failed.');
+test('the sync driver defers tasks until the callback is invoked', function () {
+    $ran = false;
 
-        new SyncDriver()->run([fn () => throw new Exception('Task failed.')]);
-    }
+    $deferred = new SyncDriver()->defer([function () use (&$ran) {
+        $ran = true;
+    }]);
 
-    public function testTheSyncDriverDefersTasksUntilTheCallbackIsInvoked()
-    {
-        $ran = false;
+    expect($deferred)->toBeInstanceOf(DeferredCallback::class)
+        ->and($ran)->toBeFalse();
 
-        $deferred = new SyncDriver()->defer([function () use (&$ran) {
-            $ran = true;
-        }]);
+    $deferred();
 
-        $this->assertInstanceOf(DeferredCallback::class, $deferred);
-        $this->assertFalse($ran);
+    expect($ran)->toBeTrue();
+});
 
-        $deferred();
+test('the process driver maps child results back onto their keys', function () {
+    $driver = new ProcessDriver(concurrencyFactoryReturning([
+        concurrencySuccessful(2),
+        concurrencySuccessful(4),
+    ]));
 
-        $this->assertTrue($ran);
-    }
+    expect($driver->run([
+        'first' => fn () => 1 + 1,
+        'second' => fn () => 2 + 2,
+    ]))->toBe(['first' => 2, 'second' => 4]);
+});
 
-    public function testTheProcessDriverMapsChildResultsBackOntoTheirKeys()
-    {
-        $driver = new ProcessDriver($this->factoryReturning([
-            $this->successful(2),
-            $this->successful(4),
-        ]));
+test('the process driver strips trailing gzip output from children', function () {
+    $driver = new ProcessDriver(concurrencyFactoryReturning([
+        concurrencySuccessful('venusian')."\x1f\x8b".'binary noise',
+    ]));
 
-        $this->assertSame(['first' => 2, 'second' => 4], $driver->run([
-            'first' => fn () => 1 + 1,
-            'second' => fn () => 2 + 2,
-        ]));
-    }
+    expect($driver->run([fn () => 'venusian']))->toBe(['venusian']);
+});
 
-    public function testTheProcessDriverStripsTrailingGzipOutputFromChildren()
-    {
-        $driver = new ProcessDriver($this->factoryReturning([
-            $this->successful('venusian')."\x1f\x8b".'binary noise',
-        ]));
+test('the process driver throws when a child process fails', function () {
+    $factory = new ProcessFactory;
+    $factory->fake(['*' => $factory->result(errorOutput: 'Segmentation fault', exitCode: 1)]);
 
-        $this->assertSame(['venusian'], $driver->run([fn () => 'venusian']));
-    }
+    new ProcessDriver($factory)->run([fn () => 1 + 1]);
+})->throws(Exception::class, 'Concurrent process failed with exit code [1]. Message: Segmentation fault');
 
-    public function testTheProcessDriverThrowsWhenAChildProcessFails()
-    {
-        $factory = new ProcessFactory;
-        $factory->fake(['*' => $factory->result(errorOutput: 'Segmentation fault', exitCode: 1)]);
+test('the process driver rethrows a child exception from its message', function () {
+    $driver = new ProcessDriver(concurrencyFactoryReturning([
+        json_encode([
+            'successful' => false,
+            'exception' => Exception::class,
+            'message' => 'This is a different exception',
+            'parameters' => [],
+        ]),
+    ]));
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Concurrent process failed with exit code [1]. Message: Segmentation fault');
+    $driver->run([fn () => 1 + 1]);
+})->throws(Exception::class, 'This is a different exception');
 
-        new ProcessDriver($factory)->run([fn () => 1 + 1]);
-    }
+test('the process driver rethrows a child exception with its constructor parameters', function () {
+    $driver = new ProcessDriver(concurrencyFactoryReturning([
+        json_encode([
+            'successful' => false,
+            'exception' => ExceptionWithParam::class,
+            'message' => 'ignored in favour of the parameters',
+            'parameters' => [
+                'uri' => 'https://api.example.com',
+                'statusCode' => 400,
+                'reason' => 'Bad Request',
+                'responseBody' => 'Invalid payload',
+            ],
+        ]),
+    ]));
 
-    public function testTheProcessDriverRethrowsAChildExceptionFromItsMessage()
-    {
-        $driver = new ProcessDriver($this->factoryReturning([
-            json_encode([
-                'successful' => false,
-                'exception' => Exception::class,
-                'message' => 'This is a different exception',
-                'parameters' => [],
-            ]),
-        ]));
+    $driver->run([fn () => 1 + 1]);
+})->throws(ExceptionWithParam::class, 'API request to https://api.example.com failed with status 400 Bad Request');
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('This is a different exception');
+test('the process driver defers tasks until the callback is invoked', function () {
+    $factory = new ProcessFactory;
+    $factory->fake();
 
-        $driver->run([fn () => 1 + 1]);
-    }
+    $deferred = new ProcessDriver($factory)->defer([fn () => 1 + 1]);
 
-    public function testTheProcessDriverRethrowsAChildExceptionWithItsConstructorParameters()
-    {
-        $driver = new ProcessDriver($this->factoryReturning([
-            json_encode([
-                'successful' => false,
-                'exception' => ExceptionWithParam::class,
-                'message' => 'ignored in favour of the parameters',
-                'parameters' => [
-                    'uri' => 'https://api.example.com',
-                    'statusCode' => 400,
-                    'reason' => 'Bad Request',
-                    'responseBody' => 'Invalid payload',
-                ],
-            ]),
-        ]));
+    expect($deferred)->toBeInstanceOf(DeferredCallback::class);
+    $factory->assertNothingRan();
 
-        $this->expectException(ExceptionWithParam::class);
-        $this->expectExceptionMessage('API request to https://api.example.com failed with status 400 Bad Request');
+    $deferred();
 
-        $driver->run([fn () => 1 + 1]);
-    }
-
-    public function testTheProcessDriverDefersTasksUntilTheCallbackIsInvoked()
-    {
-        $factory = new ProcessFactory;
-        $factory->fake();
-
-        $deferred = new ProcessDriver($factory)->defer([fn () => 1 + 1]);
-
-        $this->assertInstanceOf(DeferredCallback::class, $deferred);
-        $factory->assertNothingRan();
-
-        $deferred();
-
-        $factory->assertRanTimes(fn () => true, 1);
-    }
-
-    /**
-     * Build a process factory whose pooled children answer with the given output in order.
-     */
-    protected function factoryReturning(array $outputs): ProcessFactory
-    {
-        $factory = new ProcessFactory;
-
-        $factory->fake(['*' => $factory->sequence(
-            array_map(fn ($output) => $factory->result(output: $output), $outputs)
-        )]);
-
-        return $factory;
-    }
-
-    /**
-     * Build the JSON payload a successful child process writes to stdout.
-     */
-    protected function successful(mixed $result): string
-    {
-        return json_encode(['successful' => true, 'result' => serialize($result)]);
-    }
-}
-
-class ExceptionWithParam extends Exception
-{
-    public function __construct(
-        public string $uri,
-        public int $statusCode,
-        public string $reason,
-        public string|array $responseBody = '',
-    ) {
-        parent::__construct("API request to {$uri} failed with status $statusCode $reason");
-    }
-}
+    $factory->assertRanTimes(fn () => true, 1);
+});

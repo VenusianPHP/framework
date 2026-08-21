@@ -1,202 +1,208 @@
 <?php
 
-namespace Tests\Validation;
-
-use Voyager\Vessel\Vessel;
 use Voyager\Http\UploadedFile;
-use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\MagicAliases\MagicAlias;
+use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\Translation\ArrayLoader;
 use Voyager\Translation\Translator;
 use Voyager\Validation\Rule;
 use Voyager\Validation\Rules\File;
 use Voyager\Validation\ValidationServiceProvider;
 use Voyager\Validation\Validator;
-use PHPUnit\Framework\TestCase;
+use Voyager\Vessel\Vessel;
 
-class ValidationFileRuleTest extends TestCase
+function fileRuleAssertValidationRules($rule, $values, $result, $messages)
 {
-    public function testBasic()
-    {
-        $this->fails(
+    $values = Arr::wrap($values);
+
+    foreach ($values as $value) {
+        $v = new Validator(
+            resolve('translator'),
+            ['my_file' => $value],
+            ['my_file' => is_object($rule) ? clone $rule : $rule]
+        );
+
+        expect($v->passes())->toBe($result);
+
+        expect($v->messages()->toArray())->toBe(
+            $result ? [] : ['my_file' => $messages]
+        );
+    }
+}
+
+function fileRuleFails($rule, $values, $messages)
+{
+    fileRuleAssertValidationRules($rule, $values, false, $messages);
+}
+
+function fileRulePasses($rule, $values)
+{
+    fileRuleAssertValidationRules($rule, $values, true, []);
+}
+
+beforeEach(function () {
+    $container = Vessel::getInstance();
+
+    $container->bind('translator', function () {
+        return new Translator(
+            new ArrayLoader, 'en'
+        );
+    });
+
+    MagicAlias::setMagicAliasApplication($container);
+
+    (new ValidationServiceProvider($container))->register();
+});
+
+afterEach(function () {
+    Vessel::setInstance(null);
+
+    MagicAlias::clearResolvedInstances();
+
+    MagicAlias::setMagicAliasApplication(null);
+});
+
+test('basic', function () {
+        fileRuleFails(
             File::default(),
             'foo',
             ['validation.file'],
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default(),
             UploadedFile::fake()->create('foo.bar'),
         );
 
-        $this->passes(File::default(), null);
-    }
+        fileRulePasses(File::default(), null);
+    });
 
-    protected function fails($rule, $values, $messages)
-    {
-        $this->assertValidationRules($rule, $values, false, $messages);
-    }
-
-    protected function assertValidationRules($rule, $values, $result, $messages)
-    {
-        $values = Arr::wrap($values);
-
-        foreach ($values as $value) {
-            $v = new Validator(
-                resolve('translator'),
-                ['my_file' => $value],
-                ['my_file' => is_object($rule) ? clone $rule : $rule]
-            );
-
-            $this->assertSame($result, $v->passes());
-
-            $this->assertSame(
-                $result ? [] : ['my_file' => $messages],
-                $v->messages()->toArray()
-            );
-        }
-    }
-
-    protected function passes($rule, $values)
-    {
-        $this->assertValidationRules($rule, $values, true, []);
-    }
-
-    public function testSingleMimetype()
-    {
-        $this->fails(
+test('single mimetype', function () {
+        fileRuleFails(
             File::types('text/plain'),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.mimetypes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::types('image/png'),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testMultipleMimeTypes()
-    {
-        $this->fails(
+test('multiple mime types', function () {
+        fileRuleFails(
             File::types(['text/plain', 'image/jpeg']),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.mimetypes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::types(['text/plain', 'image/png']),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testSingleMime()
-    {
-        $this->fails(
+test('single mime', function () {
+        fileRuleFails(
             File::types('txt'),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.mimes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::types('png'),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testMultipleMimes()
-    {
-        $this->fails(
+test('multiple mimes', function () {
+        fileRuleFails(
             File::types(['png', 'jpg', 'jpeg', 'svg']),
             UploadedFile::fake()->createWithContent('foo.txt', 'Hello World!'),
             ['validation.mimes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::types(['png', 'jpg', 'jpeg', 'svg']),
             [
                 UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
                 UploadedFile::fake()->createWithContent('foo.svg', file_get_contents(__DIR__.'/fixtures/image.svg')),
             ]
         );
-    }
+    });
 
-    public function testMixOfMimetypesAndMimes()
-    {
-        $this->fails(
+test('mix of mimetypes and mimes', function () {
+        fileRuleFails(
             File::types(['png', 'image/png']),
             UploadedFile::fake()->createWithContent('foo.txt', 'Hello World!'),
             ['validation.mimetypes', 'validation.mimes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::types(['png', 'image/png']),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testSingleExtension()
-    {
-        $this->fails(
+test('single extension', function () {
+        fileRuleFails(
             File::default()->extensions('png'),
             UploadedFile::fake()->createWithContent('foo', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.extensions']
         );
 
-        $this->fails(
+        fileRuleFails(
             File::default()->extensions('png'),
             UploadedFile::fake()->createWithContent('foo.jpg', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.extensions']
         );
 
-        $this->fails(
+        fileRuleFails(
             File::default()->extensions('jpeg'),
             UploadedFile::fake()->createWithContent('foo.jpg', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.extensions']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->extensions('png'),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testMultipleExtensions()
-    {
-        $this->fails(
+test('multiple extensions', function () {
+        fileRuleFails(
             File::default()->extensions(['png', 'jpeg', 'jpg']),
             UploadedFile::fake()->createWithContent('foo', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.extensions']
         );
 
-        $this->fails(
+        fileRuleFails(
             File::default()->extensions(['png', 'jpeg']),
             UploadedFile::fake()->createWithContent('foo.jpg', file_get_contents(__DIR__.'/fixtures/image.png')),
             ['validation.extensions']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->extensions(['png', 'jpeg', 'jpg']),
             UploadedFile::fake()->createWithContent('foo.png', file_get_contents(__DIR__.'/fixtures/image.png')),
         );
-    }
+    });
 
-    public function testImage()
-    {
-        $this->fails(
+test('image', function () {
+        fileRuleFails(
             File::image(),
             UploadedFile::fake()->createWithContent('foo.txt', 'Hello World!'),
             ['validation.image']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::image(),
             UploadedFile::fake()->image('foo.png'),
         );
-    }
+    });
 
-    public function testImageFailsOnSvgByDefault()
-    {
+test('image fails on svg by default', function () {
         $maliciousSvgFileWithXSS = UploadedFile::fake()->createWithContent(
             name: 'foo.svg',
             content: <<<'XML'
@@ -207,30 +213,29 @@ class ValidationFileRuleTest extends TestCase
                     XML
         );
 
-        $this->fails(
+        fileRuleFails(
             File::image(),
             $maliciousSvgFileWithXSS,
             ['validation.image']
         );
-        $this->fails(
+        fileRuleFails(
             Rule::imageFile(),
             $maliciousSvgFileWithXSS,
             ['validation.image']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::image(allowSvg: true),
             $maliciousSvgFileWithXSS
         );
-        $this->passes(
+        fileRulePasses(
             Rule::imageFile(allowSvg: true),
             $maliciousSvgFileWithXSS
         );
-    }
+    });
 
-    public function testSize()
-    {
-        $this->fails(
+test('size', function () {
+        fileRuleFails(
             File::default()->size(1024),
             [
                 UploadedFile::fake()->create('foo.txt', 1025),
@@ -239,15 +244,14 @@ class ValidationFileRuleTest extends TestCase
             ['validation.size.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->size(1024),
             UploadedFile::fake()->create('foo.txt', 1024),
         );
-    }
+    });
 
-    public function testBetween()
-    {
-        $this->fails(
+test('between', function () {
+        fileRuleFails(
             File::default()->between(1024, 2048),
             [
                 UploadedFile::fake()->create('foo.txt', 1023),
@@ -256,7 +260,7 @@ class ValidationFileRuleTest extends TestCase
             ['validation.between.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->between(1024, 2048),
             [
                 UploadedFile::fake()->create('foo.txt', 1024),
@@ -265,17 +269,16 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 2047),
             ]
         );
-    }
+    });
 
-    public function testMin()
-    {
-        $this->fails(
+test('min', function () {
+        fileRuleFails(
             File::default()->min(1024),
             UploadedFile::fake()->create('foo.txt', 1023),
             ['validation.min.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->min(1024),
             [
                 UploadedFile::fake()->create('foo.txt', 1024),
@@ -283,17 +286,16 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 2048),
             ]
         );
-    }
+    });
 
-    public function testMinWithHumanReadableSize()
-    {
-        $this->fails(
+test('min with human readable size', function () {
+        fileRuleFails(
             File::default()->min('1024kb'),
             UploadedFile::fake()->create('foo.txt', 1023),
             ['validation.min.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->min('1024kb'),
             [
                 UploadedFile::fake()->create('foo.txt', 1024),
@@ -301,17 +303,16 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 2048),
             ]
         );
-    }
+    });
 
-    public function testMax()
-    {
-        $this->fails(
+test('max', function () {
+        fileRuleFails(
             File::default()->max(1024),
             UploadedFile::fake()->create('foo.txt', 1025),
             ['validation.max.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->max(1024),
             [
                 UploadedFile::fake()->create('foo.txt', 1024),
@@ -319,17 +320,16 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 512),
             ]
         );
-    }
+    });
 
-    public function testMaxWithHumanReadableSize()
-    {
-        $this->fails(
+test('max with human readable size', function () {
+        fileRuleFails(
             File::default()->max('1024kb'),
             UploadedFile::fake()->create('foo.txt', 1025),
             ['validation.max.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->max('1024kb'),
             [
                 UploadedFile::fake()->create('foo.txt', 1024),
@@ -337,17 +337,16 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 512),
             ]
         );
-    }
+    });
 
-    public function testMaxWithHumanReadableSizeAndMultipleValue()
-    {
-        $this->fails(
+test('max with human readable size and multiple value', function () {
+        fileRuleFails(
             File::default()->max('1mb'),
             UploadedFile::fake()->create('foo.txt', 1025),
             ['validation.max.file']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->max('1mb'),
             [
                 UploadedFile::fake()->create('foo.txt', 1000),
@@ -355,96 +354,91 @@ class ValidationFileRuleTest extends TestCase
                 UploadedFile::fake()->create('foo.txt', 512),
             ]
         );
-    }
+    });
 
-    public function testEncoding()
-    {
+test('encoding', function () {
         // ASCII file containing UTF-8.
-        $this->fails(
+        fileRuleFails(
             File::default()->encoding('ascii'),
             UploadedFile::fake()->createWithContent('foo.txt', '✌️'),
             ['validation.encoding'],
         );
 
         // UTF-8 file containing invalid UTF-8 byte sequence.
-        $this->fails(
+        fileRuleFails(
             File::default()->encoding('utf-8'),
             UploadedFile::fake()->createWithContent('foo.txt', "\xf0\x28\x8c\x28"),
             ['validation.encoding'],
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->encoding('utf-8'),
             UploadedFile::fake()->createWithContent('foo.txt', '✌️'),
         );
 
-        $this->passes(
+        fileRulePasses(
             File::default()->encoding('utf-8'),
             [
                 UploadedFile::fake()->createWithContent('foo-1.txt', '✌️'),
                 UploadedFile::fake()->createWithContent('foo-2.txt', '👍'),
             ]
         );
-    }
+    });
 
-    public function testEncodingWithInvalidParameter()
-    {
+test('encoding with invalid parameter', function () {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Validation rule encoding parameter [FOOBAR] is not a valid encoding.');
 
         // Invalid encoding.
-        $this->fails(
+        fileRuleFails(
             File::default()->encoding('FOOBAR'),
             UploadedFile::fake()->createWithContent('foo.txt', ''),
             ['validation.encoding'],
         );
-    }
+    });
 
-    public function testMacro()
-    {
+test('macro', function () {
         File::macro('toDocument', function () {
             return static::default()->rules('mimes:txt,csv');
         });
 
-        $this->fails(
+        fileRuleFails(
             File::toDocument(),
             UploadedFile::fake()->create('foo.png'),
             ['validation.mimes']
         );
 
-        $this->passes(
+        fileRulePasses(
             File::toDocument(),
             [
                 UploadedFile::fake()->create('foo.txt'),
                 UploadedFile::fake()->create('foo.csv'),
             ]
         );
-    }
+    });
 
-    public function testItUsesTheCorrectValidationMessageForFile(): void
-    {
+test('it uses the correct validation message for file', function () {
         file_put_contents($path = __DIR__.'/test.json', 'this-is-a-test');
 
         $file = new \Voyager\Http\File($path);
 
-        $this->fails(
+        fileRuleFails(
             ['max:0'],
             $file,
             ['validation.max.file']
         );
 
         unlink($path);
-    }
+    });
 
-    public function testItCanSetDefaultUsing()
-    {
-        $this->assertInstanceOf(File::class, File::default());
+test('it can set default using', function () {
+        expect(File::default())->toBeInstanceOf(File::class);
 
         File::defaults(function () {
             return File::types('txt')->max(12 * 1024);
         });
 
-        $this->fails(
+        fileRuleFails(
             File::default(),
             UploadedFile::fake()->create('foo.png', 13 * 1024),
             [
@@ -455,56 +449,29 @@ class ValidationFileRuleTest extends TestCase
 
         File::defaults(File::image()->between(1024, 2048));
 
-        $this->passes(
+        fileRulePasses(
             File::default(),
             UploadedFile::fake()->create('foo.png', 1.5 * 1024),
         );
-    }
+    });
 
-    public function testFileSizeConversionWithDifferentUnits()
-    {
-        $this->passes(
+test('file size conversion with different units', function () {
+        fileRulePasses(
             File::image()->size('5MB'),
             UploadedFile::fake()->create('foo.png', 5000)
         );
 
-        $this->passes(
+        fileRulePasses(
             File::image()->size(' 2gb '),
             UploadedFile::fake()->create('foo.png', 2 * 1000000)
         );
 
-        $this->passes(
+        fileRulePasses(
             File::image()->size('1Tb'),
             UploadedFile::fake()->create('foo.png', 1000000000)
         );
 
         $this->expectException(\InvalidArgumentException::class);
         File::image()->size('10xyz');
-    }
+    });
 
-    protected function setUp(): void
-    {
-        $container = Vessel::getInstance();
-
-        $container->bind('translator', function () {
-            return new Translator(
-                new ArrayLoader, 'en'
-            );
-        });
-
-        MagicAlias::setMagicAliasApplication($container);
-
-        (new ValidationServiceProvider($container))->register();
-    }
-
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
-
-        MagicAlias::clearResolvedInstances();
-
-        MagicAlias::setMagicAliasApplication(null);
-
-        parent::tearDown();
-    }
-}

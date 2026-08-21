@@ -209,9 +209,14 @@ presence verifier when `db` is bound. They light up on their own.
 neither `Http\UploadedFile` nor `Http\Testing\FileFactory` exists here, both
 being part of *receiving* a request.[^wave4]
 
-So three upstream test files sit in `tests/Validation/deferred/` unrun. Reviving
-them means first deciding what a Venusian file-validation subject is — a design
-question, not a port step. Until then the rules are ported but uncovered.
+So three upstream test files — `ValidationFileRuleTest`, `ValidationImageFileRuleTest`,
+`ValidationDimensionsRuleTest` — sit in `tests/Validation/deferred/`, converted
+to Pest v4 against their exact broken baseline (23 failed / 4 assertions,
+a load-time fatal, and 1 failed / 5 passed respectively) rather than left as
+PHPUnit, since the blocker is a missing value object, not a namespace or
+syntax issue the conversion itself could paper over. Reviving them means first
+deciding what a Venusian file-validation subject is — a design question, not
+a port step. Until then the rules are ported but uncovered.
 
 ## `voyager/contracts` is declared but not yet built
 
@@ -309,14 +314,16 @@ where the new name is 29 bytes, and `43` where it is 41. Harmless today because
 the file is deferred and never runs; it will fail the moment Log's deferred
 tests are restored.
 
-## Waves 0-3 are Pest v4; waves 4-6 are still PHPUnit
+## Waves 0-4 are Pest v4; waves 5-6 are still PHPUnit
 
 `tests/Vessel`, `tests/NutsAndBolts` (wave 0), `tests/Config`, `tests/Pipeline`,
 `tests/Encryption`, `tests/Hashing`, `tests/JsonSchema` (wave 1), `tests/System`,
-`tests/Console` and `tests/Log` (wave 2), and `tests/Filesystem`, `tests/Process`,
+`tests/Console` and `tests/Log` (wave 2), `tests/Filesystem`, `tests/Process`,
 `tests/Pagination`, `tests/Http`, `tests/Cache`, `tests/Redis`, `tests/Testing`
-(wave 3, all seven components including their `deferred/` subdirectories) were
-converted from upstream PHPUnit classes to Pest v4 on 2026-08-21. Inline stub
+(wave 3), and `tests/Bus`, `tests/Translation`, `tests/Concurrency`,
+`tests/Events`, `tests/Validation` (wave 4, all five components including
+their `deferred/` subdirectories) were converted from upstream PHPUnit classes
+to Pest v4 on 2026-08-21. Inline stub
 classes moved to `tests/<Component>/Fixtures/` under `Tests\<Component>\Fixtures`,
 one class per file (PSR-4). Two exceptions load through `autoload-dev.files`
 because PSR-4 cannot carry them: `tests/Vessel/Fixtures/functions.php` and
@@ -378,6 +385,60 @@ passed for the same reason. It surfaced three new traps:
   (`test()->createMock(...)` inside the closure) rather than trying to pass
   `$this` through, since `createMock()` isn't a value that can be read and
   handed off like a property.
+
+Wave 4's biggest file by far, `ValidationValidatorTest.php` (274 methods,
+9,995 lines — roughly 10x the previous largest, `FoundationApplicationTest.php`
+at 550), converted clean with none of wave 3's three traps, and surfaced one
+new one of its own:
+
+* **A `//` comment containing an apostrophe (`there's`, `doesn't`) can break a
+  naive brace/paren balance tracker** if that tracker treats `'`/`"` as string
+  delimiters without first skipping comments — the apostrophe opens a bogus
+  "string" that only closes on the next real quote in the source, silently
+  swallowing anything between them. Only matters for hand-rolled conversion
+  tooling (regex- or scan-based), not for the conversion output itself; see
+  the 2026-08-21 log entry for how it surfaced and was fixed.
+
+`tests/Validation/deferred/ValidationFileRuleTest.php` (23 failed),
+`ValidationDimensionsRuleTest.php` (1 failed) and `ValidationImageFileRuleTest.php`
+(load-time fatal, `Voyager\Http\UploadedFile` still doesn't exist) were
+converted against their exact recorded broken profile rather than fixed,
+per the wave 0 precedent — the failures are pre-existing and out of scope for
+a syntax conversion. `ValidationDatabasePresenceVerifierTest.php`,
+`ValidationExistsRuleTest.php` and `ValidationUniqueRuleTest.php` were already
+fully green under a real SQLite connection and converted the same way,
+confirming `voyager/database` is further along than the "waits for wave 6"
+framing in the porting plan suggests — at least Capsule\Manager, Instrument\Model,
+Query\Builder and SQLite schema building all work today.
+
+**`tests/Bus/deferred/BusBatchTest.php` had two leftover `Illuminate`-era
+call sites, not a real Database blocker.** The file's `setUp()` called
+`$db->bootEloquent()` (renamed `bootInstrument()` in this package — see
+`AGENTS.md`'s Eloquent -> Instrument rule) and `Facade::getFacadeApplication()`
+/ `Facade::setFacadeApplication()` (renamed `MagicAlias::getMagicAliasApplication()`
+/ `MagicAlias::setMagicAliasApplication()`, with no `Voyager\MagicAliases\Facade`
+class ever having existed). Both were missed during the original port and made
+every one of the file's 19 cases fail in `beforeEach()` before any test body
+ran, which read as "blocked on Database" but wasn't — these are naming-rule
+compliance bugs in the test file itself, not a missing dependency, so they were
+fixed as part of the wave 4 conversion rather than preserved. Fixing them
+raised the file from 0/19 to 16/19 passing and surfaced three *real* remaining
+issues, left unfixed as genuine `src/` bugs outside a test-conversion pass's
+scope:
+
+* `test('batch can be deleted')` and `test('options serialization on postgres')`
+  both fail on `DatabaseBatchRepository::find()` at
+  `src/Voyager/Bus/DatabaseBatchRepository.php:87` — its `if ($batch) { return
+  ...; }` has no `else` branch, so PHP throws `Return value must be of type
+  ?Voyager\Bus\Batch, none returned` instead of implicitly returning `null`
+  (typed returns, unlike `void`, are never implicit in PHP). A one-line
+  `return null;` fix, not attempted here.
+* `test('chained closure after multiple batches is properly dispatched')` fails
+  with `Voyager\System\Bus\PendingChain::__construct(): Argument #2 ($chain)
+  must be of type array, string given` at
+  `src/Voyager/System/Bus/PendingChain.php:67` — worth a look together with
+  the `Bus`/`Queue` MagicAliases wiring the test exercises, not investigated
+  further here.
 
 ## `Orchestra\Testbench` is not a dependency and never will be
 
