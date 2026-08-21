@@ -148,6 +148,8 @@ test('it can build scoped disks with visibility', function () {
 })->skip(fn () => ! in_array(PHP_OS_FAMILY, ['Linux', 'Darwin'], true), 'Requires Linux or Darwin.');
 
 test('it can build scoped disks with throw', function () {
+    set_error_handler(static fn (): bool => true);
+
     try {
         $filesystem = new FilesystemManager(tap(new Application, function ($app) {
             $app['config'] = [
@@ -168,7 +170,10 @@ test('it can build scoped disks with throw', function () {
 
         $scoped->get('dirname/filename.txt');
     } finally {
-        rmdir(__DIR__.'/../../to-be-scoped');
+        restore_error_handler();
+        if (is_dir(__DIR__.'/../../to-be-scoped')) {
+            rmdir(__DIR__.'/../../to-be-scoped');
+        }
     }
 })->throws(UnableToReadFile::class);
 

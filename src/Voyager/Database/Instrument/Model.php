@@ -2128,6 +2128,25 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     }
 
     /**
+     * Get the value of the model's route key.
+     *
+     * Routing itself is cut (receiving-HTTP), but the identifier accessors
+     * are part of the model surface and are used independently of a router.
+     */
+    public function getRouteKey(): mixed
+    {
+        return $this->getAttribute($this->getRouteKeyName());
+    }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return $this->getKeyName();
+    }
+
+    /**
      * Get the queueable identity for the entity.
      *
      * @return mixed

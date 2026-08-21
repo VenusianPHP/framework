@@ -5,6 +5,7 @@ namespace Voyager\MagicAliases;
 use Closure;
 use Voyager\Contracts\Vessel\Vessel;
 use Mockery;
+use Mockery\ExpectationInterface;
 use Mockery\MockInterface;
 use RuntimeException;
 
@@ -87,9 +88,9 @@ abstract class MagicAlias
     /**
      * Initiate a mock expectation on the magic alias.
      *
-     * @return \Mockery\Expectation
+     * @return ExpectationInterface
      */
-    public static function shouldReceive(): Mockery\Expectation
+    public static function shouldReceive(): ExpectationInterface
     {
         $name = static::getMagicAliasAccessor();
 
@@ -103,9 +104,9 @@ abstract class MagicAlias
     /**
      * Initiate a mock expectation on the magic alias.
      *
-     * @return \Mockery\Expectation
+     * @return ExpectationInterface
      */
-    public static function expects(): Mockery\Expectation
+    public static function expects(): ExpectationInterface
     {
         $name = static::getMagicAliasAccessor();
 

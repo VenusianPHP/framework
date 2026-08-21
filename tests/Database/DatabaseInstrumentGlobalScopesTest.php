@@ -7,10 +7,13 @@ use Voyager\Database\Instrument\Attributes\ScopedBy;
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Scope;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentGlobalScopesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

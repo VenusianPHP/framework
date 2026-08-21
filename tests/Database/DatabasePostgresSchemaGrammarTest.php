@@ -13,10 +13,13 @@ use Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabasePostgresSchemaGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateTable()
     {
         $blueprint = new Blueprint($this->getConnection(), 'users');

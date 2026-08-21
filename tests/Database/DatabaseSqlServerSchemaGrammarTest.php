@@ -10,10 +10,13 @@ use Voyager\Database\Schema\Grammars\SqlServerGrammar;
 use Voyager\Database\Schema\SqlServerBuilder;
 use Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSqlServerSchemaGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateTable()
     {
         $blueprint = new Blueprint($this->getConnection(), 'users');

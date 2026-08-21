@@ -7,11 +7,14 @@ use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Expression;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 class DatabaseQueryGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testWhereRawReturnsStringWhenExpressionPassed()
     {
         $builder = m::mock(Builder::class);

@@ -8,11 +8,14 @@ use Voyager\Database\Connectors\ConnectionFactory;
 use InvalidArgumentException;
 use Mockery as m;
 use PDO;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 
 class DatabaseConnectionFactoryTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $db;
 
     protected function setUp(): void

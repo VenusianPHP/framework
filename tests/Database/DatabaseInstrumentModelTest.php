@@ -57,6 +57,7 @@ use InvalidArgumentException;
 use LogicException;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\TestWith;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use stdClass;
@@ -66,6 +67,8 @@ include_once 'Enums.php';
 
 class DatabaseInstrumentModelTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     use InteractsWithTime;
 
     protected $encrypter;

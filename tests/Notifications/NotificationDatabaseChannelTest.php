@@ -7,10 +7,13 @@ use Voyager\Notifications\Channels\DatabaseChannel;
 use Voyager\Notifications\Messages\DatabaseMessage;
 use Voyager\Notifications\Notification;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class NotificationDatabaseChannelTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testDatabaseChannelCreatesDatabaseRecordWithProperData()
     {
         $notification = new NotificationDatabaseChannelTestNotification;

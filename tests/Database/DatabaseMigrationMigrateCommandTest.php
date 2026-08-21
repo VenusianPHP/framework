@@ -9,6 +9,7 @@ use Voyager\Database\Events\SchemaLoaded;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -16,6 +17,8 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationMigrateCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicMigrationsCallMigratorWithProperArguments()
     {
         $command = new MigrateCommand($migrator = m::mock(Migrator::class), $dispatcher = m::mock(Dispatcher::class));

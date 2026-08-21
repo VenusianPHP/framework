@@ -1953,9 +1953,9 @@ class Str
     /**
      * Generate a UUID (version 4).
      *
-     * @return UuidInterface
+     * @return UuidInterface|string
      */
-    public static function uuid(): UuidInterface
+    public static function uuid(): UuidInterface|string
     {
         return static::$uuidFactory
             ? call_user_func(static::$uuidFactory)
@@ -1966,9 +1966,9 @@ class Str
      * Generate a UUID (version 7).
      *
      * @param DateTimeInterface|null $time
-     * @return UuidInterface
+     * @return UuidInterface|string
      */
-    public static function uuid7(?DateTimeInterface $time = null): UuidInterface
+    public static function uuid7(?DateTimeInterface $time = null): UuidInterface|string
     {
         return static::$uuidFactory
             ? call_user_func(static::$uuidFactory)
@@ -1978,9 +1978,9 @@ class Str
     /**
      * Generate a time-ordered UUID.
      *
-     * @return UuidInterface
+     * @return UuidInterface|string
      */
-    public static function orderedUuid(): UuidInterface
+    public static function orderedUuid(): UuidInterface|string
     {
         if (static::$uuidFactory) {
             return call_user_func(static::$uuidFactory);

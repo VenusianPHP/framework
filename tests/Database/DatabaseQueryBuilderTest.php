@@ -30,6 +30,7 @@ use Voyager\NutsAndBolts\DataObjects\Str;
 use Tests\Database\Fixtures\Enums\Bar;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
@@ -38,6 +39,8 @@ include_once 'Enums.php';
 
 class DatabaseQueryBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $called;
 
     public function testBasicSelect()

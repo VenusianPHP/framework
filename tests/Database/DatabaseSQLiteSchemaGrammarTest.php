@@ -12,11 +12,14 @@ use Voyager\Database\Schema\Grammars\SQLiteGrammar;
 use Voyager\Database\Schema\SQLiteBuilder;
 use Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class DatabaseSQLiteSchemaGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateTable()
     {
         $blueprint = new Blueprint($this->getConnection(), 'users');

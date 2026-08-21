@@ -5,11 +5,14 @@ namespace Tests\Database;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 class DatabaseInstrumentTimestampsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

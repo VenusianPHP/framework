@@ -5,10 +5,13 @@ namespace Tests\Database;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Collection;
 use Voyager\Database\Instrument\Model as Instrument;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBelongsToManyChunkByIdTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

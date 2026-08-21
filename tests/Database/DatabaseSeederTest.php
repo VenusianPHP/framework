@@ -7,6 +7,7 @@ use Voyager\Vessel\Vessel;
 use Voyager\Database\Seeder;
 use Mockery as m;
 use Mockery\Mock;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -28,6 +29,8 @@ class TestDepsSeeder extends Seeder
 
 class DatabaseSeederTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCallResolveTheClassAndCallsRun()
     {
         $seeder = new TestSeeder;

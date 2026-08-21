@@ -5,10 +5,13 @@ namespace Tests\Broadcasting;
 use Voyager\Broadcasting\Broadcasters\Broadcaster;
 use Voyager\Broadcasting\Broadcasters\UsePusherChannelConventions;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class UsePusherChannelsNamesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     #[DataProvider('channelsProvider')]
     public function testChannelNameNormalization($requestChannelName, $normalizedName, $guarded)
     {

@@ -5,10 +5,13 @@ namespace Tests\Database;
 use Voyager\Database\Connection;
 use Voyager\Database\Query\Grammars\SqlServerGrammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSqlServerQueryGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testToRawSql()
     {
         $connection = m::mock(Connection::class);

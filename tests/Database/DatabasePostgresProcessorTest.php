@@ -3,10 +3,13 @@
 namespace Tests\Database;
 
 use Voyager\Database\Query\Processors\PostgresProcessor;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabasePostgresProcessorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testProcessColumns()
     {
         $processor = new PostgresProcessor;

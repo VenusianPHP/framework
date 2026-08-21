@@ -4,10 +4,13 @@ namespace Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentLocalScopesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -8,11 +8,14 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentBelongsToManyWithCastedAttributesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testModelsAreProperlyMatchedToParents()
     {
         $relation = $this->getRelation();

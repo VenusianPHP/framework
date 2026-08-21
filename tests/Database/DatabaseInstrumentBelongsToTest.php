@@ -8,10 +8,13 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsTo;
 use Tests\Database\Fixtures\Enums\Bar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBelongsToTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $builder;
 
     protected $related;

@@ -4,10 +4,13 @@ namespace Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentHasOneOrManyWithAttributesPendingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

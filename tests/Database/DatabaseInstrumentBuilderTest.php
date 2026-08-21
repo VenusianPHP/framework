@@ -22,11 +22,14 @@ use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Voyager\NutsAndBolts\Collection as BaseCollection;
 use Mockery as m;
 use PDO;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Carbon::setTestNow(null);

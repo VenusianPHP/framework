@@ -7,11 +7,14 @@ use Voyager\Database\Query\Processors\Processor;
 use Voyager\Database\Schema\Builder;
 use Voyager\Database\Schema\Grammars\Grammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseSchemaBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCreateDatabase()
     {
         $connection = m::mock(Connection::class);

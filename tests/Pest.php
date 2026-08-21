@@ -37,6 +37,11 @@ expect()->extend('toAcceptIterables', function (callable $call, mixed $expected)
 |--------------------------------------------------------------------------
 */
 
+afterEach(function () {
+    \Voyager\NutsAndBolts\Sleep::fake(false);
+    \Voyager\NutsAndBolts\DataObjects\Str::createUuidsNormally();
+});
+
 /**
  * An object implementing PHP's native \Stringable and nothing else.
  *

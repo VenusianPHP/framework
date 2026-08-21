@@ -15,12 +15,15 @@ use Voyager\Database\Seeder;
 use Voyager\Events\NullDispatcher;
 use Voyager\Testing\Assert;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
 class SeedCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testHandle()
     {
         $input = new ArrayInput(['--force' => true, '--database' => 'sqlite']);

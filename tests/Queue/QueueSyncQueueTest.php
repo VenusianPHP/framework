@@ -14,10 +14,13 @@ use Voyager\Queue\Jobs\SyncJob;
 use Voyager\Queue\SyncQueue;
 use LogicException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class QueueSyncQueueTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Vessel::setInstance(null);

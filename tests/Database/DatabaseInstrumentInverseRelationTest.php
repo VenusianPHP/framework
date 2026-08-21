@@ -12,10 +12,13 @@ use Voyager\Database\Instrument\Relations\Relation;
 use Voyager\NutsAndBolts\DataObjects\Stringable;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentInverseRelationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBuilderCallbackIsNotAppliedWhenInverseRelationIsNotSet()
     {
         $builder = m::mock(Builder::class);

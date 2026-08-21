@@ -7,10 +7,13 @@ use Voyager\Database\Instrument\Concerns\HasAttributes;
 use Voyager\Database\Instrument\Model;
 use Voyager\NutsAndBolts\Collection;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseConcernsHasAttributesTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testWithoutConstructor()
     {
         $instance = new HasAttributesWithoutConstructor();

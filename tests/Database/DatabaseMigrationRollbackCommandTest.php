@@ -6,12 +6,15 @@ use Voyager\Database\Console\Migrations\RollbackCommand;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationRollbackCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testRollbackCommandCallsMigratorWithProperArguments()
     {
         $command = new RollbackCommand($migrator = m::mock(Migrator::class));

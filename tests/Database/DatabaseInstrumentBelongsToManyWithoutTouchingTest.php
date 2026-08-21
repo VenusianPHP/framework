@@ -9,11 +9,14 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class DatabaseInstrumentBelongsToManyWithoutTouchingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testItWillNotTouchRelatedModelsWhenUpdatingChild(): void
     {
         /** @var Article $related */

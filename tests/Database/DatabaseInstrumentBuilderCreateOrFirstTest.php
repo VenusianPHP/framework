@@ -13,10 +13,13 @@ use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
 use PDO;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBuilderCreateOrFirstTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         Carbon::setTestNow('2023-01-01 00:00:00');

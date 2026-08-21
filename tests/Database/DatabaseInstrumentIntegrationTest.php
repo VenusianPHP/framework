@@ -26,12 +26,13 @@ use Voyager\Pagination\LengthAwarePaginator;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Voyager\NutsAndBolts\MagicAliases\Date;
 use Voyager\NutsAndBolts\DataObjects\Str;
-use Tests\Integration\Database\Fixtures\Post;
-use Tests\Integration\Database\Fixtures\User;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Setup the database schema.
      *
@@ -2431,31 +2432,31 @@ class DatabaseInstrumentIntegrationTest extends TestCase
     public function testWhenBaseModelIsIgnoredAllChildModelsAreIgnored()
     {
         $this->assertFalse(Model::isIgnoringTouch());
-        $this->assertFalse(User::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestUser::isIgnoringTouch());
 
         Model::withoutTouching(function () {
             $this->assertTrue(Model::isIgnoringTouch());
-            $this->assertTrue(User::isIgnoringTouch());
+            $this->assertTrue(InstrumentTestUser::isIgnoringTouch());
         });
 
-        $this->assertFalse(User::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestUser::isIgnoringTouch());
         $this->assertFalse(Model::isIgnoringTouch());
     }
 
     public function testChildModelsAreIgnored()
     {
         $this->assertFalse(Model::isIgnoringTouch());
-        $this->assertFalse(User::isIgnoringTouch());
-        $this->assertFalse(Post::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestUser::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestPost::isIgnoringTouch());
 
-        User::withoutTouching(function () {
+        InstrumentTestUser::withoutTouching(function () {
             $this->assertFalse(Model::isIgnoringTouch());
-            $this->assertFalse(Post::isIgnoringTouch());
-            $this->assertTrue(User::isIgnoringTouch());
+            $this->assertFalse(InstrumentTestPost::isIgnoringTouch());
+            $this->assertTrue(InstrumentTestUser::isIgnoringTouch());
         });
 
-        $this->assertFalse(Post::isIgnoringTouch());
-        $this->assertFalse(User::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestPost::isIgnoringTouch());
+        $this->assertFalse(InstrumentTestUser::isIgnoringTouch());
         $this->assertFalse(Model::isIgnoringTouch());
     }
 

@@ -7,10 +7,13 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\MorphTo;
 use Tests\Database\stubs\TestEnum;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentMorphToTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $builder;
 
     protected $related;

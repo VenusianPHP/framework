@@ -20,10 +20,13 @@ use Voyager\Queue\Concerns\SerializesModels;
 use Voyager\NutsAndBolts\Collection;
 use Laravel\SerializableClosure\SerializableClosure;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class NotificationChannelManagerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Vessel::setInstance(null);

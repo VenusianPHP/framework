@@ -7,10 +7,13 @@ use Voyager\Database\Query\Processors\PostgresProcessor;
 use Voyager\Database\Schema\Grammars\PostgresGrammar;
 use Voyager\Database\Schema\PostgresBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabasePostgresBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCreateDatabase()
     {
         $connection = m::mock(Connection::class);

@@ -9,10 +9,13 @@ use Voyager\Filesystem\Filesystem;
 use Voyager\MagicAliases\MagicAlias;
 use Voyager\NutsAndBolts\MagicAliases\File;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSQLiteBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $app = new Vessel;

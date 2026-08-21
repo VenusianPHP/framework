@@ -8,12 +8,15 @@ use Voyager\Database\MySqlConnection;
 use Voyager\Database\Schema\MySqlSchemaState;
 use Pdo\Mysql;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Symfony\Component\Process\Process;
 
 class DatabaseMySqlSchemaStateTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     #[DataProvider('provider')]
     public function testConnectionString(string $expectedConnectionString, array $expectedVariables, array $dbConfig): void
     {

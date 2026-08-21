@@ -10,10 +10,13 @@ use Voyager\Database\Schema\Grammars\MySqlGrammar;
 use Voyager\Database\Schema\MySqlBuilder;
 use Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMySqlSchemaGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateTable()
     {
         $conn = $this->getConnection();

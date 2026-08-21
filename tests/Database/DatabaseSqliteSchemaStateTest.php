@@ -7,11 +7,14 @@ use Voyager\Database\SQLiteConnection;
 use Voyager\Filesystem\Filesystem;
 use Mockery as m;
 use PDO;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
 class DatabaseSqliteSchemaStateTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testLoadSchemaToDatabase(): void
     {
         $config = ['driver' => 'sqlite', 'database' => 'database/database.sqlite', 'prefix' => '', 'foreign_key_constraints' => true, 'name' => 'sqlite'];

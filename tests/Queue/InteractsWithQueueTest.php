@@ -6,10 +6,13 @@ use Exception;
 use Voyager\Contracts\Queue\Job;
 use Voyager\Queue\InteractsWithQueue;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class InteractsWithQueueTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testCreatesAnExceptionFromString()
     {
         $queueJob = m::mock(Job::class);

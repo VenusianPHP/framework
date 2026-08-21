@@ -7,12 +7,15 @@ use Voyager\Database\Migrations\MigrationCreator;
 use Voyager\System\Application;
 use Voyager\NutsAndBolts\Composer;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationMakeCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicCreateDumpsAutoload()
     {
         $command = new MigrateMakeCommand(

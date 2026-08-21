@@ -6,10 +6,13 @@ use Voyager\Database\Connection;
 use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Grammars\PostgresGrammar;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabasePostgresQueryGrammarTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testToRawSql()
     {
         $connection = m::mock(Connection::class);

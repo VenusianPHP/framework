@@ -7,10 +7,13 @@ use Voyager\Database\Query\Processors\MySqlProcessor;
 use Voyager\Database\Schema\Grammars\MySqlGrammar;
 use Voyager\Database\Schema\MySqlBuilder;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMySQLSchemaBuilderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testHasTable()
     {
         $connection = m::mock(Connection::class);

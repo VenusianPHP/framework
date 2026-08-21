@@ -6,10 +6,13 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\SoftDeletes;
 use InvalidArgumentException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentHasOneOfManyTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

@@ -3,10 +3,13 @@
 namespace Tests\Database;
 
 use Voyager\Database\Console\Migrations\TableGuesser;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class TableGuesserTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testMigrationIsProperlyParsed()
     {
         [$table, $create] = TableGuesser::guess('create_users_table');

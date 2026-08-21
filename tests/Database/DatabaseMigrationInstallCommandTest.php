@@ -6,12 +6,15 @@ use Voyager\Database\Console\Migrations\InstallCommand;
 use Voyager\Database\Migrations\MigrationRepositoryInterface;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationInstallCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testFireCallsRepositoryToInstall()
     {
         $command = new InstallCommand($repo = m::mock(MigrationRepositoryInterface::class));

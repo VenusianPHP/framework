@@ -6,10 +6,13 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\MissingAttributeException;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Model as Instrument;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentWithCastsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

@@ -6,12 +6,15 @@ use Voyager\Database\Instrument\Casts\AsBinary;
 use Voyager\Database\Instrument\Model;
 use Voyager\NutsAndBolts\BinaryCodec;
 use InvalidArgumentException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Uid\Ulid;
 
 class DatabaseInstrumentAsBinaryCastTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         $reflection = new \ReflectionClass(BinaryCodec::class);

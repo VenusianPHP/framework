@@ -5,11 +5,14 @@ namespace Tests\Queue;
 use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\Queue\QueueManager;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class QueueManagerTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testDefaultConnectionCanBeResolved()
     {
         $app = [

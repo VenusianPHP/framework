@@ -3,10 +3,13 @@
 namespace Tests\Database;
 
 use Voyager\Database\Query\Processors\MariaDbProcessor;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMariaDbProcessorTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testProcessColumns()
     {
         $processor = new MariaDbProcessor;

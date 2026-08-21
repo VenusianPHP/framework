@@ -595,6 +595,8 @@ test('native validation vs rfc compliant', function () {
             // none I could find
         ];
 
+        expect($emailsThatPassNativeFailRfc)->toBeEmpty();
+
         foreach ($emailsThatPassNativeFailRfc as $email) {
             emailPasses(
                 Rule::email()->withNativeValidation(),

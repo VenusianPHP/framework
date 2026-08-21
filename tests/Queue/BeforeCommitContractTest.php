@@ -6,10 +6,13 @@ use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueueAfterCommit;
 use Voyager\System\Bus\Dispatchable;
 use Voyager\Queue\InteractsWithQueue;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class BeforeCommitContractTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testJobWithoutContractRespectsBeforeCommit()
     {
         $job = new class

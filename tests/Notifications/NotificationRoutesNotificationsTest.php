@@ -8,11 +8,14 @@ use Voyager\Notifications\RoutesNotifications;
 use Voyager\NutsAndBolts\MagicAliases\Notification;
 use InvalidArgumentException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 class NotificationRoutesNotificationsTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         Vessel::setInstance(null);

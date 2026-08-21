@@ -12,12 +12,15 @@ use Voyager\Database\Events\ModelsPruned;
 use Voyager\Events\Dispatcher;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 class PruneCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();

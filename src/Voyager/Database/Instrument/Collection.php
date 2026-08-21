@@ -2,6 +2,7 @@
 
 namespace Voyager\Database\Instrument;
 
+use Closure;
 use Voyager\Contracts\Queue\QueueableCollection;
 use Voyager\Contracts\Queue\QueueableEntity;
 use Voyager\Contracts\NutsAndBolts\Arrayable;
@@ -494,7 +495,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * @param  iterable<array-key, TModel>  $items
      * @return static
      */
-    public function intersect(\Voyager\Contracts\NutsAndBolts\Arrayable|array $items): static
+    public function intersect(\Voyager\Contracts\NutsAndBolts\Arrayable|iterable|null $items): static
     {
         $intersect = new static;
 
@@ -537,7 +538,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * @param  array<array-key, mixed>|null  $keys
      * @return static
      */
-    public function only(\Voyager\NutsAndBolts\Contracts\Enumerable|array|string $keys): static
+    public function only(mixed $keys): static
     {
         if (is_null($keys)) {
             return new static($this->items);
@@ -554,7 +555,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * @param  array<array-key, mixed>|null  $keys
      * @return static
      */
-    public function except(\Voyager\NutsAndBolts\Contracts\Enumerable|array $keys): static
+    public function except(mixed $keys): static
     {
         if (is_null($keys)) {
             return new static($this->items);
@@ -775,7 +776,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * @return \Voyager\NutsAndBolts\Collection<array-key, mixed>
      */
     #[\Override]
-    public function pluck(array|string $value, ?string $key = null)
+    public function pluck(array|string|int|Closure $value, array|string|int|Closure|null $key = null)
     {
         return $this->toBase()->pluck($value, $key);
     }

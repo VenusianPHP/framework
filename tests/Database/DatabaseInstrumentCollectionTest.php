@@ -11,12 +11,15 @@ use Voyager\Database\Instrument\ModelNotFoundException;
 use Voyager\NutsAndBolts\Collection as BaseCollection;
 use LogicException;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Composer\InstalledVersions;
 use stdClass;
 
 class DatabaseInstrumentCollectionTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Setup the database schema.
      *

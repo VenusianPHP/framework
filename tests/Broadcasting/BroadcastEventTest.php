@@ -8,11 +8,14 @@ use Voyager\Broadcasting\InteractsWithBroadcasting;
 use Voyager\Contracts\Broadcasting\Broadcaster;
 use Voyager\Contracts\Broadcasting\Factory as BroadcastingFactory;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
 class BroadcastEventTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testBasicEventBroadcastParameterFormatting()
     {
         $broadcaster = m::mock(Broadcaster::class);

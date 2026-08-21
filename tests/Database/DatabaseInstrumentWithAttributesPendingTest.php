@@ -6,10 +6,13 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Casts\Attribute;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Schema\Builder;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentWithAttributesPendingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

@@ -12,6 +12,7 @@ use Voyager\Queue\Jobs\FakeJob;
 use Voyager\Queue\Middleware\FailOnException;
 use InvalidArgumentException;
 use LogicException;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Voyager\Vessel\Vessel;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,6 +21,8 @@ use Throwable;
 
 class FailOnExceptionMiddlewareTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     /**
      * Laravel runs this against a Testbench application. The middleware only
      * ever needs a container to resolve the job through, so a plain Vessel

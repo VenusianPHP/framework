@@ -7,12 +7,15 @@ use Voyager\Database\Console\Migrations\ResetCommand;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\System\Application;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
 class DatabaseMigrationResetCommandTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function tearDown(): void
     {
         ResetCommand::prohibit(false);

@@ -6,10 +6,13 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Instrument\Relations\MorphToMany;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseInstrumentBelongsToManyWithAttributesPendingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         $db = new DB;

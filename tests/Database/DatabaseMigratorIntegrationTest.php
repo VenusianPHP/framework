@@ -11,10 +11,13 @@ use Voyager\Filesystem\Filesystem;
 use Voyager\MagicAliases\MagicAlias;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseMigratorIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $db;
     protected $migrator;
 

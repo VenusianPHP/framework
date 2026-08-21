@@ -14,10 +14,13 @@ use Voyager\Notifications\Notifiable;
 use Voyager\Notifications\Notification;
 use Voyager\Notifications\NotificationSender;
 use Mockery as m;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class NotificationSenderTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testItCanSendQueuedNotificationsWithAStringVia()
     {
         $notifiable = m::mock(Notifiable::class);

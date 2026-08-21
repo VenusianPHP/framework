@@ -5,10 +5,13 @@ namespace Tests\Database;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSoftDeletingTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testDeletedAtIsAddedToCastsAsDefaultType()
     {
         $model = new SoftDeletingModel;

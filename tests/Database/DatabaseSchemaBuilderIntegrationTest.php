@@ -6,10 +6,13 @@ use Voyager\Vessel\Vessel;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Schema\Blueprint;
 use Voyager\MagicAliases\MagicAlias;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseSchemaBuilderIntegrationTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     protected $db;
 
     /**

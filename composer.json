@@ -128,6 +128,7 @@
             "tests/Vessel/Fixtures/AttributeTargets.php",
             "tests/Vessel/Fixtures/functions.php",
             "tests/Database/Enums.php",
+            "tests/Database/stubs/MigrationCreatorFakeMigration.php",
             "tests/Validation/Enums.php"
         ]
     },
