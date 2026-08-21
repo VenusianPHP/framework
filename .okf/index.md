@@ -1,24 +1,27 @@
 ---
 okf_version: '0.2'
+generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 ---
 
 # Venusian Framework
 
-Knowledge bundle for `venusian/framework` — a Laravel-like PHP framework for
-sketch-based workflows in the CLI. It is at the foundation stage: Laravel's
-Support components have been ported in and are published as five standalone
-`voyager/*` packages from a single monorepo.
+Knowledge bundle for `venusian/framework` **0.8.0** — a Laravel-like PHP
+framework for windowed applications and hardware integrated circuits. The
+generic (non-web) Laravel surface has been ported into this monorepo under the
+`Voyager\` namespace.
 
-* [Overview](overview.md) - what Venusian is aiming at, what stage it is at, and what ships today.
-* [Known gaps](known-gaps.md) - verified defects and unfinished edges in the ported foundation.
+* [Overview](overview.md) - product intent, current 0.8.x tree, and what ships today.
+* [Known gaps](known-gaps.md) - remaining defects, deliberate cuts, and retired stale claims.
 
 # Architecture
 
-* [Architecture](architecture/) - the Laravel port decision, the monorepo packaging, and the namespace scheme.
+* [Architecture](architecture/) - dependency direction, monorepo packaging, namespace scheme, Laravel lineage, and port hazards.
 
 # Packages
 
-* [Packages](packages/) - one concept per publishable `voyager/*` package.
+* [Packages](packages/) - one concept per publishable `voyager/*` package (31). `Voyager\System` is the composition root and is not a split package.
 
 # API
 
@@ -26,8 +29,8 @@ Support components have been ported in and are published as five standalone
 
 # Playbooks
 
-* [Playbooks](playbooks/) - operational procedures for working on the framework.
+* [Playbooks](playbooks/) - operational procedures for working on the framework and this bundle.
 
 # Reference
 
-* [Reference](reference/) - external material this bundle points at, including the 0.7.x implementation.
+* [Reference](reference/) - external material this bundle points at, including the 0.7.x Fabricate tree.
