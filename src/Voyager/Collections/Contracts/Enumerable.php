@@ -59,7 +59,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @template TUnwrapKey of array-key
      * @template TUnwrapValue
      */
-    public static function unwrap(array|Enumerable $value): array;
+    public static function unwrap(mixed $value): mixed;
 
     /**
      * Create a new instance with no items.
@@ -290,7 +290,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Filter items by the given key value pair.
      */
-    public function where(callable|string $key, mixed $operator = null, mixed $value = null): static;
+    public function where(callable|string|null $key, mixed $operator = null, mixed $value = null): static;
 
     /**
      * Filter items where the value for the given key is null.
@@ -305,7 +305,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Filter items by the given key value pair using strict comparison.
      */
-    public function whereStrict(string $key, mixed $value): static;
+    public function whereStrict(?string $key, mixed $value): static;
 
     /**
      * Filter items by the given key value pair.
@@ -384,7 +384,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param (callable(): TGetDefault)|null $default
      * @return TValue|TGetDefault
      */
-    public function get(int|string $key, mixed $default = null): mixed;
+    public function get(int|string|null $key, mixed $default = null): mixed;
 
     /**
      * Group an associative array by a field or using a callback.
@@ -452,7 +452,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
-    public function intersectUsing(Arrayable|array $items, callable $callback): static;
+    public function intersectUsing(Arrayable|array|null $items, callable $callback): static;
 
     /**
      * Intersect the collection with the given items with additional index check.
@@ -460,7 +460,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TValue> $items
      * @return static
      */
-    public function intersectAssoc(Arrayable|array $items): static;
+    public function intersectAssoc(Arrayable|array|null $items): static;
 
     /**
      * Intersect the collection with the given items with additional index check, using the callback.
@@ -469,7 +469,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
-    public function intersectAssocUsing(Arrayable|array $items, callable $callback): static;
+    public function intersectAssocUsing(Arrayable|array|null $items, callable $callback): static;
 
     /**
      * Intersect the collection with the given items by key.
@@ -477,7 +477,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, mixed> $items
      * @return static
      */
-    public function intersectByKeys(array|Arrayable $items): static;
+    public function intersectByKeys(array|Arrayable|null $items): static;
 
     /**
      * Determine if the collection is empty or not.
@@ -618,7 +618,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TMergeValue> $items
      * @return static<TKey, TValue|TMergeValue>
      */
-    public function merge(Arrayable|array $items): static;
+    public function merge(Arrayable|array|null $items): static;
 
     /**
      * Recursively merge the collection with the given items.
@@ -628,7 +628,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TMergeRecursiveValue> $items
      * @return static<TKey, TValue|TMergeRecursiveValue>
      */
-    public function mergeRecursive(Arrayable|array $items): static;
+    public function mergeRecursive(Arrayable|array|null $items): static;
 
     /**
      * Create a collection by using this collection for keys and another for its values.
@@ -646,7 +646,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TValue> $items
      * @return static
      */
-    public function union(Arrayable|array $items): static;
+    public function union(Arrayable|array|null $items): static;
 
     /**
      * Get the min value of a given key.
@@ -698,17 +698,18 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param iterable<TConcatKey, TConcatValue> $source
      * @return static<TKey|TConcatKey, TValue|TConcatValue>
      */
-    public function concat(array $source): static;
+    public function concat(iterable $source): static;
 
     /**
      * Get one or a specified number of items randomly from the collection.
      *
      * @param int|null $number
+     * @param bool $preserveKeys
      * @return ($number is null ? TValue : static<int, TValue>)
      *
      * @throws InvalidArgumentException
      */
-    public function random(int|callable|null $number = null): mixed;
+    public function random(int|callable|null $number = null, bool $preserveKeys = false): mixed;
 
     /**
      * Reduce the collection to a single value.
@@ -729,7 +730,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TValue> $items
      * @return static
      */
-    public function replace(Arrayable|array $items): static;
+    public function replace(Arrayable|array|null $items): static;
 
     /**
      * Recursively replace the collection items with the given items.
@@ -737,7 +738,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param Arrayable|iterable<TKey, TValue> $items
      * @return static
      */
-    public function replaceRecursive(Arrayable|array $items): static;
+    public function replaceRecursive(Arrayable|array|null $items): static;
 
     /**
      * Reverse items order.
@@ -800,18 +801,18 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Skip items in the collection until the given condition is met.
      *
-     * @param callable(TValue,TKey): bool $value
+     * @param TValue|callable(TValue,TKey): bool $value
      * @return static
      */
-    public function skipUntil(callable $value): static;
+    public function skipUntil(mixed $value): static;
 
     /**
      * Skip items in the collection while the given condition is met.
      *
-     * @param callable(TValue,TKey): bool $value
+     * @param TValue|callable(TValue,TKey): bool $value
      * @return static
      */
-    public function skipWhile(callable $value): static;
+    public function skipWhile(mixed $value): static;
 
     /**
      * Get a slice of items from the enumerable.
@@ -921,7 +922,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param bool $descending
      * @return static
      */
-    public function sortKeys(int $options = SORT_REGULAR, bool $descending = false): static;
+    public function sortKeys(int $options = SORT_REGULAR, SortDirection|bool $descending = false): static;
 
     /**
      * Sort the collection keys in descending order.
@@ -957,18 +958,18 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Take items in the collection until the given condition is met.
      *
-     * @param callable(TValue,TKey): bool $value
+     * @param TValue|callable(TValue,TKey): bool $value
      * @return static
      */
-    public function takeUntil(callable $value): static;
+    public function takeUntil(mixed $value): static;
 
     /**
      * Take items in the collection while the given condition is met.
      *
-     * @param callable(TValue,TKey): bool $value
+     * @param TValue|callable(TValue,TKey): bool $value
      * @return static
      */
-    public function takeWhile(callable $value): static;
+    public function takeWhile(mixed $value): static;
 
     /**
      * Pass the collection to the given callback and then return it.
@@ -1006,7 +1007,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Create a collection of all elements that do not pass a given truth test.
      */
-    public function reject(callable|bool $callback = true): static;
+    public function reject(mixed $callback = true): static;
 
     /**
      * Convert a flatten "dot" notation array into an expanded array.

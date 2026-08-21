@@ -1,6 +1,23 @@
 # Update Log
 
 ## 2026-08-21
+* **Update**: Ported Laravel's `SupportStrTest.php` (2,004 lines, 115 test
+  methods) into `tests/NutsAndBolts/StrTest.php`, merged alongside the
+  existing hand-written coverage rather than replacing it (211 new tests;
+  suite total 6442 → 6653 passing, still 0 failing / 0 risky / 0 warnings).
+  Found and fixed seven more instances of the
+  [port hazard](architecture/port-hazards.md#fifth-audit-supportstrtest-port):
+  the whole `Str` search/substring family (`startsWith`, `endsWith`,
+  `contains`, `is`, `isMatch`, `before`/`after`/`between` and friends,
+  `excerpt`, `replaceFirst`/`replaceStart`/`replaceLast`/`replaceEnd`,
+  `ascii`/`isAscii`/`slug`, `numbers`) was typed narrower than Laravel's own
+  test suite exercises it, plus a sixth-shaped bug: `Str::uuid()` and its
+  five siblings coerced a `Stringable`-returning factory to a plain string
+  via their `UuidInterface|string` return type, losing `->toString()`.
+  Widened to `mixed`. See the port-hazards doc for the full table and every
+  `src/` line changed.
+
+## 2026-08-21
 * **Verification**: Framework Auditor pass against `0.8.x` HEAD after PR 1
   (`8a8600fda67358ec3b38b579f9f13e5107bdc758`).
   **Verification key:** `agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758`.
@@ -285,3 +302,29 @@
   with no error to catch it; and a genuine, unrelated `Voyager\MagicAliases\MagicAlias`
   incompatibility with Mockery 1.6.15 that was already failing two `Testing/deferred`
   tests before any of this work started.
+* **Update**: Ported `Illuminate\Cache\DatabaseStore` (the last unported
+  Laravel component) to `src/Voyager/Cache/DatabaseStore.php`, plus its
+  companion `DatabaseLock` (`Illuminate\Cache\DatabaseLock`), needed for
+  `LockProvider::lock()` and not called out by name in the task but required
+  by the interface. Wired `CacheManager::createDatabaseDriver()` the same way
+  `createRedisDriver`/`createFileDriver` are wired, and turned the commented-out
+  `database` store entry in `config/cache.php` live. `CacheTableCommand`
+  needed no change — already correct. Kept the whole file docblock-typed
+  (matching every sibling in `src/Voyager/Cache/` — `RedisStore`, `ArrayStore`,
+  `Lock`, `CacheLock` — and `Voyager\Database\Query\Builder` itself, none of
+  which carry scalar type hints on params/properties beyond `array`/`Closure`);
+  see [port hazards](architecture/port-hazards.md) for why adding type hints
+  Laravel didn't have is a live risk, not a style choice, on `Store`/`Lock`
+  implementations. Faithfully converted `tests/Cache/CacheDatabaseStoreTest.php`
+  to Pest (Mockery partial mocks of `DatabaseStore` via
+  `Mockery::mock(DatabaseStore::class, $args)->shouldAllowMockingProtectedMethods()->makePartial()`,
+  matching the pattern already in `CacheManagerTest.php`) — 13 tests, 0 risky
+  (upstream's assertion-free `testItemsMayBeRemovedFromCache` was given a real
+  `expect()` since Pest flags a no-assertion test risky where PHPUnit does
+  not). Added `tests/Cache/CacheDatabaseStoreIntegrationTest.php` (not from
+  upstream) running the store and lock against a real in-memory sqlite
+  connection via `Voyager\Database\Capsule\Manager`, since the ported test
+  only ever mocks the query builder and neither `CacheManager::createDatabaseDriver()`
+  nor `DatabaseLock` had any coverage against real `Voyager\Database` query
+  building. Suite: 6442 → 6459 passed (+17), 0 failing/risky/warnings before
+  and after.

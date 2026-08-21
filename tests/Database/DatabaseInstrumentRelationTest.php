@@ -11,313 +11,291 @@ use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Instrument\Relations\Relation;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentRelationTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('set relation fail', function () {
+    $parent = new InstrumentRelationResetModelStub;
+    $relation = new InstrumentRelationResetModelStub;
+    $parent->setRelation('test', $relation);
+    $parent->setRelation('foo', 'bar');
+    $this->assertArrayNotHasKey('foo', $parent->toArray());
+});
 
-    public function testSetRelationFail()
-    {
-        $parent = new InstrumentRelationResetModelStub;
-        $relation = new InstrumentRelationResetModelStub;
-        $parent->setRelation('test', $relation);
-        $parent->setRelation('foo', 'bar');
-        $this->assertArrayNotHasKey('foo', $parent->toArray());
-    }
+test('unset existing relation', function () {
+    $parent = new InstrumentRelationResetModelStub;
+    $relation = new InstrumentRelationResetModelStub;
+    $parent->setRelation('foo', $relation);
+    $parent->unsetRelation('foo');
+    expect($parent->relationLoaded('foo'))->toBeFalse();
+});
 
-    public function testUnsetExistingRelation()
-    {
-        $parent = new InstrumentRelationResetModelStub;
-        $relation = new InstrumentRelationResetModelStub;
-        $parent->setRelation('foo', $relation);
-        $parent->unsetRelation('foo');
-        $this->assertFalse($parent->relationLoaded('foo'));
-    }
+test('touch method updates related timestamps', function () {
+    $builder = m::mock(Builder::class);
+    $parent = m::mock(Model::class);
+    $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
+    $builder->shouldReceive('getModel')->andReturn($related);
+    $builder->shouldReceive('whereNotNull');
+    $builder->shouldReceive('where');
+    $builder->shouldReceive('withoutGlobalScopes')->andReturn($builder);
+    $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
+    $related->shouldReceive('getTable')->andReturn('table');
+    $related->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
+    $now = Carbon::now();
+    $related->shouldReceive('freshTimestampString')->andReturn($now);
+    $builder->shouldReceive('update')->once()->with(['updated_at' => $now]);
 
-    public function testTouchMethodUpdatesRelatedTimestamps()
-    {
+    $relation->touch();
+});
+
+test('can disable parent touching for all models', function () {
+    /** @var \Tests\Database\InstrumentNoTouchingModelStub $related */
+    $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
+    $related->shouldReceive('getUpdatedAtColumn')->never();
+    $related->shouldReceive('freshTimestampString')->never();
+
+    expect($related::isIgnoringTouch())->toBeFalse();
+
+    Model::withoutTouching(function () use ($related) {
+        expect($related::isIgnoringTouch())->toBeTrue();
+
         $builder = m::mock(Builder::class);
         $parent = m::mock(Model::class);
+
         $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-        $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
         $builder->shouldReceive('getModel')->andReturn($related);
         $builder->shouldReceive('whereNotNull');
         $builder->shouldReceive('where');
         $builder->shouldReceive('withoutGlobalScopes')->andReturn($builder);
         $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
-        $related->shouldReceive('getTable')->andReturn('table');
-        $related->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
-        $now = Carbon::now();
-        $related->shouldReceive('freshTimestampString')->andReturn($now);
-        $builder->shouldReceive('update')->once()->with(['updated_at' => $now]);
+        $builder->shouldReceive('update')->never();
 
         $relation->touch();
-    }
+    });
 
-    public function testCanDisableParentTouchingForAllModels()
-    {
-        /** @var \Tests\Database\InstrumentNoTouchingModelStub $related */
-        $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
-        $related->shouldReceive('getUpdatedAtColumn')->never();
-        $related->shouldReceive('freshTimestampString')->never();
+    expect($related::isIgnoringTouch())->toBeFalse();
+});
 
-        $this->assertFalse($related::isIgnoringTouch());
+test('can disable touching for specific model', function () {
+    $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
+    $related->shouldReceive('getUpdatedAtColumn')->never();
+    $related->shouldReceive('freshTimestampString')->never();
 
-        Model::withoutTouching(function () use ($related) {
-            $this->assertTrue($related::isIgnoringTouch());
+    $anotherRelated = m::mock(InstrumentNoTouchingAnotherModelStub::class)->makePartial();
 
-            $builder = m::mock(Builder::class);
-            $parent = m::mock(Model::class);
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($anotherRelated::isIgnoringTouch())->toBeFalse();
 
-            $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-            $builder->shouldReceive('getModel')->andReturn($related);
-            $builder->shouldReceive('whereNotNull');
-            $builder->shouldReceive('where');
-            $builder->shouldReceive('withoutGlobalScopes')->andReturn($builder);
-            $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
-            $builder->shouldReceive('update')->never();
+    InstrumentNoTouchingModelStub::withoutTouching(function () use ($related, $anotherRelated) {
+        expect($related::isIgnoringTouch())->toBeTrue()
+            ->and($anotherRelated::isIgnoringTouch())->toBeFalse();
 
-            $relation->touch();
-        });
+        $builder = m::mock(Builder::class);
+        $parent = m::mock(Model::class);
 
-        $this->assertFalse($related::isIgnoringTouch());
-    }
+        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+        $builder->shouldReceive('getModel')->andReturn($related);
+        $builder->shouldReceive('whereNotNull');
+        $builder->shouldReceive('where');
+        $builder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
+        $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
+        $builder->shouldReceive('update')->never();
 
-    public function testCanDisableTouchingForSpecificModel()
-    {
-        $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
-        $related->shouldReceive('getUpdatedAtColumn')->never();
-        $related->shouldReceive('freshTimestampString')->never();
+        $relation->touch();
 
-        $anotherRelated = m::mock(InstrumentNoTouchingAnotherModelStub::class)->makePartial();
+        $anotherBuilder = m::mock(Builder::class);
+        $anotherParent = m::mock(Model::class);
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($anotherRelated::isIgnoringTouch());
+        $anotherParent->shouldReceive('getAttribute')->with('id')->andReturn(2);
+        $anotherBuilder->shouldReceive('getModel')->andReturn($anotherRelated);
+        $anotherBuilder->shouldReceive('whereNotNull');
+        $anotherBuilder->shouldReceive('where');
+        $anotherBuilder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
+        $anotherRelation = new HasOne($anotherBuilder, $anotherParent, 'foreign_key', 'id');
+        $now = Carbon::now();
+        $anotherRelated->shouldReceive('freshTimestampString')->andReturn($now);
+        $anotherBuilder->shouldReceive('update')->once()->with(['updated_at' => $now]);
 
-        InstrumentNoTouchingModelStub::withoutTouching(function () use ($related, $anotherRelated) {
-            $this->assertTrue($related::isIgnoringTouch());
-            $this->assertFalse($anotherRelated::isIgnoringTouch());
+        $anotherRelation->touch();
+    });
 
-            $builder = m::mock(Builder::class);
-            $parent = m::mock(Model::class);
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($anotherRelated::isIgnoringTouch())->toBeFalse();
+});
 
-            $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-            $builder->shouldReceive('getModel')->andReturn($related);
-            $builder->shouldReceive('whereNotNull');
-            $builder->shouldReceive('where');
-            $builder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
-            $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
-            $builder->shouldReceive('update')->never();
+test('parent model is not touched when child model is ignored', function () {
+    $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
+    $related->shouldReceive('getUpdatedAtColumn')->never();
+    $related->shouldReceive('freshTimestampString')->never();
 
-            $relation->touch();
+    $relatedChild = m::mock(InstrumentNoTouchingChildModelStub::class)->makePartial();
+    $relatedChild->shouldReceive('getUpdatedAtColumn')->never();
+    $relatedChild->shouldReceive('freshTimestampString')->never();
 
-            $anotherBuilder = m::mock(Builder::class);
-            $anotherParent = m::mock(Model::class);
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($relatedChild::isIgnoringTouch())->toBeFalse();
 
-            $anotherParent->shouldReceive('getAttribute')->with('id')->andReturn(2);
-            $anotherBuilder->shouldReceive('getModel')->andReturn($anotherRelated);
-            $anotherBuilder->shouldReceive('whereNotNull');
-            $anotherBuilder->shouldReceive('where');
-            $anotherBuilder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
-            $anotherRelation = new HasOne($anotherBuilder, $anotherParent, 'foreign_key', 'id');
-            $now = Carbon::now();
-            $anotherRelated->shouldReceive('freshTimestampString')->andReturn($now);
-            $anotherBuilder->shouldReceive('update')->once()->with(['updated_at' => $now]);
+    InstrumentNoTouchingModelStub::withoutTouching(function () use ($related, $relatedChild) {
+        expect($related::isIgnoringTouch())->toBeTrue()
+            ->and($relatedChild::isIgnoringTouch())->toBeTrue();
 
-            $anotherRelation->touch();
-        });
+        $builder = m::mock(Builder::class);
+        $parent = m::mock(Model::class);
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($anotherRelated::isIgnoringTouch());
-    }
+        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+        $builder->shouldReceive('getModel')->andReturn($related);
+        $builder->shouldReceive('whereNotNull');
+        $builder->shouldReceive('where');
+        $builder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
+        $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
+        $builder->shouldReceive('update')->never();
 
-    public function testParentModelIsNotTouchedWhenChildModelIsIgnored()
-    {
-        $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
-        $related->shouldReceive('getUpdatedAtColumn')->never();
-        $related->shouldReceive('freshTimestampString')->never();
+        $relation->touch();
 
-        $relatedChild = m::mock(InstrumentNoTouchingChildModelStub::class)->makePartial();
-        $relatedChild->shouldReceive('getUpdatedAtColumn')->never();
-        $relatedChild->shouldReceive('freshTimestampString')->never();
+        $anotherBuilder = m::mock(Builder::class);
+        $anotherParent = m::mock(Model::class);
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($relatedChild::isIgnoringTouch());
+        $anotherParent->shouldReceive('getAttribute')->with('id')->andReturn(2);
+        $anotherBuilder->shouldReceive('getModel')->andReturn($relatedChild);
+        $anotherBuilder->shouldReceive('whereNotNull');
+        $anotherBuilder->shouldReceive('where');
+        $anotherBuilder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
+        $anotherRelation = new HasOne($anotherBuilder, $anotherParent, 'foreign_key', 'id');
+        $anotherBuilder->shouldReceive('update')->never();
 
+        $anotherRelation->touch();
+    });
+
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($relatedChild::isIgnoringTouch())->toBeFalse();
+});
+
+test('ignored models state is reset when there are exceptions', function () {
+    $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
+    $related->shouldReceive('getUpdatedAtColumn')->never();
+    $related->shouldReceive('freshTimestampString')->never();
+
+    $relatedChild = m::mock(InstrumentNoTouchingChildModelStub::class)->makePartial();
+    $relatedChild->shouldReceive('getUpdatedAtColumn')->never();
+    $relatedChild->shouldReceive('freshTimestampString')->never();
+
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($relatedChild::isIgnoringTouch())->toBeFalse();
+
+    try {
         InstrumentNoTouchingModelStub::withoutTouching(function () use ($related, $relatedChild) {
-            $this->assertTrue($related::isIgnoringTouch());
-            $this->assertTrue($relatedChild::isIgnoringTouch());
+            expect($related::isIgnoringTouch())->toBeTrue()
+                ->and($relatedChild::isIgnoringTouch())->toBeTrue();
 
-            $builder = m::mock(Builder::class);
-            $parent = m::mock(Model::class);
-
-            $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-            $builder->shouldReceive('getModel')->andReturn($related);
-            $builder->shouldReceive('whereNotNull');
-            $builder->shouldReceive('where');
-            $builder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
-            $relation = new HasOne($builder, $parent, 'foreign_key', 'id');
-            $builder->shouldReceive('update')->never();
-
-            $relation->touch();
-
-            $anotherBuilder = m::mock(Builder::class);
-            $anotherParent = m::mock(Model::class);
-
-            $anotherParent->shouldReceive('getAttribute')->with('id')->andReturn(2);
-            $anotherBuilder->shouldReceive('getModel')->andReturn($relatedChild);
-            $anotherBuilder->shouldReceive('whereNotNull');
-            $anotherBuilder->shouldReceive('where');
-            $anotherBuilder->shouldReceive('withoutGlobalScopes')->andReturnSelf();
-            $anotherRelation = new HasOne($anotherBuilder, $anotherParent, 'foreign_key', 'id');
-            $anotherBuilder->shouldReceive('update')->never();
-
-            $anotherRelation->touch();
+            throw new Exception;
         });
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($relatedChild::isIgnoringTouch());
+        $this->fail('Exception was not thrown');
+    } catch (Exception) {
+        // Does nothing.
     }
 
-    public function testIgnoredModelsStateIsResetWhenThereAreExceptions()
-    {
-        $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
-        $related->shouldReceive('getUpdatedAtColumn')->never();
-        $related->shouldReceive('freshTimestampString')->never();
+    expect($related::isIgnoringTouch())->toBeFalse()
+        ->and($relatedChild::isIgnoringTouch())->toBeFalse();
+});
 
-        $relatedChild = m::mock(InstrumentNoTouchingChildModelStub::class)->makePartial();
-        $relatedChild->shouldReceive('getUpdatedAtColumn')->never();
-        $relatedChild->shouldReceive('freshTimestampString')->never();
+test('setting morph map with numeric array uses the table names', function () {
+    Relation::morphMap([InstrumentRelationResetModelStub::class]);
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($relatedChild::isIgnoringTouch());
+    expect(Relation::morphMap())->toEqual([
+        'reset' => InstrumentRelationResetModelStub::class,
+    ]);
 
-        try {
-            InstrumentNoTouchingModelStub::withoutTouching(function () use ($related, $relatedChild) {
-                $this->assertTrue($related::isIgnoringTouch());
-                $this->assertTrue($relatedChild::isIgnoringTouch());
+    Relation::morphMap([], false);
+});
 
-                throw new Exception;
-            });
+test('setting morph map with numeric keys', function () {
+    Relation::morphMap([1 => 'App\User']);
 
-            $this->fail('Exception was not thrown');
-        } catch (Exception) {
-            // Does nothing.
-        }
+    expect(Relation::morphMap())->toEqual([
+        1 => 'App\User',
+    ]);
 
-        $this->assertFalse($related::isIgnoringTouch());
-        $this->assertFalse($relatedChild::isIgnoringTouch());
-    }
+    Relation::morphMap([], false);
+});
 
-    public function testSettingMorphMapWithNumericArrayUsesTheTableNames()
-    {
-        Relation::morphMap([InstrumentRelationResetModelStub::class]);
+test('get morph alias', function () {
+    Relation::morphMap(['user' => 'App\User']);
 
-        $this->assertEquals([
-            'reset' => InstrumentRelationResetModelStub::class,
-        ], Relation::morphMap());
+    expect(Relation::getMorphAlias('App\User'))->toBe('user')
+        ->and(Relation::getMorphAlias('Does\Not\Exist'))->toBe('Does\Not\Exist');
+});
 
-        Relation::morphMap([], false);
-    }
+test('without relations', function () {
+    $original = new InstrumentNoTouchingModelStub;
 
-    public function testSettingMorphMapWithNumericKeys()
-    {
-        Relation::morphMap([1 => 'App\User']);
+    $original->setRelation('foo', 'baz');
 
-        $this->assertEquals([
-            1 => 'App\User',
-        ], Relation::morphMap());
+    expect($original->getRelation('foo'))->toBe('baz');
 
-        Relation::morphMap([], false);
-    }
+    $model = $original->withoutRelations();
 
-    public function testGetMorphAlias()
-    {
-        Relation::morphMap(['user' => 'App\User']);
+    expect($model)->toBeInstanceOf(InstrumentNoTouchingModelStub::class)
+        ->and($original->relationLoaded('foo'))->toBeTrue()
+        ->and($model->relationLoaded('foo'))->toBeFalse();
 
-        $this->assertSame('user', Relation::getMorphAlias('App\User'));
-        $this->assertSame('Does\Not\Exist', Relation::getMorphAlias('Does\Not\Exist'));
-    }
+    $model = $original->unsetRelations();
 
-    public function testWithoutRelations()
-    {
-        $original = new InstrumentNoTouchingModelStub;
+    expect($model)->toBeInstanceOf(InstrumentNoTouchingModelStub::class)
+        ->and($original->relationLoaded('foo'))->toBeFalse()
+        ->and($model->relationLoaded('foo'))->toBeFalse();
+});
 
-        $original->setRelation('foo', 'baz');
+test('without relation', function () {
+    $original = new InstrumentNoTouchingModelStub;
 
-        $this->assertSame('baz', $original->getRelation('foo'));
+    $original->setRelation('foo', 'baz');
+    $original->setRelation('bar', 'qux');
 
-        $model = $original->withoutRelations();
+    $model = $original->withoutRelation('foo');
 
-        $this->assertInstanceOf(InstrumentNoTouchingModelStub::class, $model);
-        $this->assertTrue($original->relationLoaded('foo'));
-        $this->assertFalse($model->relationLoaded('foo'));
+    expect($model)->toBeInstanceOf(InstrumentNoTouchingModelStub::class);
+    $this->assertNotSame($model, $original);
+    expect($original->relationLoaded('foo'))->toBeTrue()
+        ->and($original->relationLoaded('bar'))->toBeTrue()
+        ->and($model->relationLoaded('foo'))->toBeFalse()
+        ->and($model->relationLoaded('bar'))->toBeTrue();
+});
 
-        $model = $original->unsetRelations();
+test('without relation with array', function () {
+    $original = new InstrumentNoTouchingModelStub;
 
-        $this->assertInstanceOf(InstrumentNoTouchingModelStub::class, $model);
-        $this->assertFalse($original->relationLoaded('foo'));
-        $this->assertFalse($model->relationLoaded('foo'));
-    }
+    $original->setRelation('foo', 'baz');
+    $original->setRelation('bar', 'qux');
+    $original->setRelation('bam', 'zap');
 
-    public function testWithoutRelation()
-    {
-        $original = new InstrumentNoTouchingModelStub;
+    $model = $original->withoutRelation(['foo', 'bar']);
 
-        $original->setRelation('foo', 'baz');
-        $original->setRelation('bar', 'qux');
+    expect($original->relationLoaded('foo'))->toBeTrue()
+        ->and($original->relationLoaded('bar'))->toBeTrue()
+        ->and($original->relationLoaded('bam'))->toBeTrue()
+        ->and($model->relationLoaded('foo'))->toBeFalse()
+        ->and($model->relationLoaded('bar'))->toBeFalse()
+        ->and($model->relationLoaded('bam'))->toBeTrue();
+});
 
-        $model = $original->withoutRelation('foo');
+test('macroable', function () {
+    Relation::macro('foo', function () {
+        return 'foo';
+    });
 
-        $this->assertInstanceOf(InstrumentNoTouchingModelStub::class, $model);
-        $this->assertNotSame($model, $original);
-        $this->assertTrue($original->relationLoaded('foo'));
-        $this->assertTrue($original->relationLoaded('bar'));
-        $this->assertFalse($model->relationLoaded('foo'));
-        $this->assertTrue($model->relationLoaded('bar'));
-    }
+    $model = new InstrumentRelationResetModelStub;
+    $relation = new InstrumentRelationStub($model->newQuery(), $model);
 
-    public function testWithoutRelationWithArray()
-    {
-        $original = new InstrumentNoTouchingModelStub;
+    $result = $relation->foo();
+    expect($result)->toBe('foo');
+});
 
-        $original->setRelation('foo', 'baz');
-        $original->setRelation('bar', 'qux');
-        $original->setRelation('bam', 'zap');
+test('is relation ignores attribute', function () {
+    $model = new InstrumentRelationAndAttributeModelStub;
 
-        $model = $original->withoutRelation(['foo', 'bar']);
-
-        $this->assertTrue($original->relationLoaded('foo'));
-        $this->assertTrue($original->relationLoaded('bar'));
-        $this->assertTrue($original->relationLoaded('bam'));
-        $this->assertFalse($model->relationLoaded('foo'));
-        $this->assertFalse($model->relationLoaded('bar'));
-        $this->assertTrue($model->relationLoaded('bam'));
-    }
-
-    public function testMacroable()
-    {
-        Relation::macro('foo', function () {
-            return 'foo';
-        });
-
-        $model = new InstrumentRelationResetModelStub;
-        $relation = new InstrumentRelationStub($model->newQuery(), $model);
-
-        $result = $relation->foo();
-        $this->assertSame('foo', $result);
-    }
-
-    public function testIsRelationIgnoresAttribute()
-    {
-        $model = new InstrumentRelationAndAttributeModelStub;
-
-        $this->assertTrue($model->isRelation('parent'));
-        $this->assertFalse($model->isRelation('field'));
-    }
-}
+    expect($model->isRelation('parent'))->toBeTrue()
+        ->and($model->isRelation('field'))->toBeFalse();
+});
 
 class InstrumentRelationResetModelStub extends Model
 {

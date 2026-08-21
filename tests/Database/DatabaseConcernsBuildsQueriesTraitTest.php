@@ -3,22 +3,14 @@
 namespace Tests\Database;
 
 use Voyager\Database\Concerns\BuildsQueries;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseConcernsBuildsQueriesTraitTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
-
-    public function testTapCallbackInstance()
+test('tap callback instance', function () {
+    $mock = new class
     {
-        $mock = new class
-        {
-            use BuildsQueries;
-        };
+        use BuildsQueries;
+    };
 
-        $mock->tap(function ($builder) use ($mock) {
-            $this->assertEquals($mock, $builder);
-        });
-    }
-}
+    $mock->tap(function ($builder) use ($mock) {
+        expect($builder)->toEqual($mock);
+    });
+});

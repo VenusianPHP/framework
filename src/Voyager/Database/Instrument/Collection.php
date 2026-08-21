@@ -394,7 +394,7 @@ class Collection extends BaseCollection implements QueueableCollection
      * @param  iterable<array-key, TModel>  $items
      * @return static
      */
-    public function merge(\Voyager\Contracts\NutsAndBolts\Arrayable|array $items): static
+    public function merge(\Voyager\Contracts\NutsAndBolts\Arrayable|array|null $items): static
     {
         $dictionary = $this->getDictionary();
 

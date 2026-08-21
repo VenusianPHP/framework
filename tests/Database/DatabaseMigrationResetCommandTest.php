@@ -1,84 +1,68 @@
 <?php
 
-namespace Tests\Database;
-
-use Closure;
 use Voyager\Database\Console\Migrations\ResetCommand;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\System\Application;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
-class DatabaseMigrationResetCommandTest extends TestCase
+function databaseMigrationResetCommandRunCommand($command, $input = [])
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function tearDown(): void
-    {
-        ResetCommand::prohibit(false);
-
-        parent::tearDown();
-    }
-
-    public function testResetCommandCallsMigratorWithProperArguments()
-    {
-        $command = new ResetCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->with(null, m::type(Closure::class))->andReturnUsing(function ($connection, $callback) {
-            $callback();
-        });
-        $migrator->shouldReceive('repositoryExists')->once()->andReturn(true);
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('reset')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], false);
-
-        $this->runCommand($command);
-    }
-
-    public function testResetCommandCanBePretended()
-    {
-        $command = new ResetCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->with('foo', m::type(Closure::class))->andReturnUsing(function ($connection, $callback) {
-            $callback();
-        });
-        $migrator->shouldReceive('repositoryExists')->once()->andReturn(true);
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('reset')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], true);
-
-        $this->runCommand($command, ['--pretend' => true, '--database' => 'foo']);
-    }
-
-    public function testRefreshCommandExitsWhenProhibited()
-    {
-        $command = new ResetCommand($migrator = m::mock(Migrator::class));
-
-        $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-
-        ResetCommand::prohibit();
-
-        $code = $this->runCommand($command);
-
-        $this->assertSame(1, $code);
-
-        $migrator->shouldNotHaveBeenCalled();
-    }
-
-    protected function runCommand($command, $input = [])
-    {
-        return $command->run(new ArrayInput($input), new NullOutput);
-    }
+    return $command->run(new ArrayInput($input), new NullOutput);
 }
+
+afterEach(function () {
+    ResetCommand::prohibit(false);
+});
+
+test('reset command calls migrator with proper arguments', function () {
+    $command = new ResetCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->with(null, m::type(Closure::class))->andReturnUsing(function ($connection, $callback) {
+        $callback();
+    });
+    $migrator->shouldReceive('repositoryExists')->once()->andReturn(true);
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('reset')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], false);
+
+    databaseMigrationResetCommandRunCommand($command);
+});
+
+test('reset command can be pretended', function () {
+    $command = new ResetCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->with('foo', m::type(Closure::class))->andReturnUsing(function ($connection, $callback) {
+        $callback();
+    });
+    $migrator->shouldReceive('repositoryExists')->once()->andReturn(true);
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('reset')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], true);
+
+    databaseMigrationResetCommandRunCommand($command, ['--pretend' => true, '--database' => 'foo']);
+});
+
+test('refresh command exits when prohibited', function () {
+    $command = new ResetCommand($migrator = m::mock(Migrator::class));
+
+    $app = new ApplicationDatabaseResetStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+
+    ResetCommand::prohibit();
+
+    $code = databaseMigrationResetCommandRunCommand($command);
+
+    $this->assertSame(1, $code);
+
+    $migrator->shouldNotHaveBeenCalled();
+});
 
 class ApplicationDatabaseResetStub extends Application
 {

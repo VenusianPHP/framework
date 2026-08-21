@@ -1,46 +1,35 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Connection;
 use Voyager\Database\Schema\Grammars\MySqlGrammar;
 use Voyager\Database\Schema\MySqlBuilder;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseMySqlBuilderTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('create database', function () {
+    $connection = m::mock(Connection::class);
+    $grammar = new MySqlGrammar($connection);
 
-    public function testCreateDatabase()
-    {
-        $connection = m::mock(Connection::class);
-        $grammar = new MySqlGrammar($connection);
+    $connection->shouldReceive('getConfig')->once()->with('charset')->andReturn('utf8mb4');
+    $connection->shouldReceive('getConfig')->once()->with('collation')->andReturn('utf8mb4_unicode_ci');
+    $connection->shouldReceive('getSchemaGrammar')->once()->andReturn($grammar);
+    $connection->shouldReceive('statement')->once()->with(
+        'create database `my_temporary_database` default character set `utf8mb4` default collate `utf8mb4_unicode_ci`'
+    )->andReturn(true);
 
-        $connection->shouldReceive('getConfig')->once()->with('charset')->andReturn('utf8mb4');
-        $connection->shouldReceive('getConfig')->once()->with('collation')->andReturn('utf8mb4_unicode_ci');
-        $connection->shouldReceive('getSchemaGrammar')->once()->andReturn($grammar);
-        $connection->shouldReceive('statement')->once()->with(
-            'create database `my_temporary_database` default character set `utf8mb4` default collate `utf8mb4_unicode_ci`'
-        )->andReturn(true);
+    $builder = new MySqlBuilder($connection);
+    $builder->createDatabase('my_temporary_database');
+});
 
-        $builder = new MySqlBuilder($connection);
-        $builder->createDatabase('my_temporary_database');
-    }
+test('drop database if exists', function () {
+    $connection = m::mock(Connection::class);
+    $grammar = new MySqlGrammar($connection);
 
-    public function testDropDatabaseIfExists()
-    {
-        $connection = m::mock(Connection::class);
-        $grammar = new MySqlGrammar($connection);
+    $connection->shouldReceive('getSchemaGrammar')->once()->andReturn($grammar);
+    $connection->shouldReceive('statement')->once()->with(
+        'drop database if exists `my_database_a`'
+    )->andReturn(true);
 
-        $connection->shouldReceive('getSchemaGrammar')->once()->andReturn($grammar);
-        $connection->shouldReceive('statement')->once()->with(
-            'drop database if exists `my_database_a`'
-        )->andReturn(true);
+    $builder = new MySqlBuilder($connection);
 
-        $builder = new MySqlBuilder($connection);
-
-        $builder->dropDatabaseIfExists('my_database_a');
-    }
-}
+    $builder->dropDatabaseIfExists('my_database_a');
+});

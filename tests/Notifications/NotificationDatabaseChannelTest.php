@@ -1,81 +1,69 @@
 <?php
 
-namespace Tests\Notifications;
-
 use Carbon\Carbon;
 use Voyager\Notifications\Channels\DatabaseChannel;
 use Voyager\Notifications\Messages\DatabaseMessage;
 use Voyager\Notifications\Notification;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class NotificationDatabaseChannelTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('database channel creates database record with proper data', function () {
+    $notification = new NotificationDatabaseChannelTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
+    $notifiable->shouldReceive('routeNotificationFor')
+        ->once()
+        ->with('database', $notification)
+        ->andReturn($repository = m::mock());
+    $repository->shouldReceive('create')->once()->with([
+        'id' => 1,
+        'type' => get_class($notification),
+        'data' => ['invoice_id' => 1],
+        'read_at' => null,
+    ]);
 
-    public function testDatabaseChannelCreatesDatabaseRecordWithProperData()
-    {
-        $notification = new NotificationDatabaseChannelTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
-        $notifiable->shouldReceive('routeNotificationFor')
-            ->once()
-            ->with('database', $notification)
-            ->andReturn($repository = m::mock());
-        $repository->shouldReceive('create')->once()->with([
-            'id' => 1,
-            'type' => get_class($notification),
-            'data' => ['invoice_id' => 1],
-            'read_at' => null,
-        ]);
+    $channel = new DatabaseChannel;
+    $channel->send($notifiable, $notification);
+});
 
-        $channel = new DatabaseChannel;
-        $channel->send($notifiable, $notification);
-    }
+test('correct payload is sent to database', function () {
+    $notification = new NotificationDatabaseChannelTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
+    $notifiable->shouldReceive('routeNotificationFor')
+        ->once()
+        ->with('database', $notification)
+        ->andReturn($repository = m::mock());
+    $repository->shouldReceive('create')->once()->with([
+        'id' => 1,
+        'type' => get_class($notification),
+        'data' => ['invoice_id' => 1],
+        'read_at' => null,
+        'something' => 'else',
+    ]);
 
-    public function testCorrectPayloadIsSentToDatabase()
-    {
-        $notification = new NotificationDatabaseChannelTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
-        $notifiable->shouldReceive('routeNotificationFor')
-            ->once()
-            ->with('database', $notification)
-            ->andReturn($repository = m::mock());
-        $repository->shouldReceive('create')->once()->with([
-            'id' => 1,
-            'type' => get_class($notification),
-            'data' => ['invoice_id' => 1],
-            'read_at' => null,
-            'something' => 'else',
-        ]);
+    $channel = new ExtendedDatabaseChannel;
+    $channel->send($notifiable, $notification);
+});
 
-        $channel = new ExtendedDatabaseChannel;
-        $channel->send($notifiable, $notification);
-    }
+test('customize type is sent to database', function () {
+    $notification = new NotificationDatabaseChannelCustomizeTypeTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
+    $notifiable->shouldReceive('routeNotificationFor')
+        ->once()
+        ->with('database', $notification)
+        ->andReturn($repository = m::mock());
+    $repository->shouldReceive('create')->once()->with([
+        'id' => 1,
+        'type' => 'MONTHLY',
+        'data' => ['invoice_id' => 1],
+        'read_at' => Carbon::now()->toDateTimeString(),
+        'something' => 'else',
+    ]);
 
-    public function testCustomizeTypeIsSentToDatabase()
-    {
-        $notification = new NotificationDatabaseChannelCustomizeTypeTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
-        $notifiable->shouldReceive('routeNotificationFor')
-            ->once()
-            ->with('database', $notification)
-            ->andReturn($repository = m::mock());
-        $repository->shouldReceive('create')->once()->with([
-            'id' => 1,
-            'type' => 'MONTHLY',
-            'data' => ['invoice_id' => 1],
-            'read_at' => Carbon::now()->toDateTimeString(),
-            'something' => 'else',
-        ]);
-
-        $channel = new ExtendedDatabaseChannel;
-        $channel->send($notifiable, $notification);
-    }
-}
+    $channel = new ExtendedDatabaseChannel;
+    $channel->send($notifiable, $notification);
+});
 
 class NotificationDatabaseChannelTestNotification extends Notification
 {

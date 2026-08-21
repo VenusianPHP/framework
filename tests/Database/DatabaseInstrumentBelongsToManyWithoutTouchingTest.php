@@ -9,45 +9,37 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use stdClass;
 
-class DatabaseInstrumentBelongsToManyWithoutTouchingTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('it will not touch related models when updating child', function () {
+    /** @var Article $related */
+    $related = m::mock(Article::class)->makePartial();
+    $related->shouldReceive('getUpdatedAtColumn')->never();
+    $related->shouldReceive('freshTimestampString')->never();
 
-    public function testItWillNotTouchRelatedModelsWhenUpdatingChild(): void
-    {
-        /** @var Article $related */
-        $related = m::mock(Article::class)->makePartial();
-        $related->shouldReceive('getUpdatedAtColumn')->never();
-        $related->shouldReceive('freshTimestampString')->never();
+    expect($related::isIgnoringTouch())->toBeFalse();
 
-        $this->assertFalse($related::isIgnoringTouch());
+    Model::withoutTouching(function () use ($related) {
+        expect($related::isIgnoringTouch())->toBeTrue();
 
-        Model::withoutTouching(function () use ($related) {
-            $this->assertTrue($related::isIgnoringTouch());
+        $builder = m::mock(Builder::class);
+        $builder->shouldReceive('join');
+        $parent = m::mock(User::class);
 
-            $builder = m::mock(Builder::class);
-            $builder->shouldReceive('join');
-            $parent = m::mock(User::class);
+        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+        $builder->shouldReceive('getModel')->andReturn($related);
+        $builder->shouldReceive('where');
+        $builder->shouldReceive('getQuery')->andReturn(
+            m::mock(stdClass::class, ['getGrammar' => m::mock(Grammar::class, ['isExpression' => false])])
+        );
+        $relation = new BelongsToMany($builder, $parent, 'article_users', 'user_id', 'article_id', 'id', 'id');
+        $builder->shouldReceive('update')->never();
 
-            $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-            $builder->shouldReceive('getModel')->andReturn($related);
-            $builder->shouldReceive('where');
-            $builder->shouldReceive('getQuery')->andReturn(
-                m::mock(stdClass::class, ['getGrammar' => m::mock(Grammar::class, ['isExpression' => false])])
-            );
-            $relation = new BelongsToMany($builder, $parent, 'article_users', 'user_id', 'article_id', 'id', 'id');
-            $builder->shouldReceive('update')->never();
+        $relation->touch();
+    });
 
-            $relation->touch();
-        });
-
-        $this->assertFalse($related::isIgnoringTouch());
-    }
-}
+    expect($related::isIgnoringTouch())->toBeFalse();
+});
 
 class User extends Model
 {

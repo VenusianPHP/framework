@@ -1,67 +1,53 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseSoftDeletingTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('deleted at is added to casts as default type', function () {
+    $model = new SoftDeletingModel;
 
-    public function testDeletedAtIsAddedToCastsAsDefaultType()
+    $this->assertArrayHasKey('deleted_at', $model->getCasts());
+    $this->assertSame('datetime', $model->getCasts()['deleted_at']);
+});
+
+test('deleted at is cast to carbon instance', function () {
+    $expected = Carbon::createFromFormat('Y-m-d H:i:s', '2018-12-29 13:59:39');
+    $model = new SoftDeletingModel(['deleted_at' => $expected->format('Y-m-d H:i:s')]);
+
+    expect($model->deleted_at)->toBeInstanceOf(Carbon::class);
+    $this->assertTrue($expected->eq($model->deleted_at));
+});
+
+test('existing cast overrides added date cast', function () {
+    $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
     {
-        $model = new SoftDeletingModel;
+        protected $casts = ['deleted_at' => 'bool'];
+    };
 
-        $this->assertArrayHasKey('deleted_at', $model->getCasts());
-        $this->assertSame('datetime', $model->getCasts()['deleted_at']);
-    }
+    expect($model->deleted_at)->toBeTrue();
+});
 
-    public function testDeletedAtIsCastToCarbonInstance()
+test('existing mutator overrides added date cast', function () {
+    $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
     {
-        $expected = Carbon::createFromFormat('Y-m-d H:i:s', '2018-12-29 13:59:39');
-        $model = new SoftDeletingModel(['deleted_at' => $expected->format('Y-m-d H:i:s')]);
-
-        $this->assertInstanceOf(Carbon::class, $model->deleted_at);
-        $this->assertTrue($expected->eq($model->deleted_at));
-    }
-
-    public function testExistingCastOverridesAddedDateCast()
-    {
-        $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
+        protected function getDeletedAtAttribute()
         {
-            protected $casts = ['deleted_at' => 'bool'];
-        };
+            return 'expected';
+        }
+    };
 
-        $this->assertTrue($model->deleted_at);
-    }
+    expect($model->deleted_at)->toBe('expected');
+});
 
-    public function testExistingMutatorOverridesAddedDateCast()
+test('casting to string overrides automatic date casting to retain previous behaviour', function () {
+    $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
     {
-        $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
-        {
-            protected function getDeletedAtAttribute()
-            {
-                return 'expected';
-            }
-        };
+        protected $casts = ['deleted_at' => 'string'];
+    };
 
-        $this->assertSame('expected', $model->deleted_at);
-    }
-
-    public function testCastingToStringOverridesAutomaticDateCastingToRetainPreviousBehaviour()
-    {
-        $model = new class(['deleted_at' => '2018-12-29 13:59:39']) extends SoftDeletingModel
-        {
-            protected $casts = ['deleted_at' => 'string'];
-        };
-
-        $this->assertSame('2018-12-29 13:59:39', $model->deleted_at);
-    }
-}
+    expect($model->deleted_at)->toBe('2018-12-29 13:59:39');
+});
 
 class SoftDeletingModel extends Model
 {

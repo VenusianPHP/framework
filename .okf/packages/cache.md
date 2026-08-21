@@ -20,9 +20,21 @@ sources:
 
 # Overview
 
-53 PHP files under `src/Voyager/Cache/`. Upstream `v12.67.0`
+55 PHP files under `src/Voyager/Cache/`. Upstream `v12.67.0`
 `src/Illuminate/Cache`.[^package-manifest] `CacheServiceProvider` is in
 `DefaultProviders`. Tests under `tests/Cache/` are Pest v4.
+
+`DatabaseStore` (+ `DatabaseLock`) landed after `Voyager\Database` existed —
+the last unported Cache store. `CacheManager::createDatabaseDriver()` wires
+it the same way `redis`/`file` are wired; `config/cache.php` has a live
+`database` store entry (`connection`, `table`, `lock_connection`,
+`lock_table`). `CacheTableCommand` (`make:cache-table` / `cache:table`)
+already generated the `cache` / `cache_locks` migration and needed no
+change. Faithful port of `tests/Cache/CacheDatabaseStoreTest.php` lives at
+`tests/Cache/CacheDatabaseStoreTest.php`; a supplementary
+`CacheDatabaseStoreIntegrationTest.php` exercises the store and lock
+against a real in-memory sqlite connection (`Voyager\Database\Capsule\Manager`),
+since the upstream test only mocks the query builder.
 
 # Related
 

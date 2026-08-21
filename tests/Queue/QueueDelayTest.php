@@ -1,12 +1,8 @@
 <?php
 
-namespace Tests\Queue;
-
 use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueue;
 use Voyager\NutsAndBolts\MagicAliases\Queue;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Voyager\Bus\Dispatcher as BusDispatcher;
 use Voyager\Contracts\Bus\Dispatcher as BusDispatcherContract;
 use Voyager\Contracts\Queue\Factory as QueueFactory;
@@ -15,76 +11,60 @@ use Voyager\Queue\QueueManager;
 use Voyager\Testing\Fakes\QueueFake;
 use Voyager\Vessel\Vessel;
 
-class QueueDelayTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+/**
+ * Laravel runs these against a Testbench application. `Queue::fake()` and
+ * the `dispatch()` helper only need a container carrying a queue manager
+ * and a bus dispatcher, so a plain Vessel is wired with those two.
+ */
+beforeEach(function () {
+    $this->app = new Vessel;
+    Vessel::setInstance($this->app);
 
-    /**
-     * Laravel runs these against a Testbench application. `Queue::fake()` and
-     * the `dispatch()` helper only need a container carrying a queue manager
-     * and a bus dispatcher, so a plain Vessel is wired with those two.
-     */
-    protected $app;
+    $this->app->singleton('queue', fn ($app) => new QueueManager($app));
+    $this->app->singleton(QueueFactory::class, fn ($app) => $app['queue']);
+    $this->app->singleton(BusDispatcher::class, fn ($app) => new BusDispatcher(
+        $app, fn ($connection = null) => $app['queue']->connection($connection)
+    ));
+    $this->app->alias(BusDispatcher::class, BusDispatcherContract::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    MagicAlias::setMagicAliasApplication($this->app);
+});
 
-        $this->app = new Vessel;
-        Vessel::setInstance($this->app);
+afterEach(function () {
+    MagicAlias::clearResolvedInstances();
+    MagicAlias::setMagicAliasApplication(null);
+    Vessel::setInstance(null);
+});
 
-        $this->app->singleton('queue', fn ($app) => new QueueManager($app));
-        $this->app->singleton(QueueFactory::class, fn ($app) => $app['queue']);
-        $this->app->singleton(BusDispatcher::class, fn ($app) => new BusDispatcher(
-            $app, fn ($connection = null) => $app['queue']->connection($connection)
-        ));
-        $this->app->alias(BusDispatcher::class, BusDispatcherContract::class);
+test('queue delay', function () {
+    Queue::fake();
 
-        MagicAlias::setMagicAliasApplication($this->app);
-    }
+    $job = new TestJob;
 
-    protected function tearDown(): void
-    {
-        MagicAlias::clearResolvedInstances();
-        MagicAlias::setMagicAliasApplication(null);
-        Vessel::setInstance(null);
+    dispatch($job);
 
-        parent::tearDown();
-    }
+    expect($job->delay)->toBe(60);
+});
 
-    public function test_queue_delay()
-    {
-        Queue::fake();
+test('queue without delay', function () {
+    Queue::fake();
 
-        $job = new TestJob;
+    $job = new TestJob;
 
-        dispatch($job);
+    dispatch($job->withoutDelay());
 
-        $this->assertEquals(60, $job->delay);
-    }
+    expect($job->delay)->toBe(0);
+});
 
-    public function test_queue_without_delay()
-    {
-        Queue::fake();
+test('pending dispatch without delay', function () {
+    Queue::fake();
 
-        $job = new TestJob;
+    $job = new TestJob;
 
-        dispatch($job->withoutDelay());
+    dispatch($job)->withoutDelay();
 
-        $this->assertEquals(0, $job->delay);
-    }
-
-    public function test_pending_dispatch_without_delay()
-    {
-        Queue::fake();
-
-        $job = new TestJob;
-
-        dispatch($job)->withoutDelay();
-
-        $this->assertEquals(0, $job->delay);
-    }
-}
+    expect($job->delay)->toBe(0);
+});
 
 class TestJob implements ShouldQueue
 {

@@ -33,6 +33,23 @@ expect()->extend('toAcceptIterables', function (callable $call, mixed $expected)
 
 /*
 |--------------------------------------------------------------------------
+| Datasets
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * Upstream's SupportCollectionTest runs almost every case twice: once over
+ * the eager Collection, once over the lazy LazyCollection. This dataset
+ * preserves that — every ported test that is valid for both classes is
+ * declared with ->with('collections') so it still runs twice.
+ */
+dataset('collections', [
+    'Collection' => [\Voyager\NutsAndBolts\Collection::class],
+    'LazyCollection' => [\Voyager\NutsAndBolts\LazyCollection::class],
+]);
+
+/*
+|--------------------------------------------------------------------------
 | Functions
 |--------------------------------------------------------------------------
 */

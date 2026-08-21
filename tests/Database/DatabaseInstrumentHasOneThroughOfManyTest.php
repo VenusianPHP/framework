@@ -13,523 +13,475 @@ use Voyager\Database\Instrument\Relations\HasOneThrough;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\Database\Schema\Builder;
 use InvalidArgumentException;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentHasOneThroughOfManyTest extends TestCase
+function dbHasOneThroughOfManyConnection(): Connection
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-        $db->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
-        $db->bootInstrument();
-        $db->setAsGlobal();
-
-        $this->createSchema();
-    }
-
-    public function createSchema(): void
-    {
-        $this->schema()->create('users', function ($table) {
-            $table->increments('id');
-        });
-
-        $this->schema()->create('intermediates', function ($table) {
-            $table->increments('id');
-            $table->foreignId('user_id');
-        });
-
-        $this->schema()->create('logins', function ($table) {
-            $table->increments('id');
-            $table->foreignId('intermediate_id');
-            $table->dateTime('deleted_at')->nullable();
-        });
-
-        $this->schema()->create('states', function ($table) {
-            $table->increments('id');
-            $table->string('state');
-            $table->string('type');
-            $table->foreignId('intermediate_id');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('prices', function ($table) {
-            $table->increments('id');
-            $table->dateTime('published_at');
-            $table->foreignId('intermediate_id');
-        });
-    }
-
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('users');
-        $this->schema()->drop('intermediates');
-        $this->schema()->drop('logins');
-        $this->schema()->drop('states');
-        $this->schema()->drop('prices');
-
-        parent::tearDown();
-    }
-
-    public function testItGuessesRelationName(): void
-    {
-        $user = HasOneThroughOfManyTestUser::make();
-        $this->assertSame('latest_login', $user->latest_login()->getRelationName());
-    }
-
-    public function testItGuessesRelationNameAndAddsOfManyWhenTableNameIsRelationName(): void
-    {
-        $model = HasOneThroughOfManyTestModel::make();
-        $this->assertSame('logins_of_many', $model->logins()->getRelationName());
-    }
-
-    public function testRelationNameCanBeSet(): void
-    {
-        $user = HasOneThroughOfManyTestUser::create();
-
-        $relation = $user->latest_login()->ofMany('id', 'max', 'foo');
-        $this->assertSame('foo', $relation->getRelationName());
-
-        $relation = $user->latest_login()->latestOfMany('id', 'bar');
-        $this->assertSame('bar', $relation->getRelationName());
-
-        $relation = $user->latest_login()->oldestOfMany('id', 'baz');
-        $this->assertSame('baz', $relation->getRelationName());
-    }
-
-    public function testCorrectLatestOfManyQuery(): void
-    {
-        $user = HasOneThroughOfManyTestUser::create();
-        $relation = $user->latest_login();
-        $this->assertSame('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? group by "intermediates"."user_id") as "latest_login" on "latest_login"."id_aggregate" = "logins"."id" and "latest_login"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?', $relation->getQuery()->toSql());
-    }
-
-    public function testEagerLoadingAppliesConstraintsToInnerJoinSubQuery(): void
-    {
-        $user = HasOneThroughOfManyTestUser::create();
-        $relation = $user->latest_login();
-        $relation->addEagerConstraints([$user]);
-        $this->assertSame('select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id"', $relation->getOneOfManySubQuery()->toSql());
-    }
-
-    public function testEagerLoadingAppliesConstraintsToQuery(): void
-    {
-        $user = HasOneThroughOfManyTestUser::create();
-        $relation = $user->latest_login();
-        $relation->addEagerConstraints([$user]);
-        $this->assertSame('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id") as "latest_login" on "latest_login"."id_aggregate" = "logins"."id" and "latest_login"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?', $relation->getQuery()->toSql());
-    }
-
-    public function testGlobalScopeIsNotAppliedWhenRelationIsDefinedWithoutGlobalScope(): void
-    {
-        HasOneThroughOfManyTestLogin::addGlobalScope('test', function ($query) {
-            $query->orderBy($query->qualifyColumn('id'));
-        });
-
-        $user = HasOneThroughOfManyTestUser::create();
-        $relation = $user->latest_login_without_global_scope();
-        $relation->addEagerConstraints([$user]);
-        $this->assertSame('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id") as "latestOfMany" on "latestOfMany"."id_aggregate" = "logins"."id" and "latestOfMany"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?', $relation->getQuery()->toSql());
-
-        HasOneThroughOfManyTestLogin::addGlobalScope('test', function ($query) {
-        });
-    }
-
-    public function testGlobalScopeIsNotAppliedWhenRelationIsDefinedWithoutGlobalScopeWithComplexQuery(): void
-    {
-        HasOneThroughOfManyTestPrice::addGlobalScope('test', function ($query) {
-            $query->orderBy($query->qualifyColumn('id'));
-        });
-
-        $user = HasOneThroughOfManyTestUser::create();
-        $relation = $user->price_without_global_scope();
-        $this->assertSame('select "prices".* from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" inner join (select max("prices"."id") as "id_aggregate", min("prices"."published_at") as "published_at_aggregate", "intermediates"."user_id" from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" inner join (select max("prices"."published_at") as "published_at_aggregate", "intermediates"."user_id" from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" where "published_at" < ? and "intermediates"."user_id" = ? group by "intermediates"."user_id") as "price_without_global_scope" on "price_without_global_scope"."published_at_aggregate" = "prices"."published_at" and "price_without_global_scope"."user_id" = "intermediates"."user_id" where "published_at" < ? group by "intermediates"."user_id") as "price_without_global_scope" on "price_without_global_scope"."id_aggregate" = "prices"."id" and "price_without_global_scope"."published_at_aggregate" = "prices"."published_at" and "price_without_global_scope"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?', $relation->getQuery()->toSql());
-
-        HasOneThroughOfManyTestPrice::addGlobalScope('test', function ($query) {
-        });
-    }
-
-    public function testQualifyingSubSelectColumn(): void
-    {
-        $user = HasOneThroughOfManyTestUser::make();
-        $this->assertSame('latest_login.id', $user->latest_login()->qualifySubSelectColumn('id'));
-    }
-
-    public function testItFailsWhenUsingInvalidAggregate(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid aggregate [count] used within ofMany relation. Available aggregates: MIN, MAX');
-        $user = HasOneThroughOfManyTestUser::make();
-        $user->latest_login_with_invalid_aggregate();
-    }
-
-    public function testItGetsCorrectResults(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->last()->logins()->create();
-        $latestLogin = $user->intermediates->first()->logins()->create();
-
-        $result = $user->latest_login()->getResults();
-        $this->assertNotNull($result);
-        $this->assertSame($latestLogin->id, $result->id);
-    }
-
-    public function testResultDoesNotHaveAggregateColumn(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
-        $user->intermediates->first()->logins()->create();
-
-        $result = $user->latest_login()->getResults();
-        $this->assertNotNull($result);
-        $this->assertFalse(isset($result->id_aggregate));
-    }
-
-    public function testItGetsCorrectResultsUsingShortcutMethod(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->last()->logins()->create();
-        $latestLogin = $user->intermediates->first()->logins()->create();
-
-        $result = $user->latest_login_with_shortcut()->getResults();
-        $this->assertNotNull($result);
-        $this->assertSame($latestLogin->id, $result->id);
-    }
-
-    public function testItGetsCorrectResultsUsingShortcutReceivingMultipleColumnsMethod(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $price = $user->intermediates->first()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-
-        $result = $user->price_with_shortcut()->getResults();
-        $this->assertNotNull($result);
-        $this->assertSame($price->id, $result->id);
-    }
-
-    public function testKeyIsAddedToAggregatesWhenMissing(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $price = $user->intermediates->first()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-
-        $result = $user->price_without_key_in_aggregates()->getResults();
-        $this->assertNotNull($result);
-        $this->assertSame($price->id, $result->id);
-    }
-
-    public function testItGetsWithConstraintsCorrectResults(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->last()->logins()->create();
-        $user->intermediates->first()->logins()->create();
-
-        $result = $user->latest_login()->whereKey($previousLogin->getKey())->getResults();
-        $this->assertNull($result);
-    }
-
-    public function testItEagerLoadsCorrectModels(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->logins()->create();
-        $latestLogin = $user->intermediates->first()->logins()->create();
-
-        $user = HasOneThroughOfManyTestUser::with('latest_login')->first();
-
-        $this->assertTrue($user->relationLoaded('latest_login'));
-        $this->assertSame($latestLogin->id, $user->latest_login->id);
-    }
-
-    public function testItJoinsOtherTableInSubQuery(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->first()->logins()->create();
-
-        $this->assertNull($user->latest_login_with_foo_state);
-
-        $user->unsetRelation('latest_login_with_foo_state');
-        $user->intermediates->first()->states()->create([
-            'type' => 'foo',
-            'state' => 'draft',
-        ]);
-
-        $this->assertNotNull($user->latest_login_with_foo_state);
-    }
-
-    public function testHasNested(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->first()->logins()->create();
-        $latestLogin = $user->intermediates->last()->logins()->create();
-
-        $found = HasOneThroughOfManyTestUser::whereHas('latest_login', function ($query) use ($latestLogin) {
-            $query->where('logins.id', $latestLogin->id);
-        })->exists();
-        $this->assertTrue($found);
-
-        $found = HasOneThroughOfManyTestUser::whereHas('latest_login', function ($query) use ($previousLogin) {
-            $query->where('logins.id', $previousLogin->id);
-        })->exists();
-        $this->assertFalse($found);
-    }
-
-    public function testWithHasNested(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->first()->logins()->create();
-        $latestLogin = $user->intermediates->last()->logins()->create();
-
-        $found = HasOneThroughOfManyTestUser::withWhereHas('latest_login', function ($query) use ($latestLogin) {
-            $query->where('logins.id', $latestLogin->id);
-        })->first();
-
-        $this->assertTrue((bool) $found);
-        $this->assertTrue($found->relationLoaded('latest_login'));
-        $this->assertEquals($found->latest_login->id, $latestLogin->id);
-
-        $found = HasOneThroughOfManyTestUser::withWhereHas('latest_login', function ($query) use ($previousLogin) {
-            $query->where('logins.id', $previousLogin->id);
-        })->exists();
-
-        $this->assertFalse($found);
-    }
-
-    public function testHasCount(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->logins()->create();
-        $user->intermediates->first()->logins()->create();
-
-        $user = HasOneThroughOfManyTestUser::withCount('latest_login')->first();
-        $this->assertEquals(1, $user->latest_login_count);
-    }
-
-    public function testExists(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->last()->logins()->create();
-        $latestLogin = $user->intermediates->first()->logins()->create();
-
-        $this->assertFalse($user->latest_login()->whereKey($previousLogin->getKey())->exists());
-        $this->assertTrue($user->latest_login()->whereKey($latestLogin->getKey())->exists());
-    }
-
-    public function testIsMethod(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $login1 = $user->intermediates->last()->logins()->create();
-        $login2 = $user->intermediates->first()->logins()->create();
-
-        $this->assertFalse($user->latest_login()->is($login1));
-        $this->assertTrue($user->latest_login()->is($login2));
-    }
-
-    public function testIsNotMethod(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $login1 = $user->intermediates->last()->logins()->create();
-        $login2 = $user->intermediates->first()->logins()->create();
-
-        $this->assertTrue($user->latest_login()->isNot($login1));
-        $this->assertFalse($user->latest_login()->isNot($login2));
-    }
-
-    public function testGet(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $previousLogin = $user->intermediates->last()->logins()->create();
-        $latestLogin = $user->intermediates->first()->logins()->create();
-
-        $latestLogins = $user->latest_login()->get();
-        $this->assertCount(1, $latestLogins);
-        $this->assertSame($latestLogin->id, $latestLogins->first()->id);
-
-        $latestLogins = $user->latest_login()->whereKey($previousLogin->getKey())->get();
-        $this->assertCount(0, $latestLogins);
-    }
-
-    public function testCount(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->logins()->create();
-        $user->intermediates->first()->logins()->create();
-
-        $this->assertSame(1, $user->latest_login()->count());
-    }
-
-    public function testAggregate(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $firstLogin = $user->intermediates->first()->logins()->create();
-        $user->intermediates->last()->logins()->create();
-
-        $user = HasOneThroughOfManyTestUser::first();
-        $this->assertSame($firstLogin->id, $user->first_login->id);
-    }
-
-    public function testJoinConstraints(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->states()->create([
-            'type' => 'foo',
-            'state' => 'draft',
-        ]);
-        $currentForState = $user->intermediates->first()->states()->create([
-            'type' => 'foo',
-            'state' => 'active',
-        ]);
-        $user->intermediates->first()->states()->create([
-            'type' => 'bar',
-            'state' => 'baz',
-        ]);
-
-        $user = HasOneThroughOfManyTestUser::first();
-        $this->assertSame($currentForState->id, $user->foo_state->id);
-    }
-
-    public function testMultipleAggregates(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user->intermediates->last()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $price = $user->intermediates->first()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-
-        $user = HasOneThroughOfManyTestUser::first();
-        $this->assertSame($price->id, $user->price->id);
-    }
-
-    public function testEagerLoadingWithMultipleAggregates(): void
-    {
-        $user1 = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-        $user2 = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-
-        $user1->intermediates->last()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $user1Price = $user1->intermediates->first()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $user1->intermediates->first()->prices()->create([
-            'published_at' => '2021-04-01 00:00:00',
-        ]);
-
-        $user2Price = $user2->intermediates->last()->prices()->create([
-            'published_at' => '2021-05-01 00:00:00',
-        ]);
-        $user2->intermediates->first()->prices()->create([
-            'published_at' => '2021-04-01 00:00:00',
-        ]);
-
-        $users = HasOneThroughOfManyTestUser::with('price')->get();
-
-        $this->assertNotNull($users[0]->price);
-        $this->assertSame($user1Price->id, $users[0]->price->id);
-
-        $this->assertNotNull($users[1]->price);
-        $this->assertSame($user2Price->id, $users[1]->price->id);
-    }
-
-    public function testWithExists(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
-
-        $user = HasOneThroughOfManyTestUser::withExists('latest_login')->first();
-        $this->assertFalse($user->latest_login_exists);
-
-        $user->intermediates->first()->logins()->create();
-        $user = HasOneThroughOfManyTestUser::withExists('latest_login')->first();
-        $this->assertTrue($user->latest_login_exists);
-    }
-
-    public function testWithExistsWithConstraintsInJoinSubSelect(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
-        $user = HasOneThroughOfManyTestUser::withExists('foo_state')->first();
-
-        $this->assertFalse($user->foo_state_exists);
-
-        $user->intermediates->first()->states()->create([
-            'type' => 'foo',
-            'state' => 'bar',
-        ]);
-        $user = HasOneThroughOfManyTestUser::withExists('foo_state')->first();
-        $this->assertTrue($user->foo_state_exists);
-    }
-
-    public function testWithSoftDeletes(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
-        $user->intermediates->first()->logins()->create();
-        $user->latest_login_with_soft_deletes;
-        $this->assertNotNull($user->latest_login_with_soft_deletes);
-    }
-
-    public function testWithConstraintNotInAggregate(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-
-        $previousFoo = $user->intermediates->last()->states()->create([
-            'type' => 'foo',
-            'state' => 'bar',
-            'updated_at' => '2020-01-01 00:00:00',
-        ]);
-        $newFoo = $user->intermediates->first()->states()->create([
-            'type' => 'foo',
-            'state' => 'active',
-            'updated_at' => '2021-01-01 12:00:00',
-        ]);
-        $newBar = $user->intermediates->first()->states()->create([
-            'type' => 'bar',
-            'state' => 'active',
-            'updated_at' => '2021-01-01 12:00:00',
-        ]);
-
-        $this->assertSame($newFoo->id, $user->last_updated_foo_state->id);
-    }
-
-    public function testItGetsCorrectResultUsingAtLeastTwoAggregatesDistinctFromId(): void
-    {
-        $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
-
-        $expectedState = $user->intermediates->last()->states()->create([
-            'state' => 'state',
-            'type' => 'type',
-            'created_at' => '2023-01-01',
-            'updated_at' => '2023-01-03',
-        ]);
-
-        $user->intermediates->first()->states()->create([
-            'state' => 'state',
-            'type' => 'type',
-            'created_at' => '2023-01-01',
-            'updated_at' => '2023-01-02',
-        ]);
-
-        $this->assertSame($user->latest_updated_latest_created_state->id, $expectedState->id);
-    }
-
-    protected function connection(): Connection
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    protected function schema(): Builder
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
+    return Instrument::getConnectionResolver()->connection();
 }
+
+function dbHasOneThroughOfManySchema(): Builder
+{
+    return dbHasOneThroughOfManyConnection()->getSchemaBuilder();
+}
+
+function dbHasOneThroughOfManyCreateSchema(): void
+{
+    dbHasOneThroughOfManySchema()->create('users', function ($table) {
+        $table->increments('id');
+    });
+
+    dbHasOneThroughOfManySchema()->create('intermediates', function ($table) {
+        $table->increments('id');
+        $table->foreignId('user_id');
+    });
+
+    dbHasOneThroughOfManySchema()->create('logins', function ($table) {
+        $table->increments('id');
+        $table->foreignId('intermediate_id');
+        $table->dateTime('deleted_at')->nullable();
+    });
+
+    dbHasOneThroughOfManySchema()->create('states', function ($table) {
+        $table->increments('id');
+        $table->string('state');
+        $table->string('type');
+        $table->foreignId('intermediate_id');
+        $table->timestamps();
+    });
+
+    dbHasOneThroughOfManySchema()->create('prices', function ($table) {
+        $table->increments('id');
+        $table->dateTime('published_at');
+        $table->foreignId('intermediate_id');
+    });
+}
+
+beforeEach(function () {
+    $db = new DB;
+    $db->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    dbHasOneThroughOfManyCreateSchema();
+});
+
+afterEach(function () {
+    dbHasOneThroughOfManySchema()->drop('users');
+    dbHasOneThroughOfManySchema()->drop('intermediates');
+    dbHasOneThroughOfManySchema()->drop('logins');
+    dbHasOneThroughOfManySchema()->drop('states');
+    dbHasOneThroughOfManySchema()->drop('prices');
+});
+
+test('it guesses relation name', function () {
+    $user = HasOneThroughOfManyTestUser::make();
+    expect($user->latest_login()->getRelationName())->toBe('latest_login');
+});
+
+test('it guesses relation name and adds of many when table name is relation name', function () {
+    $model = HasOneThroughOfManyTestModel::make();
+    expect($model->logins()->getRelationName())->toBe('logins_of_many');
+});
+
+test('relation name can be set', function () {
+    $user = HasOneThroughOfManyTestUser::create();
+
+    $relation = $user->latest_login()->ofMany('id', 'max', 'foo');
+    expect($relation->getRelationName())->toBe('foo');
+
+    $relation = $user->latest_login()->latestOfMany('id', 'bar');
+    expect($relation->getRelationName())->toBe('bar');
+
+    $relation = $user->latest_login()->oldestOfMany('id', 'baz');
+    expect($relation->getRelationName())->toBe('baz');
+});
+
+test('correct latest of many query', function () {
+    $user = HasOneThroughOfManyTestUser::create();
+    $relation = $user->latest_login();
+    expect($relation->getQuery()->toSql())->toBe('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? group by "intermediates"."user_id") as "latest_login" on "latest_login"."id_aggregate" = "logins"."id" and "latest_login"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?');
+});
+
+test('eager loading applies constraints to inner join sub query', function () {
+    $user = HasOneThroughOfManyTestUser::create();
+    $relation = $user->latest_login();
+    $relation->addEagerConstraints([$user]);
+    expect($relation->getOneOfManySubQuery()->toSql())->toBe('select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id"');
+});
+
+test('eager loading applies constraints to query', function () {
+    $user = HasOneThroughOfManyTestUser::create();
+    $relation = $user->latest_login();
+    $relation->addEagerConstraints([$user]);
+    expect($relation->getQuery()->toSql())->toBe('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id") as "latest_login" on "latest_login"."id_aggregate" = "logins"."id" and "latest_login"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?');
+});
+
+test('global scope is not applied when relation is defined without global scope', function () {
+    HasOneThroughOfManyTestLogin::addGlobalScope('test', function ($query) {
+        $query->orderBy($query->qualifyColumn('id'));
+    });
+
+    $user = HasOneThroughOfManyTestUser::create();
+    $relation = $user->latest_login_without_global_scope();
+    $relation->addEagerConstraints([$user]);
+    expect($relation->getQuery()->toSql())->toBe('select "logins".* from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" inner join (select MAX("logins"."id") as "id_aggregate", "intermediates"."user_id" from "logins" inner join "intermediates" on "intermediates"."id" = "logins"."intermediate_id" where "intermediates"."user_id" = ? and "intermediates"."user_id" in (1) group by "intermediates"."user_id") as "latestOfMany" on "latestOfMany"."id_aggregate" = "logins"."id" and "latestOfMany"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?');
+
+    HasOneThroughOfManyTestLogin::addGlobalScope('test', function ($query) {
+    });
+});
+
+test('global scope is not applied when relation is defined without global scope with complex query', function () {
+    HasOneThroughOfManyTestPrice::addGlobalScope('test', function ($query) {
+        $query->orderBy($query->qualifyColumn('id'));
+    });
+
+    $user = HasOneThroughOfManyTestUser::create();
+    $relation = $user->price_without_global_scope();
+    expect($relation->getQuery()->toSql())->toBe('select "prices".* from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" inner join (select max("prices"."id") as "id_aggregate", min("prices"."published_at") as "published_at_aggregate", "intermediates"."user_id" from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" inner join (select max("prices"."published_at") as "published_at_aggregate", "intermediates"."user_id" from "prices" inner join "intermediates" on "intermediates"."id" = "prices"."intermediate_id" where "published_at" < ? and "intermediates"."user_id" = ? group by "intermediates"."user_id") as "price_without_global_scope" on "price_without_global_scope"."published_at_aggregate" = "prices"."published_at" and "price_without_global_scope"."user_id" = "intermediates"."user_id" where "published_at" < ? group by "intermediates"."user_id") as "price_without_global_scope" on "price_without_global_scope"."id_aggregate" = "prices"."id" and "price_without_global_scope"."published_at_aggregate" = "prices"."published_at" and "price_without_global_scope"."user_id" = "intermediates"."user_id" where "intermediates"."user_id" = ?');
+
+    HasOneThroughOfManyTestPrice::addGlobalScope('test', function ($query) {
+    });
+});
+
+test('qualifying sub select column', function () {
+    $user = HasOneThroughOfManyTestUser::make();
+    expect($user->latest_login()->qualifySubSelectColumn('id'))->toBe('latest_login.id');
+});
+
+test('it fails when using invalid aggregate', function () {
+    $user = HasOneThroughOfManyTestUser::make();
+    $user->latest_login_with_invalid_aggregate();
+})->throws(InvalidArgumentException::class, 'Invalid aggregate [count] used within ofMany relation. Available aggregates: MIN, MAX');
+
+test('it gets correct results', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->last()->logins()->create();
+    $latestLogin = $user->intermediates->first()->logins()->create();
+
+    $result = $user->latest_login()->getResults();
+    expect($result)->not->toBeNull();
+    expect($result->id)->toBe($latestLogin->id);
+});
+
+test('result does not have aggregate column', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
+    $user->intermediates->first()->logins()->create();
+
+    $result = $user->latest_login()->getResults();
+    expect($result)->not->toBeNull();
+    expect(isset($result->id_aggregate))->toBeFalse();
+});
+
+test('it gets correct results using shortcut method', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->last()->logins()->create();
+    $latestLogin = $user->intermediates->first()->logins()->create();
+
+    $result = $user->latest_login_with_shortcut()->getResults();
+    expect($result)->not->toBeNull();
+    expect($result->id)->toBe($latestLogin->id);
+});
+
+test('it gets correct results using shortcut receiving multiple columns method', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $price = $user->intermediates->first()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+
+    $result = $user->price_with_shortcut()->getResults();
+    expect($result)->not->toBeNull();
+    expect($result->id)->toBe($price->id);
+});
+
+test('key is added to aggregates when missing', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $price = $user->intermediates->first()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+
+    $result = $user->price_without_key_in_aggregates()->getResults();
+    expect($result)->not->toBeNull();
+    expect($result->id)->toBe($price->id);
+});
+
+test('it gets with constraints correct results', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->last()->logins()->create();
+    $user->intermediates->first()->logins()->create();
+
+    $result = $user->latest_login()->whereKey($previousLogin->getKey())->getResults();
+    expect($result)->toBeNull();
+});
+
+test('it eager loads correct models', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->logins()->create();
+    $latestLogin = $user->intermediates->first()->logins()->create();
+
+    $user = HasOneThroughOfManyTestUser::with('latest_login')->first();
+
+    expect($user->relationLoaded('latest_login'))->toBeTrue();
+    expect($user->latest_login->id)->toBe($latestLogin->id);
+});
+
+test('it joins other table in sub query', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->first()->logins()->create();
+
+    expect($user->latest_login_with_foo_state)->toBeNull();
+
+    $user->unsetRelation('latest_login_with_foo_state');
+    $user->intermediates->first()->states()->create([
+        'type' => 'foo',
+        'state' => 'draft',
+    ]);
+
+    expect($user->latest_login_with_foo_state)->not->toBeNull();
+});
+
+test('has nested', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->first()->logins()->create();
+    $latestLogin = $user->intermediates->last()->logins()->create();
+
+    $found = HasOneThroughOfManyTestUser::whereHas('latest_login', function ($query) use ($latestLogin) {
+        $query->where('logins.id', $latestLogin->id);
+    })->exists();
+    expect($found)->toBeTrue();
+
+    $found = HasOneThroughOfManyTestUser::whereHas('latest_login', function ($query) use ($previousLogin) {
+        $query->where('logins.id', $previousLogin->id);
+    })->exists();
+    expect($found)->toBeFalse();
+});
+
+test('with has nested', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->first()->logins()->create();
+    $latestLogin = $user->intermediates->last()->logins()->create();
+
+    $found = HasOneThroughOfManyTestUser::withWhereHas('latest_login', function ($query) use ($latestLogin) {
+        $query->where('logins.id', $latestLogin->id);
+    })->first();
+
+    expect((bool) $found)->toBeTrue();
+    expect($found->relationLoaded('latest_login'))->toBeTrue();
+    $this->assertEquals($found->latest_login->id, $latestLogin->id);
+
+    $found = HasOneThroughOfManyTestUser::withWhereHas('latest_login', function ($query) use ($previousLogin) {
+        $query->where('logins.id', $previousLogin->id);
+    })->exists();
+
+    expect($found)->toBeFalse();
+});
+
+test('has count', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->logins()->create();
+    $user->intermediates->first()->logins()->create();
+
+    $user = HasOneThroughOfManyTestUser::withCount('latest_login')->first();
+    $this->assertEquals(1, $user->latest_login_count);
+});
+
+test('exists', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->last()->logins()->create();
+    $latestLogin = $user->intermediates->first()->logins()->create();
+
+    expect($user->latest_login()->whereKey($previousLogin->getKey())->exists())->toBeFalse();
+    expect($user->latest_login()->whereKey($latestLogin->getKey())->exists())->toBeTrue();
+});
+
+test('is method', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $login1 = $user->intermediates->last()->logins()->create();
+    $login2 = $user->intermediates->first()->logins()->create();
+
+    expect($user->latest_login()->is($login1))->toBeFalse();
+    expect($user->latest_login()->is($login2))->toBeTrue();
+});
+
+test('is not method', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $login1 = $user->intermediates->last()->logins()->create();
+    $login2 = $user->intermediates->first()->logins()->create();
+
+    expect($user->latest_login()->isNot($login1))->toBeTrue();
+    expect($user->latest_login()->isNot($login2))->toBeFalse();
+});
+
+test('get', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $previousLogin = $user->intermediates->last()->logins()->create();
+    $latestLogin = $user->intermediates->first()->logins()->create();
+
+    $latestLogins = $user->latest_login()->get();
+    expect($latestLogins)->toHaveCount(1);
+    expect($latestLogins->first()->id)->toBe($latestLogin->id);
+
+    $latestLogins = $user->latest_login()->whereKey($previousLogin->getKey())->get();
+    expect($latestLogins)->toHaveCount(0);
+});
+
+test('count', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->logins()->create();
+    $user->intermediates->first()->logins()->create();
+
+    expect($user->latest_login()->count())->toBe(1);
+});
+
+test('aggregate', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $firstLogin = $user->intermediates->first()->logins()->create();
+    $user->intermediates->last()->logins()->create();
+
+    $user = HasOneThroughOfManyTestUser::first();
+    expect($user->first_login->id)->toBe($firstLogin->id);
+});
+
+test('join constraints', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->states()->create([
+        'type' => 'foo',
+        'state' => 'draft',
+    ]);
+    $currentForState = $user->intermediates->first()->states()->create([
+        'type' => 'foo',
+        'state' => 'active',
+    ]);
+    $user->intermediates->first()->states()->create([
+        'type' => 'bar',
+        'state' => 'baz',
+    ]);
+
+    $user = HasOneThroughOfManyTestUser::first();
+    expect($user->foo_state->id)->toBe($currentForState->id);
+});
+
+test('multiple aggregates', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user->intermediates->last()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $price = $user->intermediates->first()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+
+    $user = HasOneThroughOfManyTestUser::first();
+    expect($user->price->id)->toBe($price->id);
+});
+
+test('eager loading with multiple aggregates', function () {
+    $user1 = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+    $user2 = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+
+    $user1->intermediates->last()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $user1Price = $user1->intermediates->first()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $user1->intermediates->first()->prices()->create([
+        'published_at' => '2021-04-01 00:00:00',
+    ]);
+
+    $user2Price = $user2->intermediates->last()->prices()->create([
+        'published_at' => '2021-05-01 00:00:00',
+    ]);
+    $user2->intermediates->first()->prices()->create([
+        'published_at' => '2021-04-01 00:00:00',
+    ]);
+
+    $users = HasOneThroughOfManyTestUser::with('price')->get();
+
+    expect($users[0]->price)->not->toBeNull();
+    expect($users[0]->price->id)->toBe($user1Price->id);
+
+    expect($users[1]->price)->not->toBeNull();
+    expect($users[1]->price->id)->toBe($user2Price->id);
+});
+
+test('with exists', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
+
+    $user = HasOneThroughOfManyTestUser::withExists('latest_login')->first();
+    expect($user->latest_login_exists)->toBeFalse();
+
+    $user->intermediates->first()->logins()->create();
+    $user = HasOneThroughOfManyTestUser::withExists('latest_login')->first();
+    expect($user->latest_login_exists)->toBeTrue();
+});
+
+test('with exists with constraints in join sub select', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
+    $user = HasOneThroughOfManyTestUser::withExists('foo_state')->first();
+
+    expect($user->foo_state_exists)->toBeFalse();
+
+    $user->intermediates->first()->states()->create([
+        'type' => 'foo',
+        'state' => 'bar',
+    ]);
+    $user = HasOneThroughOfManyTestUser::withExists('foo_state')->first();
+    expect($user->foo_state_exists)->toBeTrue();
+});
+
+test('with soft deletes', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(1)->create();
+    $user->intermediates->first()->logins()->create();
+    $user->latest_login_with_soft_deletes;
+    expect($user->latest_login_with_soft_deletes)->not->toBeNull();
+});
+
+test('with constraint not in aggregate', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+
+    $previousFoo = $user->intermediates->last()->states()->create([
+        'type' => 'foo',
+        'state' => 'bar',
+        'updated_at' => '2020-01-01 00:00:00',
+    ]);
+    $newFoo = $user->intermediates->first()->states()->create([
+        'type' => 'foo',
+        'state' => 'active',
+        'updated_at' => '2021-01-01 12:00:00',
+    ]);
+    $newBar = $user->intermediates->first()->states()->create([
+        'type' => 'bar',
+        'state' => 'active',
+        'updated_at' => '2021-01-01 12:00:00',
+    ]);
+
+    expect($user->last_updated_foo_state->id)->toBe($newFoo->id);
+});
+
+test('it gets correct result using at least two aggregates distinct from id', function () {
+    $user = HasOneThroughOfManyTestUser::factory()->hasIntermediates(2)->create();
+
+    $expectedState = $user->intermediates->last()->states()->create([
+        'state' => 'state',
+        'type' => 'type',
+        'created_at' => '2023-01-01',
+        'updated_at' => '2023-01-03',
+    ]);
+
+    $user->intermediates->first()->states()->create([
+        'state' => 'state',
+        'type' => 'type',
+        'created_at' => '2023-01-01',
+        'updated_at' => '2023-01-02',
+    ]);
+
+    expect($user->latest_updated_latest_created_state->id)->toBe($expectedState->id);
+});
 
 class HasOneThroughOfManyTestUser extends Instrument
 {

@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Queue;
-
 use Voyager\Bus\Dispatcher;
 use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueue;
@@ -10,113 +8,78 @@ use Voyager\Queue\CallQueuedHandler;
 use Voyager\Queue\InteractsWithQueue;
 use Voyager\Queue\Jobs\FakeJob;
 use Voyager\Queue\Middleware\FailOnException;
-use InvalidArgumentException;
-use LogicException;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Voyager\Vessel\Vessel;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\TestWith;
-use Throwable;
 
-class FailOnExceptionMiddlewareTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    // Laravel runs this against a Testbench application. The middleware only
+    // ever needs a container to resolve the job through, so a plain Vessel
+    // stands in for one.
+    $this->app = new Vessel;
+    Vessel::setInstance($this->app);
 
-    /**
-     * Laravel runs this against a Testbench application. The middleware only
-     * ever needs a container to resolve the job through, so a plain Vessel
-     * stands in for one.
-     */
-    protected $app;
+    FailOnExceptionMiddlewareTestJob::$_middleware = [];
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function () {
+    Vessel::setInstance(null);
+});
 
-        $this->app = new Vessel;
-        Vessel::setInstance($this->app);
+test('middleware', function (string $thrown, FailOnException $middleware, bool $expectedToFail) {
+    FailOnExceptionMiddlewareTestJob::$_middleware = [$middleware];
+    $job = new FailOnExceptionMiddlewareTestJob($thrown);
+    $instance = new CallQueuedHandler(new Dispatcher($this->app), $this->app);
 
-        FailOnExceptionMiddlewareTestJob::$_middleware = [];
+    $fakeJob = new FakeJob();
+    $job->setJob($fakeJob);
+
+    try {
+        $instance->call($fakeJob, [
+            'command' => serialize($job),
+        ]);
+        $this->fail('Did not throw exception');
+    } catch (Throwable $e) {
+        $this->assertInstanceOf($thrown, $e);
     }
 
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
+    $expectedToFail ? $job->assertFailed() : $job->assertNotFailed();
+})->with([
+    'exception is in list' => [
+        InvalidArgumentException::class,
+        new FailOnException([InvalidArgumentException::class]),
+        true,
+    ],
+    'exception is not in list' => [
+        LogicException::class,
+        new FailOnException([InvalidArgumentException::class]),
+        false,
+    ],
+]);
 
-        parent::tearDown();
+test('can test against job properties', function ($value, bool $expectedToFail) {
+    FailOnExceptionMiddlewareTestJob::$_middleware = [
+        new FailOnException(fn ($thrown, $job) => $job->value === 'abc'),
+    ];
+
+    $job = new FailOnExceptionMiddlewareTestJob(InvalidArgumentException::class, $value);
+    $instance = new CallQueuedHandler(new Dispatcher($this->app), $this->app);
+
+    $fakeJob = new FakeJob();
+    $job->setJob($fakeJob);
+
+    try {
+        $instance->call($fakeJob, [
+            'command' => serialize($job),
+        ]);
+        $this->fail('Did not throw exception');
+    } catch (Throwable) {
+        //
     }
 
-    /**
-     * @return array<string, array{class-string<\Throwable>, FailOnException, bool}>
-     */
-    public static function middlewareDataProvider(): array
-    {
-        return [
-            'exception is in list' => [
-                InvalidArgumentException::class,
-                new FailOnException([InvalidArgumentException::class]),
-                true,
-            ],
-            'exception is not in list' => [
-                LogicException::class,
-                new FailOnException([InvalidArgumentException::class]),
-                false,
-            ],
-        ];
-    }
-
-    #[DataProvider('middlewareDataProvider')]
-    public function test_middleware(
-        string $thrown,
-        FailOnException $middleware,
-        bool $expectedToFail
-    ): void {
-        FailOnExceptionMiddlewareTestJob::$_middleware = [$middleware];
-        $job = new FailOnExceptionMiddlewareTestJob($thrown);
-        $instance = new CallQueuedHandler(new Dispatcher($this->app), $this->app);
-
-        $fakeJob = new FakeJob();
-        $job->setJob($fakeJob);
-
-        try {
-            $instance->call($fakeJob, [
-                'command' => serialize($job),
-            ]);
-            $this->fail('Did not throw exception');
-        } catch (Throwable $e) {
-            $this->assertInstanceOf($thrown, $e);
-        }
-
-        $expectedToFail ? $job->assertFailed() : $job->assertNotFailed();
-    }
-
-    #[TestWith(['abc', true])]
-    #[TestWith(['tots', false])]
-    public function test_can_test_against_job_properties($value, bool $expectedToFail): void
-    {
-        FailOnExceptionMiddlewareTestJob::$_middleware = [
-            new FailOnException(fn ($thrown, $job) => $job->value === 'abc'),
-        ];
-
-        $job = new FailOnExceptionMiddlewareTestJob(InvalidArgumentException::class, $value);
-        $instance = new CallQueuedHandler(new Dispatcher($this->app), $this->app);
-
-        $fakeJob = new FakeJob();
-        $job->setJob($fakeJob);
-
-        try {
-            $instance->call($fakeJob, [
-                'command' => serialize($job),
-            ]);
-            $this->fail('Did not throw exception');
-        } catch (Throwable) {
-            //
-        }
-
-        $expectedToFail ? $job->assertFailed() : $job->assertNotFailed();
-    }
-}
+    $expectedToFail ? $job->assertFailed() : $job->assertNotFailed();
+})->with([
+    ['abc', true],
+    ['tots', false],
+]);
 
 class FailOnExceptionMiddlewareTestJob implements ShouldQueue
 {

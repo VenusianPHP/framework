@@ -6,211 +6,191 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Instrument\Relations\MorphToMany;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentBelongsToManyWithAttributesTest extends TestCase
+/**
+ * Get a database connection instance.
+ *
+ * @return \Voyager\Database\Connection
+ */
+function dbBtmWithAttrConnection($connection = 'default')
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-        $db->bootInstrument();
-        $db->setAsGlobal();
-        $this->createSchema();
-    }
-
-    public function testCreatesWithAttributesAndPivotValues(): void
-    {
-        $post = ManyToManyWithAttributesPost::create();
-        $tag = $post->metaTags()->create(['name' => 'long article']);
-
-        $this->assertSame('long article', $tag->name);
-        $this->assertTrue($tag->visible);
-
-        $pivot = DB::table('with_attributes_pivot')->first();
-        $this->assertSame('meta', $pivot->type);
-        $this->assertSame($post->id, $pivot->post_id);
-        $this->assertSame($tag->id, $pivot->tag_id);
-    }
-
-    public function testQueriesWithAttributesAndPivotValues(): void
-    {
-        $post = new ManyToManyWithAttributesPost(['id' => 2]);
-        $wheres = $post->metaTags()->toBase()->wheres;
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_tags.visible',
-            'operator' => '=',
-            'value' => true,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_pivot.type',
-            'operator' => '=',
-            'value' => 'meta',
-            'boolean' => 'and',
-        ], $wheres);
-    }
-
-    public function testMorphToManyWithAttributes(): void
-    {
-        $post = new ManyToManyWithAttributesPost(['id' => 2]);
-        $wheres = $post->morphedTags()->toBase()->wheres;
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_tags.visible',
-            'operator' => '=',
-            'value' => true,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.type',
-            'operator' => '=',
-            'value' => 'meta',
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.taggable_type',
-            'operator' => '=',
-            'value' => ManyToManyWithAttributesPost::class,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.taggable_id',
-            'operator' => '=',
-            'value' => 2,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $tag = $post->morphedTags()->create(['name' => 'new tag']);
-
-        $this->assertTrue($tag->visible);
-        $this->assertSame('new tag', $tag->name);
-        $this->assertSame($tag->id, $post->morphedTags()->first()->id);
-    }
-
-    public function testMorphedByManyWithAttributes(): void
-    {
-        $tag = new ManyToManyWithAttributesTag(['id' => 4]);
-        $wheres = $tag->morphedPosts()->toBase()->wheres;
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_posts.title',
-            'operator' => '=',
-            'value' => 'Title!',
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.type',
-            'operator' => '=',
-            'value' => 'meta',
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.taggable_type',
-            'operator' => '=',
-            'value' => ManyToManyWithAttributesPost::class,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_taggables.tag_id',
-            'operator' => '=',
-            'value' => 4,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $post = $tag->morphedPosts()->create();
-        $this->assertSame('Title!', $post->title);
-        $this->assertSame($post->id, $tag->morphedPosts()->first()->id);
-    }
-
-    protected function createSchema()
-    {
-        $this->schema()->create('with_attributes_posts', function ($table) {
-            $table->increments('id');
-            $table->string('title')->nullable();
-            $table->timestamps();
-        });
-
-        $this->schema()->create('with_attributes_tags', function ($table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->boolean('visible')->nullable();
-            $table->timestamps();
-        });
-
-        $this->schema()->create('with_attributes_pivot', function ($table) {
-            $table->integer('post_id');
-            $table->integer('tag_id');
-            $table->string('type');
-        });
-
-        $this->schema()->create('with_attributes_taggables', function ($table) {
-            $table->integer('tag_id');
-            $table->integer('taggable_id');
-            $table->string('taggable_type');
-            $table->string('type');
-        });
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('with_attributes_posts');
-        $this->schema()->drop('with_attributes_tags');
-        $this->schema()->drop('with_attributes_pivot');
-
-        parent::tearDown();
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection($connection = 'default')
-    {
-        return Model::getConnectionResolver()->connection($connection);
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema($connection = 'default')
-    {
-        return $this->connection($connection)->getSchemaBuilder();
-    }
+    return Model::getConnectionResolver()->connection($connection);
 }
+
+/**
+ * Get a schema builder instance.
+ *
+ * @return \Voyager\Database\Schema\Builder
+ */
+function dbBtmWithAttrSchema($connection = 'default')
+{
+    return dbBtmWithAttrConnection($connection)->getSchemaBuilder();
+}
+
+function dbBtmWithAttrCreateSchema()
+{
+    dbBtmWithAttrSchema()->create('with_attributes_posts', function ($table) {
+        $table->increments('id');
+        $table->string('title')->nullable();
+        $table->timestamps();
+    });
+
+    dbBtmWithAttrSchema()->create('with_attributes_tags', function ($table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->boolean('visible')->nullable();
+        $table->timestamps();
+    });
+
+    dbBtmWithAttrSchema()->create('with_attributes_pivot', function ($table) {
+        $table->integer('post_id');
+        $table->integer('tag_id');
+        $table->string('type');
+    });
+
+    dbBtmWithAttrSchema()->create('with_attributes_taggables', function ($table) {
+        $table->integer('tag_id');
+        $table->integer('taggable_id');
+        $table->string('taggable_type');
+        $table->string('type');
+    });
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+    $db->bootInstrument();
+    $db->setAsGlobal();
+    dbBtmWithAttrCreateSchema();
+});
+
+afterEach(function () {
+    dbBtmWithAttrSchema()->drop('with_attributes_posts');
+    dbBtmWithAttrSchema()->drop('with_attributes_tags');
+    dbBtmWithAttrSchema()->drop('with_attributes_pivot');
+});
+
+test('creates with attributes and pivot values', function () {
+    $post = ManyToManyWithAttributesPost::create();
+    $tag = $post->metaTags()->create(['name' => 'long article']);
+
+    expect($tag->name)->toBe('long article');
+    expect($tag->visible)->toBeTrue();
+
+    $pivot = DB::table('with_attributes_pivot')->first();
+    expect($pivot->type)->toBe('meta');
+    expect($pivot->post_id)->toBe($post->id);
+    expect($pivot->tag_id)->toBe($tag->id);
+});
+
+test('queries with attributes and pivot values', function () {
+    $post = new ManyToManyWithAttributesPost(['id' => 2]);
+    $wheres = $post->metaTags()->toBase()->wheres;
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_tags.visible',
+        'operator' => '=',
+        'value' => true,
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_pivot.type',
+        'operator' => '=',
+        'value' => 'meta',
+        'boolean' => 'and',
+    ]);
+});
+
+test('morph to many with attributes', function () {
+    $post = new ManyToManyWithAttributesPost(['id' => 2]);
+    $wheres = $post->morphedTags()->toBase()->wheres;
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_tags.visible',
+        'operator' => '=',
+        'value' => true,
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.type',
+        'operator' => '=',
+        'value' => 'meta',
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.taggable_type',
+        'operator' => '=',
+        'value' => ManyToManyWithAttributesPost::class,
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.taggable_id',
+        'operator' => '=',
+        'value' => 2,
+        'boolean' => 'and',
+    ]);
+
+    $tag = $post->morphedTags()->create(['name' => 'new tag']);
+
+    expect($tag->visible)->toBeTrue();
+    expect($tag->name)->toBe('new tag');
+    expect($post->morphedTags()->first()->id)->toBe($tag->id);
+});
+
+test('morphed by many with attributes', function () {
+    $tag = new ManyToManyWithAttributesTag(['id' => 4]);
+    $wheres = $tag->morphedPosts()->toBase()->wheres;
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_posts.title',
+        'operator' => '=',
+        'value' => 'Title!',
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.type',
+        'operator' => '=',
+        'value' => 'meta',
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.taggable_type',
+        'operator' => '=',
+        'value' => ManyToManyWithAttributesPost::class,
+        'boolean' => 'and',
+    ]);
+
+    expect($wheres)->toContain([
+        'type' => 'Basic',
+        'column' => 'with_attributes_taggables.tag_id',
+        'operator' => '=',
+        'value' => 4,
+        'boolean' => 'and',
+    ]);
+
+    $post = $tag->morphedPosts()->create();
+    expect($post->title)->toBe('Title!');
+    expect($tag->morphedPosts()->first()->id)->toBe($post->id);
+});
 
 class ManyToManyWithAttributesPost extends Model
 {

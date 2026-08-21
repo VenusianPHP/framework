@@ -1,14 +1,10 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Console\Command;
 use Voyager\Vessel\Vessel;
 use Voyager\Database\Seeder;
 use Mockery as m;
 use Mockery\Mock;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class TestSeeder extends Seeder
@@ -27,64 +23,54 @@ class TestDepsSeeder extends Seeder
     }
 }
 
-class DatabaseSeederTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('call resolve the class and calls run', function () {
+    $seeder = new TestSeeder;
+    $seeder->setContainer($container = m::mock(Vessel::class));
+    $output = m::mock(OutputInterface::class);
+    $output->shouldReceive('writeln')->times(3);
+    $command = m::mock(Command::class);
+    $command->shouldReceive('getOutput')->times(3)->andReturn($output);
+    $seeder->setCommand($command);
+    $container->shouldReceive('make')->once()->with('ClassName')->andReturn($child = m::mock(Seeder::class));
+    $child->shouldReceive('setContainer')->once()->with($container)->andReturn($child);
+    $child->shouldReceive('setCommand')->once()->with($command)->andReturn($child);
+    $child->shouldReceive('__invoke')->once();
 
-    public function testCallResolveTheClassAndCallsRun()
-    {
-        $seeder = new TestSeeder;
-        $seeder->setContainer($container = m::mock(Vessel::class));
-        $output = m::mock(OutputInterface::class);
-        $output->shouldReceive('writeln')->times(3);
-        $command = m::mock(Command::class);
-        $command->shouldReceive('getOutput')->times(3)->andReturn($output);
-        $seeder->setCommand($command);
-        $container->shouldReceive('make')->once()->with('ClassName')->andReturn($child = m::mock(Seeder::class));
-        $child->shouldReceive('setContainer')->once()->with($container)->andReturn($child);
-        $child->shouldReceive('setCommand')->once()->with($command)->andReturn($child);
-        $child->shouldReceive('__invoke')->once();
+    $seeder->call('ClassName');
+});
 
-        $seeder->call('ClassName');
-    }
+test('set container', function () {
+    $seeder = new TestSeeder;
+    $container = m::mock(Vessel::class);
+    $this->assertEquals($seeder->setContainer($container), $seeder);
+});
 
-    public function testSetContainer()
-    {
-        $seeder = new TestSeeder;
-        $container = m::mock(Vessel::class);
-        $this->assertEquals($seeder->setContainer($container), $seeder);
-    }
+test('set command', function () {
+    $seeder = new TestSeeder;
+    $command = m::mock(Command::class);
+    $this->assertEquals($seeder->setCommand($command), $seeder);
+});
 
-    public function testSetCommand()
-    {
-        $seeder = new TestSeeder;
-        $command = m::mock(Command::class);
-        $this->assertEquals($seeder->setCommand($command), $seeder);
-    }
+test('inject dependencies on run method', function () {
+    $container = m::mock(Vessel::class);
+    $container->shouldReceive('call');
 
-    public function testInjectDependenciesOnRunMethod()
-    {
-        $container = m::mock(Vessel::class);
-        $container->shouldReceive('call');
+    $seeder = new TestDepsSeeder;
+    $seeder->setContainer($container);
 
-        $seeder = new TestDepsSeeder;
-        $seeder->setContainer($container);
+    $seeder->__invoke();
 
-        $seeder->__invoke();
+    $container->shouldHaveReceived('call')->once()->with([$seeder, 'run'], []);
+});
 
-        $container->shouldHaveReceived('call')->once()->with([$seeder, 'run'], []);
-    }
+test('send params on call method with deps', function () {
+    $container = m::mock(Vessel::class);
+    $container->shouldReceive('call');
 
-    public function testSendParamsOnCallMethodWithDeps()
-    {
-        $container = m::mock(Vessel::class);
-        $container->shouldReceive('call');
+    $seeder = new TestDepsSeeder;
+    $seeder->setContainer($container);
 
-        $seeder = new TestDepsSeeder;
-        $seeder->setContainer($container);
+    $seeder->__invoke(['test1', 'test2']);
 
-        $seeder->__invoke(['test1', 'test2']);
-
-        $container->shouldHaveReceived('call')->once()->with([$seeder, 'run'], ['test1', 'test2']);
-    }
-}
+    $container->shouldHaveReceived('call')->once()->with([$seeder, 'run'], ['test1', 'test2']);
+});

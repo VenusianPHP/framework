@@ -7,170 +7,158 @@ use Voyager\Database\Instrument\Attributes\ScopedBy;
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Scope;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentGlobalScopesTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    tap(new DB)->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ])->bootInstrument();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function () {
+    Model::unsetConnectionResolver();
+});
 
-        tap(new DB)->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ])->bootInstrument();
-    }
+test('global scope is applied', function () {
+    $model = new InstrumentGlobalScopesTestModel;
+    $query = $model->newQuery();
 
-    protected function tearDown(): void
-    {
-        Model::unsetConnectionResolver();
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-        parent::tearDown();
-    }
+test('global scope can be removed', function () {
+    $model = new InstrumentGlobalScopesTestModel;
+    $query = $model->newQuery()->withoutGlobalScope(ActiveScope::class);
 
-    public function testGlobalScopeIsApplied()
-    {
-        $model = new InstrumentGlobalScopesTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table"')
+        ->and($query->getBindings())->toEqual([]);
+});
 
-    public function testGlobalScopeCanBeRemoved()
-    {
-        $model = new InstrumentGlobalScopesTestModel;
-        $query = $model->newQuery()->withoutGlobalScope(ActiveScope::class);
-        $this->assertSame('select * from "table"', $query->toSql());
-        $this->assertEquals([], $query->getBindings());
-    }
+test('class name global scope is applied', function () {
+    $model = new InstrumentClassNameGlobalScopesTestModel;
+    $query = $model->newQuery();
 
-    public function testClassNameGlobalScopeIsApplied()
-    {
-        $model = new InstrumentClassNameGlobalScopesTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-    public function testGlobalScopeInAttributeIsApplied()
-    {
-        $model = new InstrumentGlobalScopeInAttributeTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+test('global scope in attribute is applied', function () {
+    $model = new InstrumentGlobalScopeInAttributeTestModel;
+    $query = $model->newQuery();
 
-    public function testGlobalScopeInInheritedAttributeIsApplied()
-    {
-        $model = new InstrumentGlobalScopeInInheritedAttributeTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-    public function testClosureGlobalScopeIsApplied()
-    {
-        $model = new InstrumentClosureGlobalScopesTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ? order by "name" asc', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+test('global scope in inherited attribute is applied', function () {
+    $model = new InstrumentGlobalScopeInInheritedAttributeTestModel;
+    $query = $model->newQuery();
 
-    public function testGlobalScopesCanBeRegisteredViaArray()
-    {
-        $model = new InstrumentGlobalScopesArrayTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ? order by "name" asc', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-    public function testClosureGlobalScopeCanBeRemoved()
-    {
-        $model = new InstrumentClosureGlobalScopesTestModel;
-        $query = $model->newQuery()->withoutGlobalScope('active_scope');
-        $this->assertSame('select * from "table" order by "name" asc', $query->toSql());
-        $this->assertEquals([], $query->getBindings());
-    }
+test('closure global scope is applied', function () {
+    $model = new InstrumentClosureGlobalScopesTestModel;
+    $query = $model->newQuery();
 
-    public function testGlobalScopeCanBeRemovedAfterTheQueryIsExecuted()
-    {
-        $model = new InstrumentClosureGlobalScopesTestModel;
-        $query = $model->newQuery();
-        $this->assertSame('select * from "table" where "active" = ? order by "name" asc', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
+    expect($query->toSql())->toBe('select * from "table" where "active" = ? order by "name" asc')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-        $query->withoutGlobalScope('active_scope');
-        $this->assertSame('select * from "table" order by "name" asc', $query->toSql());
-        $this->assertEquals([], $query->getBindings());
-    }
+test('global scopes can be registered via array', function () {
+    $model = new InstrumentGlobalScopesArrayTestModel;
+    $query = $model->newQuery();
 
-    public function testAllGlobalScopesCanBeRemoved()
-    {
-        $model = new InstrumentClosureGlobalScopesTestModel;
-        $query = $model->newQuery()->withoutGlobalScopes();
-        $this->assertSame('select * from "table"', $query->toSql());
-        $this->assertEquals([], $query->getBindings());
+    expect($query->toSql())->toBe('select * from "table" where "active" = ? order by "name" asc')
+        ->and($query->getBindings())->toEqual([1]);
+});
 
-        $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes();
-        $this->assertSame('select * from "table"', $query->toSql());
-        $this->assertEquals([], $query->getBindings());
-    }
+test('closure global scope can be removed', function () {
+    $model = new InstrumentClosureGlobalScopesTestModel;
+    $query = $model->newQuery()->withoutGlobalScope('active_scope');
 
-    public function testAllGlobalScopesCanBeRemovedExceptSpecified()
-    {
-        $model = new InstrumentClosureGlobalScopesTestModel;
-        $query = $model->newQuery()->withoutGlobalScopesExcept(['active_scope']);
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
+    expect($query->toSql())->toBe('select * from "table" order by "name" asc')
+        ->and($query->getBindings())->toEqual([]);
+});
 
-        $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopesExcept(['active_scope']);
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([1], $query->getBindings());
-    }
+test('global scope can be removed after the query is executed', function () {
+    $model = new InstrumentClosureGlobalScopesTestModel;
+    $query = $model->newQuery();
 
-    public function testGlobalScopesWithOrWhereConditionsAreNested()
-    {
-        $model = new InstrumentClosureGlobalScopesWithOrTestModel;
+    expect($query->toSql())->toBe('select * from "table" where "active" = ? order by "name" asc')
+        ->and($query->getBindings())->toEqual([1]);
 
-        $query = $model->newQuery();
-        $this->assertSame('select "email", "password" from "table" where ("email" = ? or "email" = ?) and "active" = ? order by "name" asc', $query->toSql());
-        $this->assertEquals(['taylor@gmail.com', 'someone@else.com', 1], $query->getBindings());
+    $query->withoutGlobalScope('active_scope');
 
-        $query = $model->newQuery()->where('col1', 'val1')->orWhere('col2', 'val2');
-        $this->assertSame('select "email", "password" from "table" where ("col1" = ? or "col2" = ?) and ("email" = ? or "email" = ?) and "active" = ? order by "name" asc', $query->toSql());
-        $this->assertEquals(['val1', 'val2', 'taylor@gmail.com', 'someone@else.com', 1], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table" order by "name" asc')
+        ->and($query->getBindings())->toEqual([]);
+});
 
-    public function testRegularScopesWithOrWhereConditionsAreNested()
-    {
-        $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes()->where('foo', 'foo')->orWhere('bar', 'bar')->approved();
+test('all global scopes can be removed', function () {
+    $model = new InstrumentClosureGlobalScopesTestModel;
+    $query = $model->newQuery()->withoutGlobalScopes();
 
-        $this->assertSame('select * from "table" where ("foo" = ? or "bar" = ?) and ("approved" = ? or "should_approve" = ?)', $query->toSql());
-        $this->assertEquals(['foo', 'bar', 1, 0], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table"')
+        ->and($query->getBindings())->toEqual([]);
 
-    public function testScopesStartingWithOrBooleanArePreserved()
-    {
-        $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes()->where('foo', 'foo')->orWhere('bar', 'bar')->orApproved();
+    $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes();
 
-        $this->assertSame('select * from "table" where ("foo" = ? or "bar" = ?) or ("approved" = ? or "should_approve" = ?)', $query->toSql());
-        $this->assertEquals(['foo', 'bar', 1, 0], $query->getBindings());
-    }
+    expect($query->toSql())->toBe('select * from "table"')
+        ->and($query->getBindings())->toEqual([]);
+});
 
-    public function testHasQueryWhereBothModelsHaveGlobalScopes()
-    {
-        $query = InstrumentGlobalScopesWithRelationModel::has('related')->where('bar', 'baz');
+test('all global scopes can be removed except specified', function () {
+    $model = new InstrumentClosureGlobalScopesTestModel;
+    $query = $model->newQuery()->withoutGlobalScopesExcept(['active_scope']);
 
-        $subQuery = 'select * from "table" where "table2"."id" = "table"."related_id" and "foo" = ? and "active" = ?';
-        $mainQuery = 'select * from "table2" where exists ('.$subQuery.') and "bar" = ? and "active" = ? order by "name" asc';
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
 
-        $this->assertEquals($mainQuery, $query->toSql());
-        $this->assertEquals(['bar', 1, 'baz', 1], $query->getBindings());
-    }
-}
+    $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopesExcept(['active_scope']);
+
+    expect($query->toSql())->toBe('select * from "table" where "active" = ?')
+        ->and($query->getBindings())->toEqual([1]);
+});
+
+test('global scopes with or where conditions are nested', function () {
+    $model = new InstrumentClosureGlobalScopesWithOrTestModel;
+
+    $query = $model->newQuery();
+
+    expect($query->toSql())->toBe('select "email", "password" from "table" where ("email" = ? or "email" = ?) and "active" = ? order by "name" asc')
+        ->and($query->getBindings())->toEqual(['taylor@gmail.com', 'someone@else.com', 1]);
+
+    $query = $model->newQuery()->where('col1', 'val1')->orWhere('col2', 'val2');
+
+    expect($query->toSql())->toBe('select "email", "password" from "table" where ("col1" = ? or "col2" = ?) and ("email" = ? or "email" = ?) and "active" = ? order by "name" asc')
+        ->and($query->getBindings())->toEqual(['val1', 'val2', 'taylor@gmail.com', 'someone@else.com', 1]);
+});
+
+test('regular scopes with or where conditions are nested', function () {
+    $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes()->where('foo', 'foo')->orWhere('bar', 'bar')->approved();
+
+    expect($query->toSql())->toBe('select * from "table" where ("foo" = ? or "bar" = ?) and ("approved" = ? or "should_approve" = ?)')
+        ->and($query->getBindings())->toEqual(['foo', 'bar', 1, 0]);
+});
+
+test('scopes starting with or boolean are preserved', function () {
+    $query = InstrumentClosureGlobalScopesTestModel::withoutGlobalScopes()->where('foo', 'foo')->orWhere('bar', 'bar')->orApproved();
+
+    expect($query->toSql())->toBe('select * from "table" where ("foo" = ? or "bar" = ?) or ("approved" = ? or "should_approve" = ?)')
+        ->and($query->getBindings())->toEqual(['foo', 'bar', 1, 0]);
+});
+
+test('has query where both models have global scopes', function () {
+    $query = InstrumentGlobalScopesWithRelationModel::has('related')->where('bar', 'baz');
+
+    $subQuery = 'select * from "table" where "table2"."id" = "table"."related_id" and "foo" = ? and "active" = ?';
+    $mainQuery = 'select * from "table2" where exists ('.$subQuery.') and "bar" = ? and "active" = ? order by "name" asc';
+
+    expect($query->toSql())->toEqual($mainQuery)
+        ->and($query->getBindings())->toEqual(['bar', 1, 'baz', 1]);
+});
 
 class InstrumentClosureGlobalScopesTestModel extends Model
 {

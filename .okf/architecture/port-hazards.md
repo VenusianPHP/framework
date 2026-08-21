@@ -24,6 +24,9 @@ sources:
   - id: wave4
     resource: ../../tests/Validation/ValidationInArrayKeysTest.php run against ../../src/Voyager/Collections/DataObjects/Arr.php on 2026-08-20
     title: Wave 4 Validation port
+  - id: str-test-port
+    resource: ../../tests/NutsAndBolts/StrTest.php (ported from upstream SupportStrTest.php) run against ../../src/Voyager/NutsAndBolts/DataObjects/Str.php on 2026-08-21
+    title: SupportStrTest port
 ---
 
 # Still live after PR 1
@@ -160,6 +163,63 @@ independently — `Macroable` got types, `Manager` did not — and the
 incompatibility only exists where a class composes both. Typing is not a
 per-file decision.
 
+# Fifth audit, SupportStrTest port
+
+Porting Laravel's own `SupportStrTest.php` (2,004 lines, 115 test methods)
+into `tests/NutsAndBolts/StrTest.php` hit the hazard again, this time across
+almost the whole `Str` search/substring family. Upstream `Str::startsWith`,
+`endsWith`, `doesntStartWith`, `doesntEndWith`, `contains`, `containsAll`,
+`doesntContain`, `is`, `isMatch`, `before`, `beforeLast`, `after`, `afterLast`,
+`between`, `betweenFirst`, `excerpt`, `replaceFirst`, `replaceStart`,
+`replaceLast`, `replaceEnd`, `ascii`, `isAscii`, `slug`, and `numbers` are all
+**completely untyped** in Laravel — no parameter or return hints at all.[^str-test-port]
+The Venusian port had typed every one of them to `string`/`iterable|string`,
+narrower than what their own bodies anticipated:[^str-test-port]
+
+| Site | Narrowed to | Body actually handles |
+|------|-------------|-----------------------|
+| `startsWith`, `doesntStartWith`, `endsWith`, `doesntEndWith`, `contains`, `containsAll`, `doesntContain` | `string $haystack`, `iterable\|string $needles` | Each body opens with `if (is_null($haystack)) return false;` — dead code under a non-nullable hint — and upstream's own test passes `null`, ints, and floats for both haystack and needles (`Str::startsWith(null, 'Marc')`, `Str::startsWith('0123', 0)`, `Str::startsWith(7.123, '7.12')`) |
+| `is`, `isMatch` | `string $value` | Body opens with `$value = (string) $value;` — the cast is the tell — and the test passes `Str::is([null], null)` and `Str::is('', 0)` |
+| `before`, `beforeLast`, `after`, `afterLast` | `string $search` | Test passes an int search value (`Str::before('han0nah', 0)`, `Str::afterLast('yv0et0te', 0)`); `before()`'s body already does `strstr($subject, (string) $search, true)` |
+| `between`, `betweenFirst` | `string $from, string $to` | Test passes ints (`Str::between('12345', 1, 5)`); widened to match `before`/`after`, which they call internally |
+| `excerpt` | `string $text`, `string $phrase = ''` | Body casts both with `(string) $text` / `(string) $phrase`; test calls `Str::excerpt(null)` and `Str::excerpt('...', null, [...])` |
+| `replaceFirst`, `replaceStart`, `replaceLast`, `replaceEnd` | `string $search` | All four bodies open with `$search = (string) $search;` — the cast is unreachable under the old hint; test passes `Str::replaceFirst(0, '1', '0')` |
+| `ascii`, `isAscii`, `slug` | non-nullable `string` | Bodies cast with `(string) $value`; test calls `Str::ascii(null)`, `Str::isAscii(null)`, `Str::slug(null)`, all expecting `''`/`true` rather than a `TypeError` |
+| `numbers` | `string $value` → `string` | Body is a bare `preg_replace('/[^0-9]/', '', $value)`; `preg_replace` returns an array when given an array subject, and the test asserts `Str::numbers($arrayOfStrings)` returns an array |
+
+Fixed by widening to `float|int|string|null` (haystack/search/from/to family),
+`mixed` (`is()`/`isMatch()`'s `$value`), `?string` (`excerpt`, `ascii`,
+`isAscii`, `slug`), and `array|string` in both directions (`numbers`).[^str-test-port]
+
+A sixth, different-shaped bug turned up in `Str::uuid()` and its five
+siblings (`uuid7`, `orderedUuid`, `freezeUuids`, `ulid`, `freezeUlids`). A
+prior pass (see "Audit, 2026-08-19" above) had already widened their return
+type from `UuidInterface` to `UuidInterface|string` after finding that a
+user-installed factory can return a plain string. This port's test installs
+a factory returning a `Stringable` *object* instead
+(`Str::createUuidsUsing(fn () => Str::of('1234'))`) and then calls
+`Str::uuid()->toString()`. `Stringable` implements `__toString()`, so PHP's
+weak-mode return-type coercion silently converted the returned object to a
+plain string to satisfy the `UuidInterface|string` union — the same
+"stringable object hits a type boundary and gets silently flattened" failure
+mode as the original `Collection`/`array|string` hazard this document opened
+with, just on a return type instead of a parameter. `->toString()` on the
+resulting plain string is a fatal, not a wrong answer, which is how it
+surfaced. Laravel's own `Str::uuid()` has no return type at all — the
+factory's result is meant to pass through completely unchanged, whatever it
+is. Fixed by widening all six to `: mixed`, removing the coercion entirely
+rather than trying to enumerate every shape a factory might return.[^str-test-port]
+
+Every caller in `src/` already does `(string) Str::uuid()` (or the `ulid`/
+`orderedUuid` equivalents) at the call site, so none needed to change.[^str-test-port]
+
+Two items flagged in the task brief for this port turned out to be one real
+bug and one non-bug: `Str::is()`'s `string $value` parameter did reject a
+`null` value (fixed above, to `mixed`), but the `foreach ($pattern as
+$pattern)` variable shadow in `is()`/`isMatch()` is not a defect — it is
+copied verbatim from Laravel's own source, which passes its own equivalent
+test, so it was left alone.
+
 # Rules for future ports
 
 1. **Port the signature as loosely as the body.** If the body calls
@@ -187,3 +247,4 @@ per-file decision.
 [^audit]: Type-hint narrowing audit
 [^str-source]: Str source
 [^lazy-source]: LazyCollection source
+[^str-test-port]: SupportStrTest port

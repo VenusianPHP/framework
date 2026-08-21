@@ -12,503 +12,485 @@ use Voyager\Database\UniqueConstraintViolationException;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
 use PDO;
-use PHPUnit\Framework\Attributes\DataProvider;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentBuilderCreateOrFirstTest extends TestCase
+function dbCreateOrFirstMockConnectionForModel(Model $model, string $database, array $lastInsertIds = []): void
 {
-    use MockeryPHPUnitIntegration;
+    $grammarClass = 'Voyager\\Database\\Query\\Grammars\\'.$database.'Grammar';
+    $processorClass = 'Voyager\\Database\\Query\\Processors\\'.$database.'Processor';
+    $processor = new $processorClass;
+    $connection = m::mock(Connection::class, ['getPostProcessor' => $processor]);
+    $grammar = new $grammarClass($connection);
+    $connection->shouldReceive('getQueryGrammar')->andReturn($grammar);
+    $connection->shouldReceive('getTablePrefix')->andReturn('');
+    $connection->shouldReceive('query')->andReturnUsing(function () use ($connection, $grammar, $processor) {
+        return new Builder($connection, $grammar, $processor);
+    });
+    $connection->shouldReceive('getDatabaseName')->andReturn('database');
+    $resolver = m::mock(ConnectionResolverInterface::class, ['connection' => $connection]);
 
-    protected function setUp(): void
-    {
-        Carbon::setTestNow('2023-01-01 00:00:00');
+    $class = get_class($model);
+    $class::setConnectionResolver($resolver);
+
+    $connection->shouldReceive('getPdo')->andReturn($pdo = m::mock(PDO::class));
+
+    foreach ($lastInsertIds as $id) {
+        $pdo->expects('lastInsertId')->andReturn($id);
     }
+}
 
-    protected function tearDown(): void
-    {
-        Carbon::setTestNow();
+beforeEach(function () {
+    Carbon::setTestNow('2023-01-01 00:00:00');
+});
 
-        parent::tearDown();
-    }
+afterEach(function () {
+    Carbon::setTestNow();
+});
 
-    #[DataProvider('createOrFirstValues')]
-    public function testCreateOrFirstMethodCreatesNewRecord(Closure|array $values): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite', [123]);
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('create or first method creates new record', function (Closure|array $values) {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite', [123]);
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()->expects('insert')->with(
-            'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
-            ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
-        )->andReturnTrue();
+    $model->getConnection()->expects('insert')->with(
+        'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
+        ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
+    )->andReturnTrue();
 
-        $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], $values);
-        $this->assertTrue($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], $values);
+
+    expect($result->wasRecentlyCreated)->toBeTrue()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+})->with([
+    'array' => [['val' => 'bar']],
+    'closure' => [fn () => ['val' => 'bar']],
+]);
 
-    public function testCreateOrFirstMethodRetrievesExistingRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('create or first method retrieves existing record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
-        $bindings = ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
+    $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
+    $bindings = ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
 
-        $model->getConnection()
-            ->expects('insert')
-            ->with($sql, $bindings)
-            ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
+    $model->getConnection()
+        ->expects('insert')
+        ->with($sql, $bindings)
+        ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], ['val' => 'bar']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], ['val' => 'bar']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testFirstOrCreateMethodRetrievesExistingRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('first or create method retrieves existing record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testFirstOrCreateMethodCreatesNewRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite', [123]);
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('first or create method creates new record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite', [123]);
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $model->getConnection()->expects('insert')->with(
-            'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
-            ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
-        )->andReturnTrue();
+    $model->getConnection()->expects('insert')->with(
+        'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
+        ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
+    )->andReturnTrue();
 
-        $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
-        $this->assertTrue($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
+
+    expect($result->wasRecentlyCreated)->toBeTrue()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testFirstOrCreateMethodRetrievesRecordCreatedJustNow(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('first or create method retrieves record created just now', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
-        $bindings = ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
+    $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
+    $bindings = ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
 
-        $model->getConnection()
-            ->expects('insert')
-            ->with($sql, $bindings)
-            ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
+    $model->getConnection()
+        ->expects('insert')
+        ->with($sql, $bindings)
+        ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->firstOrCreate(['attr' => 'foo'], ['val' => 'bar']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testUpdateOrCreateMethodUpdatesExistingRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('update or create method updates existing record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $model->getConnection()
-            ->expects('update')
-            ->with(
-                'update "table" set "val" = ?, "updated_at" = ? where "id" = ?',
-                ['baz', '2023-01-01 00:00:00', 123],
-            )
-            ->andReturn(1);
+    $model->getConnection()
+        ->expects('update')
+        ->with(
+            'update "table" set "val" = ?, "updated_at" = ? where "id" = ?',
+            ['baz', '2023-01-01 00:00:00', 123],
+        )
+        ->andReturn(1);
 
-        $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'baz']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'baz']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'baz',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testUpdateOrCreateMethodCreatesNewRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite', [123]);
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('update or create method creates new record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite', [123]);
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $model->getConnection()->expects('insert')->with(
-            'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
-            ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
-        )->andReturnTrue();
+    $model->getConnection()->expects('insert')->with(
+        'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)',
+        ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
+    )->andReturnTrue();
 
-        $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'bar']);
-        $this->assertTrue($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'bar']);
+
+    expect($result->wasRecentlyCreated)->toBeTrue()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'bar',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testUpdateOrCreateMethodUpdatesRecordCreatedJustNow(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('update or create method updates record created just now', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
-        $bindings = ['foo', 'baz', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
+    $sql = 'insert into "table" ("attr", "val", "updated_at", "created_at") values (?, ?, ?, ?)';
+    $bindings = ['foo', 'baz', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
 
-        $model->getConnection()
-            ->expects('insert')
-            ->with($sql, $bindings)
-            ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
+    $model->getConnection()
+        ->expects('insert')
+        ->with($sql, $bindings)
+        ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $model->getConnection()
-            ->expects('update')
-            ->with(
-                'update "table" set "val" = ?, "updated_at" = ? where "id" = ?',
-                ['baz', '2023-01-01 00:00:00', 123],
-            )
-            ->andReturn(1);
+    $model->getConnection()
+        ->expects('update')
+        ->with(
+            'update "table" set "val" = ?, "updated_at" = ? where "id" = ?',
+            ['baz', '2023-01-01 00:00:00', 123],
+        )
+        ->andReturn(1);
 
-        $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'baz']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->updateOrCreate(['attr' => 'foo'], ['val' => 'baz']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'val' => 'baz',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testIncrementOrCreateMethodIncrementsExistingRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('increment or create method increments existing record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'count' => 1,
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'count' => 1,
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $model->getConnection()
-            ->expects('raw')
-            ->with('"count" + 1')
-            ->andReturn('2');
+    $model->getConnection()
+        ->expects('raw')
+        ->with('"count" + 1')
+        ->andReturn('2');
 
-        $model->getConnection()
-            ->expects('update')
-            ->with(
-                'update "table" set "count" = ?, "updated_at" = ? where "id" = ?',
-                ['2', '2023-01-01 00:00:00', 123],
-            )
-            ->andReturn(1);
+    $model->getConnection()
+        ->expects('update')
+        ->with(
+            'update "table" set "count" = ?, "updated_at" = ? where "id" = ?',
+            ['2', '2023-01-01 00:00:00', 123],
+        )
+        ->andReturn(1);
 
-        $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo'], 'count');
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo'], 'count');
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'count' => 2,
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testIncrementOrCreateMethodCreatesNewRecord(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite', [123]);
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('increment or create method creates new record', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite', [123]);
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $model->getConnection()->expects('insert')->with(
-            'insert into "table" ("attr", "count", "updated_at", "created_at") values (?, ?, ?, ?)',
-            ['foo', '1', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
-        )->andReturnTrue();
+    $model->getConnection()->expects('insert')->with(
+        'insert into "table" ("attr", "count", "updated_at", "created_at") values (?, ?, ?, ?)',
+        ['foo', '1', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
+    )->andReturnTrue();
 
-        $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo']);
-        $this->assertTrue($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo']);
+
+    expect($result->wasRecentlyCreated)->toBeTrue()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'count' => 1,
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testIncrementOrCreateMethodIncrementParametersArePassed(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('increment or create method increment parameters are passed', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'val' => 'bar',
-                'count' => 1,
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'val' => 'bar',
+            'count' => 1,
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $model->getConnection()
-            ->expects('raw')
-            ->with('"count" + 2')
-            ->andReturn('3');
+    $model->getConnection()
+        ->expects('raw')
+        ->with('"count" + 2')
+        ->andReturn('3');
 
-        $model->getConnection()
-            ->expects('update')
-            ->with(
-                'update "table" set "count" = ?, "val" = ?, "updated_at" = ? where "id" = ?',
-                ['3', 'baz', '2023-01-01 00:00:00', 123],
-            )
-            ->andReturn(1);
+    $model->getConnection()
+        ->expects('update')
+        ->with(
+            'update "table" set "count" = ?, "val" = ?, "updated_at" = ? where "id" = ?',
+            ['3', 'baz', '2023-01-01 00:00:00', 123],
+        )
+        ->andReturn(1);
 
-        $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo'], step: 2, extra: ['val' => 'baz']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo'], step: 2, extra: ['val' => 'baz']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'count' => 3,
             'val' => 'baz',
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
+        ]);
+});
 
-    public function testIncrementOrCreateMethodRetrievesRecordCreatedJustNow(): void
-    {
-        $model = new InstrumentBuilderCreateOrFirstTestModel();
-        $this->mockConnectionForModel($model, 'SQLite');
-        $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
-        $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
+test('increment or create method retrieves record created just now', function () {
+    $model = new InstrumentBuilderCreateOrFirstTestModel();
+    dbCreateOrFirstMockConnectionForModel($model, 'SQLite');
+    $model->getConnection()->shouldReceive('transactionLevel')->andReturn(0);
+    $model->getConnection()->shouldReceive('getName')->andReturn('sqlite');
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
-            ->andReturn([]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], true)
+        ->andReturn([]);
 
-        $sql = 'insert into "table" ("attr", "count", "updated_at", "created_at") values (?, ?, ?, ?)';
-        $bindings = ['foo', '1', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
+    $sql = 'insert into "table" ("attr", "count", "updated_at", "created_at") values (?, ?, ?, ?)';
+    $bindings = ['foo', '1', '2023-01-01 00:00:00', '2023-01-01 00:00:00'];
 
-        $model->getConnection()
-            ->expects('insert')
-            ->with($sql, $bindings)
-            ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
+    $model->getConnection()
+        ->expects('insert')
+        ->with($sql, $bindings)
+        ->andThrow(new UniqueConstraintViolationException('sqlite', $sql, $bindings, new Exception()));
 
-        $model->getConnection()
-            ->expects('select')
-            ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
-            ->andReturn([[
-                'id' => 123,
-                'attr' => 'foo',
-                'count' => 1,
-                'created_at' => '2023-01-01 00:00:00',
-                'updated_at' => '2023-01-01 00:00:00',
-            ]]);
+    $model->getConnection()
+        ->expects('select')
+        ->with('select * from "table" where ("attr" = ?) limit 1', ['foo'], false)
+        ->andReturn([[
+            'id' => 123,
+            'attr' => 'foo',
+            'count' => 1,
+            'created_at' => '2023-01-01 00:00:00',
+            'updated_at' => '2023-01-01 00:00:00',
+        ]]);
 
-        $model->getConnection()
-            ->expects('raw')
-            ->with('"count" + 1')
-            ->andReturn('2');
+    $model->getConnection()
+        ->expects('raw')
+        ->with('"count" + 1')
+        ->andReturn('2');
 
-        $model->getConnection()
-            ->expects('update')
-            ->with(
-                'update "table" set "count" = ?, "updated_at" = ? where "id" = ?',
-                ['2', '2023-01-01 00:00:00', 123],
-            )
-            ->andReturn(1);
+    $model->getConnection()
+        ->expects('update')
+        ->with(
+            'update "table" set "count" = ?, "updated_at" = ? where "id" = ?',
+            ['2', '2023-01-01 00:00:00', 123],
+        )
+        ->andReturn(1);
 
-        $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo']);
-        $this->assertFalse($result->wasRecentlyCreated);
-        $this->assertEquals([
+    $result = $model->newQuery()->incrementOrCreate(['attr' => 'foo']);
+
+    expect($result->wasRecentlyCreated)->toBeFalse()
+        ->and($result->toArray())->toEqual([
             'id' => 123,
             'attr' => 'foo',
             'count' => 2,
             'created_at' => '2023-01-01T00:00:00.000000Z',
             'updated_at' => '2023-01-01T00:00:00.000000Z',
-        ], $result->toArray());
-    }
-
-    public static function createOrFirstValues(): array
-    {
-        return [
-            'array' => [['val' => 'bar']],
-            'closure' => [fn () => ['val' => 'bar']],
-        ];
-    }
-
-    protected function mockConnectionForModel(Model $model, string $database, array $lastInsertIds = []): void
-    {
-        $grammarClass = 'Voyager\\Database\\Query\\Grammars\\'.$database.'Grammar';
-        $processorClass = 'Voyager\\Database\\Query\\Processors\\'.$database.'Processor';
-        $processor = new $processorClass;
-        $connection = m::mock(Connection::class, ['getPostProcessor' => $processor]);
-        $grammar = new $grammarClass($connection);
-        $connection->shouldReceive('getQueryGrammar')->andReturn($grammar);
-        $connection->shouldReceive('getTablePrefix')->andReturn('');
-        $connection->shouldReceive('query')->andReturnUsing(function () use ($connection, $grammar, $processor) {
-            return new Builder($connection, $grammar, $processor);
-        });
-        $connection->shouldReceive('getDatabaseName')->andReturn('database');
-        $resolver = m::mock(ConnectionResolverInterface::class, ['connection' => $connection]);
-
-        $class = get_class($model);
-        $class::setConnectionResolver($resolver);
-
-        $connection->shouldReceive('getPdo')->andReturn($pdo = m::mock(PDO::class));
-
-        foreach ($lastInsertIds as $id) {
-            $pdo->expects('lastInsertId')->andReturn($id);
-        }
-    }
-}
+        ]);
+});
 
 class InstrumentBuilderCreateOrFirstTestModel extends Model
 {

@@ -6,127 +6,110 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\Pivot as InstrumentPivot;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentBelongsToManySyncTouchesParentTest extends TestCase
+/**
+ * Get a database connection instance.
+ *
+ * @return \Voyager\Database\ConnectionInterface
+ */
+function dbBtmSyncTouchesParentConnection()
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-
-        $db->bootInstrument();
-        $db->setAsGlobal();
-
-        $this->createSchema();
-    }
-
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    public function createSchema()
-    {
-        $this->schema()->create('articles', function ($table) {
-            $table->string('id');
-            $table->string('title');
-
-            $table->primary('id');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('article_user', function ($table) {
-            $table->string('article_id');
-            $table->foreign('article_id')->references('id')->on('articles');
-            $table->integer('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('users', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-            $table->timestamps();
-        });
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('users');
-        $this->schema()->drop('articles');
-        $this->schema()->drop('article_user');
-
-        parent::tearDown();
-    }
-
-    /**
-     * Helpers...
-     */
-    protected function seedData()
-    {
-        DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 1, 'email' => 'taylorotwell@gmail.com']);
-        DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 2, 'email' => 'anonymous@gmail.com']);
-        DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 3, 'email' => 'anoni-mous@gmail.com']);
-    }
-
-    public function testSyncWithDetachedValuesShouldTouch()
-    {
-        $this->seedData();
-
-        Carbon::setTestNow('2021-07-19 10:13:14');
-        $article = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestArticle::create(['id' => 1, 'title' => 'uuid title']);
-        $article->users()->sync([1, 2, 3]);
-        $this->assertSame('2021-07-19 10:13:14', $article->updated_at->format('Y-m-d H:i:s'));
-
-        Carbon::setTestNow('2021-07-20 19:13:14');
-        $result = $article->users()->sync([1, 2]);
-        $this->assertCount(1, collect($result['detached']));
-        $this->assertSame('3', (string) collect($result['detached'])->first());
-
-        $article->refresh();
-        $this->assertSame('2021-07-20 19:13:14', $article->updated_at->format('Y-m-d H:i:s'));
-
-        $user1 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(1);
-        $this->assertNotSame('2021-07-20 19:13:14', $user1->updated_at->format('Y-m-d H:i:s'));
-        $user2 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(2);
-        $this->assertNotSame('2021-07-20 19:13:14', $user2->updated_at->format('Y-m-d H:i:s'));
-        $user3 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(3);
-        $this->assertNotSame('2021-07-20 19:13:14', $user3->updated_at->format('Y-m-d H:i:s'));
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\ConnectionInterface
-     */
-    protected function connection()
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
+    return Instrument::getConnectionResolver()->connection();
 }
+
+/**
+ * Get a schema builder instance.
+ *
+ * @return \Voyager\Database\Schema\Builder
+ */
+function dbBtmSyncTouchesParentSchema()
+{
+    return dbBtmSyncTouchesParentConnection()->getSchemaBuilder();
+}
+
+/**
+ * Setup the database schema.
+ *
+ * @return void
+ */
+function dbBtmSyncTouchesParentCreateSchema()
+{
+    dbBtmSyncTouchesParentSchema()->create('articles', function ($table) {
+        $table->string('id');
+        $table->string('title');
+
+        $table->primary('id');
+        $table->timestamps();
+    });
+
+    dbBtmSyncTouchesParentSchema()->create('article_user', function ($table) {
+        $table->string('article_id');
+        $table->foreign('article_id')->references('id')->on('articles');
+        $table->integer('user_id')->unsigned();
+        $table->foreign('user_id')->references('id')->on('users');
+        $table->timestamps();
+    });
+
+    dbBtmSyncTouchesParentSchema()->create('users', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+        $table->timestamps();
+    });
+}
+
+/**
+ * Helpers...
+ */
+function dbBtmSyncTouchesParentSeedData()
+{
+    DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 1, 'email' => 'taylorotwell@gmail.com']);
+    DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 2, 'email' => 'anonymous@gmail.com']);
+    DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::create(['id' => 3, 'email' => 'anoni-mous@gmail.com']);
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    dbBtmSyncTouchesParentCreateSchema();
+});
+
+afterEach(function () {
+    dbBtmSyncTouchesParentSchema()->drop('users');
+    dbBtmSyncTouchesParentSchema()->drop('articles');
+    dbBtmSyncTouchesParentSchema()->drop('article_user');
+});
+
+test('sync with detached values should touch', function () {
+    dbBtmSyncTouchesParentSeedData();
+
+    Carbon::setTestNow('2021-07-19 10:13:14');
+    $article = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestArticle::create(['id' => 1, 'title' => 'uuid title']);
+    $article->users()->sync([1, 2, 3]);
+    expect($article->updated_at->format('Y-m-d H:i:s'))->toBe('2021-07-19 10:13:14');
+
+    Carbon::setTestNow('2021-07-20 19:13:14');
+    $result = $article->users()->sync([1, 2]);
+    expect(collect($result['detached']))->toHaveCount(1);
+    expect((string) collect($result['detached'])->first())->toBe('3');
+
+    $article->refresh();
+    expect($article->updated_at->format('Y-m-d H:i:s'))->toBe('2021-07-20 19:13:14');
+
+    $user1 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(1);
+    expect($user1->updated_at->format('Y-m-d H:i:s'))->not->toBe('2021-07-20 19:13:14');
+    $user2 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(2);
+    expect($user2->updated_at->format('Y-m-d H:i:s'))->not->toBe('2021-07-20 19:13:14');
+    $user3 = DatabaseInstrumentBelongsToManySyncTouchesParentTestTestUser::find(3);
+    expect($user3->updated_at->format('Y-m-d H:i:s'))->not->toBe('2021-07-20 19:13:14');
+});
 
 class DatabaseInstrumentBelongsToManySyncTouchesParentTestTestArticle extends Instrument
 {

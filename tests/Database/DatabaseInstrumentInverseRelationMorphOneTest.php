@@ -9,212 +9,176 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\Relations\MorphOne;
 use Voyager\Database\Instrument\Relations\MorphTo;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentInverseRelationMorphOneTest extends TestCase
+/**
+ * Get a database connection instance.
+ *
+ * @return \Voyager\Database\Connection
+ */
+function morphOneInverseConnection($connection = 'default')
 {
-    use MockeryPHPUnitIntegration;
-
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-        $db->bootInstrument();
-        $db->setAsGlobal();
-
-        $this->createSchema();
-    }
-
-    protected function createSchema()
-    {
-        $this->schema()->create('test_posts', function ($table) {
-            $table->increments('id');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('test_images', function ($table) {
-            $table->increments('id');
-            $table->morphs('imageable');
-            $table->timestamps();
-        });
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('test_posts');
-        $this->schema()->drop('test_images');
-
-        parent::tearDown();
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenLazyLoaded()
-    {
-        MorphOneInverseImageModel::factory(6)->create();
-        $posts = MorphOneInversePostModel::all();
-
-        foreach ($posts as $post) {
-            $this->assertFalse($post->relationLoaded('image'));
-            $image = $post->image;
-            $this->assertTrue($image->relationLoaded('imageable'));
-            $this->assertSame($post, $image->imageable);
-        }
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenEagerLoaded()
-    {
-        MorphOneInverseImageModel::factory(6)->create();
-        $posts = MorphOneInversePostModel::with('image')->get();
-
-        foreach ($posts as $post) {
-            $image = $post->getRelation('image');
-
-            $this->assertTrue($image->relationLoaded('imageable'));
-            $this->assertSame($post, $image->imageable);
-        }
-    }
-
-    public function testMorphOneGuessedInverseRelationIsProperlySetToParentWhenLazyLoaded()
-    {
-        MorphOneInverseImageModel::factory(6)->create();
-        $posts = MorphOneInversePostModel::all();
-
-        foreach ($posts as $post) {
-            $this->assertFalse($post->relationLoaded('guessedImage'));
-            $image = $post->guessedImage;
-            $this->assertTrue($image->relationLoaded('imageable'));
-            $this->assertSame($post, $image->imageable);
-        }
-    }
-
-    public function testMorphOneGuessedInverseRelationIsProperlySetToParentWhenEagerLoaded()
-    {
-        MorphOneInverseImageModel::factory(6)->create();
-        $posts = MorphOneInversePostModel::with('guessedImage')->get();
-
-        foreach ($posts as $post) {
-            $image = $post->getRelation('guessedImage');
-
-            $this->assertTrue($image->relationLoaded('imageable'));
-            $this->assertSame($post, $image->imageable);
-        }
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenMaking()
-    {
-        $post = MorphOneInversePostModel::create();
-
-        $image = $post->image()->make();
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenCreating()
-    {
-        $post = MorphOneInversePostModel::create();
-
-        $image = $post->image()->create();
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenCreatingQuietly()
-    {
-        $post = MorphOneInversePostModel::create();
-
-        $image = $post->image()->createQuietly();
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenForceCreating()
-    {
-        $post = MorphOneInversePostModel::create();
-
-        $image = $post->image()->forceCreate();
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenSaving()
-    {
-        $post = MorphOneInversePostModel::create();
-        $image = MorphOneInverseImageModel::make();
-
-        $this->assertFalse($image->relationLoaded('imageable'));
-        $post->image()->save($image);
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenSavingQuietly()
-    {
-        $post = MorphOneInversePostModel::create();
-        $image = MorphOneInverseImageModel::make();
-
-        $this->assertFalse($image->relationLoaded('imageable'));
-        $post->image()->saveQuietly($image);
-
-        $this->assertTrue($image->relationLoaded('imageable'));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    public function testMorphOneInverseRelationIsProperlySetToParentWhenUpdating()
-    {
-        $post = MorphOneInversePostModel::create();
-        $image = MorphOneInverseImageModel::factory()->create();
-
-        $this->assertTrue($post->isNot($image->imageable));
-
-        $post->image()->save($image);
-
-        $this->assertTrue($post->is($image->imageable));
-        $this->assertSame($post, $image->imageable);
-    }
-
-    /**
-     * Helpers...
-     */
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection($connection = 'default')
-    {
-        return Instrument::getConnectionResolver()->connection($connection);
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema($connection = 'default')
-    {
-        return $this->connection($connection)->getSchemaBuilder();
-    }
+    return Instrument::getConnectionResolver()->connection($connection);
 }
+
+/**
+ * Get a schema builder instance.
+ *
+ * @return \Voyager\Database\Schema\Builder
+ */
+function morphOneInverseSchema($connection = 'default')
+{
+    return morphOneInverseConnection($connection)->getSchemaBuilder();
+}
+
+function morphOneInverseCreateSchema()
+{
+    morphOneInverseSchema()->create('test_posts', function ($table) {
+        $table->increments('id');
+        $table->timestamps();
+    });
+
+    morphOneInverseSchema()->create('test_images', function ($table) {
+        $table->increments('id');
+        $table->morphs('imageable');
+        $table->timestamps();
+    });
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    morphOneInverseCreateSchema();
+});
+
+afterEach(function () {
+    morphOneInverseSchema()->drop('test_posts');
+    morphOneInverseSchema()->drop('test_images');
+});
+
+test('morph one inverse relation is properly set to parent when lazy loaded', function () {
+    MorphOneInverseImageModel::factory(6)->create();
+    $posts = MorphOneInversePostModel::all();
+
+    foreach ($posts as $post) {
+        $this->assertFalse($post->relationLoaded('image'));
+        $image = $post->image;
+        $this->assertTrue($image->relationLoaded('imageable'));
+        $this->assertSame($post, $image->imageable);
+    }
+});
+
+test('morph one inverse relation is properly set to parent when eager loaded', function () {
+    MorphOneInverseImageModel::factory(6)->create();
+    $posts = MorphOneInversePostModel::with('image')->get();
+
+    foreach ($posts as $post) {
+        $image = $post->getRelation('image');
+
+        $this->assertTrue($image->relationLoaded('imageable'));
+        $this->assertSame($post, $image->imageable);
+    }
+});
+
+test('morph one guessed inverse relation is properly set to parent when lazy loaded', function () {
+    MorphOneInverseImageModel::factory(6)->create();
+    $posts = MorphOneInversePostModel::all();
+
+    foreach ($posts as $post) {
+        $this->assertFalse($post->relationLoaded('guessedImage'));
+        $image = $post->guessedImage;
+        $this->assertTrue($image->relationLoaded('imageable'));
+        $this->assertSame($post, $image->imageable);
+    }
+});
+
+test('morph one guessed inverse relation is properly set to parent when eager loaded', function () {
+    MorphOneInverseImageModel::factory(6)->create();
+    $posts = MorphOneInversePostModel::with('guessedImage')->get();
+
+    foreach ($posts as $post) {
+        $image = $post->getRelation('guessedImage');
+
+        $this->assertTrue($image->relationLoaded('imageable'));
+        $this->assertSame($post, $image->imageable);
+    }
+});
+
+test('morph one inverse relation is properly set to parent when making', function () {
+    $post = MorphOneInversePostModel::create();
+
+    $image = $post->image()->make();
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when creating', function () {
+    $post = MorphOneInversePostModel::create();
+
+    $image = $post->image()->create();
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when creating quietly', function () {
+    $post = MorphOneInversePostModel::create();
+
+    $image = $post->image()->createQuietly();
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when force creating', function () {
+    $post = MorphOneInversePostModel::create();
+
+    $image = $post->image()->forceCreate();
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when saving', function () {
+    $post = MorphOneInversePostModel::create();
+    $image = MorphOneInverseImageModel::make();
+
+    $this->assertFalse($image->relationLoaded('imageable'));
+    $post->image()->save($image);
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when saving quietly', function () {
+    $post = MorphOneInversePostModel::create();
+    $image = MorphOneInverseImageModel::make();
+
+    $this->assertFalse($image->relationLoaded('imageable'));
+    $post->image()->saveQuietly($image);
+
+    $this->assertTrue($image->relationLoaded('imageable'));
+    $this->assertSame($post, $image->imageable);
+});
+
+test('morph one inverse relation is properly set to parent when updating', function () {
+    $post = MorphOneInversePostModel::create();
+    $image = MorphOneInverseImageModel::factory()->create();
+
+    $this->assertTrue($post->isNot($image->imageable));
+
+    $post->image()->save($image);
+
+    $this->assertTrue($post->is($image->imageable));
+    $this->assertSame($post, $image->imageable);
+});
 
 class MorphOneInversePostModel extends Model
 {

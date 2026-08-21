@@ -102,7 +102,7 @@ class Str
      * @param string $search
      * @return string
      */
-    public static function after(string $subject, string $search): string
+    public static function after(string $subject, float|int|string $search): string
     {
         return $search === '' ? $subject : array_reverse(explode($search, $subject, 2))[0];
     }
@@ -114,7 +114,7 @@ class Str
      * @param string $search
      * @return string
      */
-    public static function afterLast(string $subject, string $search): string
+    public static function afterLast(string $subject, float|int|string $search): string
     {
         if ($search === '') {
             return $subject;
@@ -136,7 +136,7 @@ class Str
      * @param string $language
      * @return string
      */
-    public static function ascii(string $value, string $language = 'en'): string
+    public static function ascii(?string $value, string $language = 'en'): string
     {
         return ASCII::to_ascii((string) $value, $language, replace_single_chars_only: false);
     }
@@ -161,7 +161,7 @@ class Str
      * @param string $search
      * @return string
      */
-    public static function before(string $subject, string $search): string
+    public static function before(string $subject, float|int|string $search): string
     {
         if ($search === '') {
             return $subject;
@@ -179,7 +179,7 @@ class Str
      * @param string $search
      * @return string
      */
-    public static function beforeLast(string $subject, string $search): string
+    public static function beforeLast(string $subject, float|int|string $search): string
     {
         if ($search === '') {
             return $subject;
@@ -202,7 +202,7 @@ class Str
      * @param string $to
      * @return string
      */
-    public static function between(string $subject, string $from, string $to): string
+    public static function between(string $subject, float|int|string $from, float|int|string $to): string
     {
         if ($from === '' || $to === '') {
             return $subject;
@@ -219,7 +219,7 @@ class Str
      * @param string $to
      * @return string
      */
-    public static function betweenFirst(string $subject, string $from, string $to): string
+    public static function betweenFirst(string $subject, float|int|string $from, float|int|string $to): string
     {
         if ($from === '' || $to === '') {
             return $subject;
@@ -313,7 +313,7 @@ class Str
      * @param bool $ignoreCase
      * @return ($needles is array{} ? false : ($haystack is non-empty-string ? bool : false))
      */
-    public static function contains(string $haystack, iterable|string $needles, bool $ignoreCase = false): bool
+    public static function contains(float|int|string|null $haystack, iterable|float|int|string|null $needles, bool $ignoreCase = false): bool
     {
         if (is_null($haystack)) {
             return false;
@@ -348,7 +348,7 @@ class Str
      * @param bool $ignoreCase
      * @return ($needles is array{} ? false : ($haystack is non-empty-string ? bool : false))
      */
-    public static function containsAll(string $haystack, iterable $needles, bool $ignoreCase = false): bool
+    public static function containsAll(float|int|string|null $haystack, iterable $needles, bool $ignoreCase = false): bool
     {
         foreach ($needles as $needle) {
             if (! static::contains($haystack, $needle, $ignoreCase)) {
@@ -367,7 +367,7 @@ class Str
      * @param bool $ignoreCase
      * @return ($needles is array{} ? true : ($haystack is non-empty-string ? bool : true))
      */
-    public static function doesntContain(string $haystack, iterable|string $needles, bool $ignoreCase = false): bool
+    public static function doesntContain(float|int|string|null $haystack, iterable|float|int|string|null $needles, bool $ignoreCase = false): bool
     {
         return ! static::contains($haystack, $needles, $ignoreCase);
     }
@@ -412,7 +412,7 @@ class Str
      * @param string|iterable<string> $needles
      * @return ($needles is array{} ? false : ($haystack is non-empty-string ? bool : false))
      */
-    public static function endsWith(string $haystack, iterable|string $needles): bool
+    public static function endsWith(float|int|string|null $haystack, iterable|float|int|string|null $needles): bool
     {
         if (is_null($haystack)) {
             return false;
@@ -438,7 +438,7 @@ class Str
      * @param string|iterable<string> $needles
      * @return ($needles is array{} ? true : ($haystack is non-empty-string ? bool : true))
      */
-    public static function doesntEndWith(string $haystack, iterable|string $needles): bool
+    public static function doesntEndWith(float|int|string|null $haystack, iterable|float|int|string|null $needles): bool
     {
         return ! static::endsWith($haystack, $needles);
     }
@@ -451,7 +451,7 @@ class Str
      * @param array{radius?: int|float, omission?: string} $options
      * @return string|null
      */
-    public static function excerpt(string $text, string $phrase = '', array $options = []): ?string
+    public static function excerpt(?string $text, ?string $phrase = '', array $options = []): ?string
     {
         $radius = $options['radius'] ?? 100;
         $omission = $options['omission'] ?? '...';
@@ -535,7 +535,7 @@ class Str
      * @param bool $ignoreCase
      * @return bool
      */
-    public static function is(iterable|string $pattern, string $value, bool $ignoreCase = false): bool
+    public static function is(iterable|string $pattern, mixed $value, bool $ignoreCase = false): bool
     {
         $value = (string) $value;
 
@@ -578,7 +578,7 @@ class Str
      * @param string $value
      * @return bool
      */
-    public static function isAscii(string $value): bool
+    public static function isAscii(?string $value): bool
     {
         return ASCII::is_ascii((string) $value);
     }
@@ -912,7 +912,7 @@ class Str
      * @param string $value
      * @return ($pattern is array{} ? false : bool)
      */
-    public static function isMatch(iterable|string $pattern, string $value): bool
+    public static function isMatch(iterable|string $pattern, mixed $value): bool
     {
         $value = (string) $value;
 
@@ -955,7 +955,7 @@ class Str
      * @param string $value
      * @return string
      */
-    public static function numbers(string $value): string
+    public static function numbers(array|string $value): array|string
     {
         return preg_replace('/[^0-9]/', '', $value);
     }
@@ -1304,7 +1304,7 @@ class Str
      * @param string $subject
      * @return string
      */
-    public static function replaceFirst(string $search, string $replace, string $subject): string
+    public static function replaceFirst(float|int|string $search, string $replace, string $subject): string
     {
         $search = (string) $search;
 
@@ -1329,7 +1329,7 @@ class Str
      * @param string $subject
      * @return string
      */
-    public static function replaceStart(string $search, string $replace, string $subject): string
+    public static function replaceStart(float|int|string $search, string $replace, string $subject): string
     {
         $search = (string) $search;
 
@@ -1352,7 +1352,7 @@ class Str
      * @param string $subject
      * @return string
      */
-    public static function replaceLast(string $search, string $replace, string $subject): string
+    public static function replaceLast(float|int|string $search, string $replace, string $subject): string
     {
         $search = (string) $search;
 
@@ -1377,7 +1377,7 @@ class Str
      * @param string $subject
      * @return string
      */
-    public static function replaceEnd(string $search, string $replace, string $subject): string
+    public static function replaceEnd(float|int|string $search, string $replace, string $subject): string
     {
         $search = (string) $search;
 
@@ -1574,7 +1574,7 @@ class Str
      * @param array<string, string> $dictionary
      * @return string
      */
-    public static function slug(string $title, string $separator = '-', ?string $language = 'en', array $dictionary = ['@' => 'at']): string
+    public static function slug(?string $title, string $separator = '-', ?string $language = 'en', array $dictionary = ['@' => 'at']): string
     {
         $title = $language ? static::ascii($title, $language) : $title;
 
@@ -1697,7 +1697,7 @@ class Str
      *
      * @phpstan-assert-if-true =non-empty-string $haystack
      */
-    public static function startsWith(string $haystack, iterable|string $needles): bool
+    public static function startsWith(float|int|string|null $haystack, iterable|float|int|string|null $needles): bool
     {
         if (is_null($haystack)) {
             return false;
@@ -1725,7 +1725,7 @@ class Str
      *
      * @phpstan-assert-if-false =non-empty-string $haystack
      */
-    public static function doesntStartWith(string $haystack, iterable|string $needles): bool
+    public static function doesntStartWith(float|int|string|null $haystack, iterable|float|int|string|null $needles): bool
     {
         return ! static::startsWith($haystack, $needles);
     }
@@ -1955,7 +1955,7 @@ class Str
      *
      * @return UuidInterface|string
      */
-    public static function uuid(): UuidInterface|string
+    public static function uuid(): mixed
     {
         return static::$uuidFactory
             ? call_user_func(static::$uuidFactory)
@@ -1968,7 +1968,7 @@ class Str
      * @param DateTimeInterface|null $time
      * @return UuidInterface|string
      */
-    public static function uuid7(?DateTimeInterface $time = null): UuidInterface|string
+    public static function uuid7(?DateTimeInterface $time = null): mixed
     {
         return static::$uuidFactory
             ? call_user_func(static::$uuidFactory)
@@ -1980,7 +1980,7 @@ class Str
      *
      * @return UuidInterface|string
      */
-    public static function orderedUuid(): UuidInterface|string
+    public static function orderedUuid(): mixed
     {
         if (static::$uuidFactory) {
             return call_user_func(static::$uuidFactory);
@@ -2051,7 +2051,7 @@ class Str
      * @param (Closure(UuidInterface): mixed)|null $callback
      * @return UuidInterface|string
      */
-    public static function freezeUuids(?Closure $callback = null): UuidInterface|string
+    public static function freezeUuids(?Closure $callback = null): mixed
     {
         $uuid = Str::uuid();
 
@@ -2084,7 +2084,7 @@ class Str
      * @param DateTimeInterface|null $time
      * @return Ulid|string
      */
-    public static function ulid(?DateTimeInterface $time = null): Ulid|string
+    public static function ulid(?DateTimeInterface $time = null): mixed
     {
         if (static::$ulidFactory) {
             return call_user_func(static::$ulidFactory);
@@ -2158,7 +2158,7 @@ class Str
      * @param (Closure(Ulid): mixed)|null $callback
      * @return Ulid|string
      */
-    public static function freezeUlids(?Closure $callback = null): Ulid|string
+    public static function freezeUlids(?Closure $callback = null): mixed
     {
         $ulid = Str::ulid();
 

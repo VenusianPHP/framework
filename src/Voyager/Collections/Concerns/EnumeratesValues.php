@@ -141,10 +141,10 @@ trait EnumeratesValues
      * @template TUnwrapKey of array-key
      * @template TUnwrapValue
      *
-     * @param  array<TUnwrapKey, TUnwrapValue>|static<TUnwrapKey, TUnwrapValue>  $value
-     * @return array<TUnwrapKey, TUnwrapValue>
+     * @param  array<TUnwrapKey, TUnwrapValue>|static<TUnwrapKey, TUnwrapValue>|mixed  $value
+     * @return array<TUnwrapKey, TUnwrapValue>|mixed
      */
-    public static function unwrap(array|Enumerable $value): array
+    public static function unwrap(mixed $value): mixed
     {
         return $value instanceof Enumerable ? $value->all() : $value;
     }
@@ -652,7 +652,7 @@ trait EnumeratesValues
      * @param  mixed  $value
      * @return static
      */
-    public function where(callable|string $key, mixed $operator = null, mixed $value = null): static
+    public function where(callable|string|null $key, mixed $operator = null, mixed $value = null): static
     {
         return $this->filter($this->operatorForWhere(...func_get_args()));
     }
@@ -686,7 +686,7 @@ trait EnumeratesValues
      * @param  mixed  $value
      * @return static
      */
-    public function whereStrict(string $key, mixed $value): static
+    public function whereStrict(?string $key, mixed $value): static
     {
         return $this->where($key, '===', $value);
     }
@@ -905,7 +905,7 @@ trait EnumeratesValues
      * @param  (callable(TValue, TKey): bool)|bool|TValue  $callback
      * @return static
      */
-    public function reject(callable|bool $callback = true): static
+    public function reject(mixed $callback = true): static
     {
         $useAsCallable = $this->useAsCallable($callback);
 

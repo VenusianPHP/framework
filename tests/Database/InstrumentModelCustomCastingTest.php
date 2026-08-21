@@ -1,9 +1,6 @@
 <?php
 
-namespace Tests\Database;
-
 use Brick\Math\BigNumber;
-use GMP;
 use Voyager\Contracts\Database\Instrument\Castable;
 use Voyager\Contracts\Database\Instrument\CastsAttributes;
 use Voyager\Contracts\Database\Instrument\ComparesCastableAttributes;
@@ -13,246 +10,215 @@ use Voyager\Database\Instrument\MassAssignmentException;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Schema\Blueprint;
-use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\Group;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-#[Group('integration')]
-class InstrumentModelCustomCastingTest extends TestCase
+/**
+ * Get a database connection instance.
+ *
+ * @return \Voyager\Database\Connection
+ */
+function castingModelConnection()
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-
-        $db->bootInstrument();
-        $db->setAsGlobal();
-
-        $this->createSchema();
-    }
-
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    public function createSchema()
-    {
-        $this->schema()->create('casting_table', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('address_line_one');
-            $table->string('address_line_two');
-            $table->integer('amount');
-            $table->string('string_field');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('members', function (Blueprint $table) {
-            $table->increments('id');
-            $table->decimal('amount', 4, 2);
-        });
-
-        $this->schema()->create('documents', function (Blueprint $table) {
-            $table->increments('id');
-            $table->json('document');
-        });
-
-        $this->schema()->create('people', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('address_line_one');
-            $table->string('address_line_two');
-        });
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('casting_table');
-        $this->schema()->drop('members');
-        $this->schema()->drop('documents');
-
-        parent::tearDown();
-    }
-
-    #[RequiresPhpExtension('gmp')]
-    public function testSavingCastedAttributesToDatabase()
-    {
-        /** @var \Tests\Integration\Database\CustomCasts $model */
-        $model = CustomCasts::create([
-            'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
-            'amount' => gmp_init('1000', 10),
-            'string_field' => null,
-        ]);
-
-        $this->assertSame('address_line_one_value', $model->getOriginal('address_line_one'));
-        $this->assertSame('address_line_one_value', $model->getAttribute('address_line_one'));
-
-        $this->assertSame('address_line_two_value', $model->getOriginal('address_line_two'));
-        $this->assertSame('address_line_two_value', $model->getAttribute('address_line_two'));
-
-        $this->assertSame('1000', $model->getRawOriginal('amount'));
-
-        $this->assertNull($model->getOriginal('string_field'));
-        $this->assertNull($model->getAttribute('string_field'));
-        $this->assertSame('', $model->getRawOriginal('string_field'));
-
-        /** @var \Tests\Integration\Database\CustomCasts $another_model */
-        $another_model = CustomCasts::create([
-            'address_line_one' => 'address_line_one_value',
-            'address_line_two' => 'address_line_two_value',
-            'amount' => gmp_init('500', 10),
-            'string_field' => 'string_value',
-        ]);
-
-        $this->assertInstanceOf(AddressModel::class, $another_model->address);
-
-        $this->assertSame('address_line_one_value', $model->address->lineOne);
-        $this->assertSame('address_line_two_value', $model->address->lineTwo);
-        $this->assertInstanceOf(GMP::class, $model->amount);
-    }
-
-    #[RequiresPhpExtension('gmp')]
-    public function testInvalidArgumentExceptionOnInvalidValue()
-    {
-        /** @var \Tests\Integration\Database\CustomCasts $model */
-        $model = CustomCasts::create([
-            'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
-            'amount' => gmp_init('1000', 10),
-            'string_field' => 'string_value',
-        ]);
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The given value is not an Address instance.');
-        $model->address = 'single_string';
-
-        // Ensure model values remain unchanged
-        $this->assertSame('address_line_one_value', $model->address->lineOne);
-        $this->assertSame('address_line_two_value', $model->address->lineTwo);
-    }
-
-    #[RequiresPhpExtension('gmp')]
-    public function testInvalidArgumentExceptionOnNull()
-    {
-        /** @var \Tests\Integration\Database\CustomCasts $model */
-        $model = CustomCasts::create([
-            'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
-            'amount' => gmp_init('1000', 10),
-            'string_field' => 'string_value',
-        ]);
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The given value is not an Address instance.');
-        $model->address = null;
-
-        // Ensure model values remain unchanged
-        $this->assertSame('address_line_one_value', $model->address->lineOne);
-        $this->assertSame('address_line_two_value', $model->address->lineTwo);
-    }
-
-    #[RequiresPhpExtension('gmp')]
-    public function testModelsWithCustomCastsCanBeConvertedToArrays()
-    {
-        /** @var \Tests\Integration\Database\CustomCasts $model */
-        $model = CustomCasts::create([
-            'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
-            'amount' => gmp_init('1000', 10),
-            'string_field' => 'string_value',
-        ]);
-
-        // Ensure model values remain unchanged
-        $this->assertSame([
-            'address_line_one' => 'address_line_one_value',
-            'address_line_two' => 'address_line_two_value',
-            'amount' => '1000',
-            'string_field' => 'string_value',
-            'updated_at' => $model->updated_at->toJSON(),
-            'created_at' => $model->created_at->toJSON(),
-            'id' => 1,
-        ], $model->toArray());
-    }
-
-    public function testModelWithCustomCastsWorkWithCustomIncrementDecrement()
-    {
-        $model = new Member();
-        $model->amount = new Euro('2');
-        $model->save();
-
-        $this->assertInstanceOf(Euro::class, $model->amount);
-        $this->assertEquals('2', $model->amount->value);
-
-        $model->increment('amount', new Euro('1'));
-        $this->assertEquals('3.00', $model->amount->value);
-    }
-
-    public function testModelWithCustomCastsCompareFunction()
-    {
-        // Set raw attribute, this is an example of how we would receive JSON string from the database.
-        // Note the spaces after the colon.
-        $model = new Document();
-        $model->setRawAttributes(['document' => '{"content": "content", "title": "hello world"}']);
-        $model->save();
-
-        // Inverse title and content this would result in a different JSON string when json_encode is used
-        $document = new \stdClass();
-        $document->title = 'hello world';
-        $document->content = 'content';
-        $model->document = $document;
-
-        $this->assertFalse($model->isDirty('document'));
-        $document->title = 'hello world 2';
-        $this->assertTrue($model->isDirty('document'));
-    }
-
-    public function testModelWithCustomCastsUnguardedCanBeMassAssigned()
-    {
-        Person::preventSilentlyDiscardingAttributes();
-
-        $model = Person::create(['address' => new AddressDto('123 Main St.', 'Anytown, USA')]);
-        $this->assertSame('123 Main St.', $model->address->lineOne);
-        $this->assertSame('Anytown, USA', $model->address->lineTwo);
-    }
-
-    public function testModelWithCustomCastsCanBeGuardedAgainstMassAssigned()
-    {
-        Person::preventSilentlyDiscardingAttributes();
-        $this->expectException(MassAssignmentException::class);
-
-        $model = new Person();
-        $model->guard(['address']);
-        $model->create(['id' => 1, 'address' => new AddressDto('123 Main St.', 'Anytown, USA')]);
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection()
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
+    return Instrument::getConnectionResolver()->connection();
 }
+
+/**
+ * Get a schema builder instance.
+ *
+ * @return \Voyager\Database\Schema\Builder
+ */
+function castingModelSchema()
+{
+    return castingModelConnection()->getSchemaBuilder();
+}
+
+/**
+ * Setup the database schema.
+ *
+ * @return void
+ */
+function castingModelCreateSchema()
+{
+    castingModelSchema()->create('casting_table', function (Blueprint $table) {
+        $table->increments('id');
+        $table->string('address_line_one');
+        $table->string('address_line_two');
+        $table->integer('amount');
+        $table->string('string_field');
+        $table->timestamps();
+    });
+
+    castingModelSchema()->create('members', function (Blueprint $table) {
+        $table->increments('id');
+        $table->decimal('amount', 4, 2);
+    });
+
+    castingModelSchema()->create('documents', function (Blueprint $table) {
+        $table->increments('id');
+        $table->json('document');
+    });
+
+    castingModelSchema()->create('people', function (Blueprint $table) {
+        $table->increments('id');
+        $table->string('address_line_one');
+        $table->string('address_line_two');
+    });
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    castingModelCreateSchema();
+});
+
+afterEach(function () {
+    castingModelSchema()->drop('casting_table');
+    castingModelSchema()->drop('members');
+    castingModelSchema()->drop('documents');
+});
+
+test('saving casted attributes to database', function () {
+    /** @var \Tests\Integration\Database\CustomCasts $model */
+    $model = CustomCasts::create([
+        'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
+        'amount' => gmp_init('1000', 10),
+        'string_field' => null,
+    ]);
+
+    $this->assertSame('address_line_one_value', $model->getOriginal('address_line_one'));
+    $this->assertSame('address_line_one_value', $model->getAttribute('address_line_one'));
+
+    $this->assertSame('address_line_two_value', $model->getOriginal('address_line_two'));
+    $this->assertSame('address_line_two_value', $model->getAttribute('address_line_two'));
+
+    $this->assertSame('1000', $model->getRawOriginal('amount'));
+
+    $this->assertNull($model->getOriginal('string_field'));
+    $this->assertNull($model->getAttribute('string_field'));
+    $this->assertSame('', $model->getRawOriginal('string_field'));
+
+    /** @var \Tests\Integration\Database\CustomCasts $another_model */
+    $another_model = CustomCasts::create([
+        'address_line_one' => 'address_line_one_value',
+        'address_line_two' => 'address_line_two_value',
+        'amount' => gmp_init('500', 10),
+        'string_field' => 'string_value',
+    ]);
+
+    $this->assertInstanceOf(AddressModel::class, $another_model->address);
+
+    $this->assertSame('address_line_one_value', $model->address->lineOne);
+    $this->assertSame('address_line_two_value', $model->address->lineTwo);
+    $this->assertInstanceOf(GMP::class, $model->amount);
+})->skip(fn () => ! extension_loaded('gmp'), 'Requires the gmp extension.');
+
+test('invalid argument exception on invalid value', function () {
+    /** @var \Tests\Integration\Database\CustomCasts $model */
+    $model = CustomCasts::create([
+        'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
+        'amount' => gmp_init('1000', 10),
+        'string_field' => 'string_value',
+    ]);
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('The given value is not an Address instance.');
+    $model->address = 'single_string';
+
+    // Ensure model values remain unchanged
+    $this->assertSame('address_line_one_value', $model->address->lineOne);
+    $this->assertSame('address_line_two_value', $model->address->lineTwo);
+})->skip(fn () => ! extension_loaded('gmp'), 'Requires the gmp extension.');
+
+test('invalid argument exception on null', function () {
+    /** @var \Tests\Integration\Database\CustomCasts $model */
+    $model = CustomCasts::create([
+        'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
+        'amount' => gmp_init('1000', 10),
+        'string_field' => 'string_value',
+    ]);
+
+    $this->expectException(InvalidArgumentException::class);
+    $this->expectExceptionMessage('The given value is not an Address instance.');
+    $model->address = null;
+
+    // Ensure model values remain unchanged
+    $this->assertSame('address_line_one_value', $model->address->lineOne);
+    $this->assertSame('address_line_two_value', $model->address->lineTwo);
+})->skip(fn () => ! extension_loaded('gmp'), 'Requires the gmp extension.');
+
+test('models with custom casts can be converted to arrays', function () {
+    /** @var \Tests\Integration\Database\CustomCasts $model */
+    $model = CustomCasts::create([
+        'address' => new AddressModel('address_line_one_value', 'address_line_two_value'),
+        'amount' => gmp_init('1000', 10),
+        'string_field' => 'string_value',
+    ]);
+
+    // Ensure model values remain unchanged
+    $this->assertSame([
+        'address_line_one' => 'address_line_one_value',
+        'address_line_two' => 'address_line_two_value',
+        'amount' => '1000',
+        'string_field' => 'string_value',
+        'updated_at' => $model->updated_at->toJSON(),
+        'created_at' => $model->created_at->toJSON(),
+        'id' => 1,
+    ], $model->toArray());
+})->skip(fn () => ! extension_loaded('gmp'), 'Requires the gmp extension.');
+
+test('model with custom casts work with custom increment decrement', function () {
+    $model = new Member();
+    $model->amount = new Euro('2');
+    $model->save();
+
+    $this->assertInstanceOf(Euro::class, $model->amount);
+    $this->assertEquals('2', $model->amount->value);
+
+    $model->increment('amount', new Euro('1'));
+    $this->assertEquals('3.00', $model->amount->value);
+});
+
+test('model with custom casts compare function', function () {
+    // Set raw attribute, this is an example of how we would receive JSON string from the database.
+    // Note the spaces after the colon.
+    $model = new Document();
+    $model->setRawAttributes(['document' => '{"content": "content", "title": "hello world"}']);
+    $model->save();
+
+    // Inverse title and content this would result in a different JSON string when json_encode is used
+    $document = new \stdClass();
+    $document->title = 'hello world';
+    $document->content = 'content';
+    $model->document = $document;
+
+    $this->assertFalse($model->isDirty('document'));
+    $document->title = 'hello world 2';
+    $this->assertTrue($model->isDirty('document'));
+});
+
+test('model with custom casts unguarded can be mass assigned', function () {
+    Person::preventSilentlyDiscardingAttributes();
+
+    $model = Person::create(['address' => new AddressDto('123 Main St.', 'Anytown, USA')]);
+    $this->assertSame('123 Main St.', $model->address->lineOne);
+    $this->assertSame('Anytown, USA', $model->address->lineTwo);
+});
+
+test('model with custom casts can be guarded against mass assigned', function () {
+    Person::preventSilentlyDiscardingAttributes();
+    $this->expectException(MassAssignmentException::class);
+
+    $model = new Person();
+    $model->guard(['address']);
+    $model->create(['id' => 1, 'address' => new AddressDto('123 Main St.', 'Anytown, USA')]);
+});
 
 /**
  * Instrument Casts...

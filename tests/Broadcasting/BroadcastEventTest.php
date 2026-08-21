@@ -1,125 +1,108 @@
 <?php
 
-namespace Tests\Broadcasting;
-
-use Exception;
 use Voyager\Broadcasting\BroadcastEvent;
 use Voyager\Broadcasting\InteractsWithBroadcasting;
 use Voyager\Contracts\Broadcasting\Broadcaster;
 use Voyager\Contracts\Broadcasting\Factory as BroadcastingFactory;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
-use Throwable;
 
-class BroadcastEventTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('basic event broadcast parameter formatting', function () {
+    $broadcaster = m::mock(Broadcaster::class);
 
-    public function testBasicEventBroadcastParameterFormatting()
+    $broadcaster->shouldReceive('broadcast')->once()->with(
+        ['test-channel'], TestBroadcastEvent::class, ['firstName' => 'Taylor', 'lastName' => 'Otwell', 'collection' => ['foo' => 'bar']]
+    );
+
+    $manager = m::mock(BroadcastingFactory::class);
+
+    $manager->shouldReceive('connection')->once()->with(null)->andReturn($broadcaster);
+
+    $event = new TestBroadcastEvent;
+
+    (new BroadcastEvent($event))->handle($manager);
+});
+
+test('manual parameter specification', function () {
+    $broadcaster = m::mock(Broadcaster::class);
+
+    $broadcaster->shouldReceive('broadcast')->once()->with(
+        ['test-channel'], TestBroadcastEventWithManualData::class, ['name' => 'Taylor', 'socket' => null]
+    );
+
+    $manager = m::mock(BroadcastingFactory::class);
+
+    $manager->shouldReceive('connection')->once()->with(null)->andReturn($broadcaster);
+
+    $event = new TestBroadcastEventWithManualData;
+
+    (new BroadcastEvent($event))->handle($manager);
+});
+
+test('specific broadcaster given', function () {
+    $broadcaster = m::mock(Broadcaster::class);
+
+    $broadcaster->shouldReceive('broadcast')->once();
+
+    $manager = m::mock(BroadcastingFactory::class);
+
+    $manager->shouldReceive('connection')->once()->with('log')->andReturn($broadcaster);
+
+    $event = new TestBroadcastEventWithSpecificBroadcaster;
+
+    (new BroadcastEvent($event))->handle($manager);
+});
+
+test('specific channels per connection', function () {
+    $broadcaster = m::mock(Broadcaster::class);
+
+    $broadcaster->shouldReceive('broadcast')->once()->with(
+        ['first-channel'], TestBroadcastEventWithChannelsPerConnection::class, ['firstName' => 'Taylor', 'lastName' => 'Otwell', 'collection' => ['foo' => 'bar']]
+    );
+
+    $broadcaster->shouldReceive('broadcast')->once()->with(
+        ['second-channel'], TestBroadcastEventWithChannelsPerConnection::class, ['firstName' => 'Taylor']
+    );
+
+    $manager = m::mock(BroadcastingFactory::class);
+
+    $manager->shouldReceive('connection')->once()->with('first_connection')->andReturn($broadcaster);
+    $manager->shouldReceive('connection')->once()->with('second_connection')->andReturn($broadcaster);
+
+    $event = new TestBroadcastEventWithChannelsPerConnection;
+
+    (new BroadcastEvent($event))->handle($manager);
+});
+
+test('middleware proxies middleware from underlying event', function () {
+    $event = new class
     {
-        $broadcaster = m::mock(Broadcaster::class);
-
-        $broadcaster->shouldReceive('broadcast')->once()->with(
-            ['test-channel'], TestBroadcastEvent::class, ['firstName' => 'Taylor', 'lastName' => 'Otwell', 'collection' => ['foo' => 'bar']]
-        );
-
-        $manager = m::mock(BroadcastingFactory::class);
-
-        $manager->shouldReceive('connection')->once()->with(null)->andReturn($broadcaster);
-
-        $event = new TestBroadcastEvent;
-
-        (new BroadcastEvent($event))->handle($manager);
-    }
-
-    public function testManualParameterSpecification()
-    {
-        $broadcaster = m::mock(Broadcaster::class);
-
-        $broadcaster->shouldReceive('broadcast')->once()->with(
-            ['test-channel'], TestBroadcastEventWithManualData::class, ['name' => 'Taylor', 'socket' => null]
-        );
-
-        $manager = m::mock(BroadcastingFactory::class);
-
-        $manager->shouldReceive('connection')->once()->with(null)->andReturn($broadcaster);
-
-        $event = new TestBroadcastEventWithManualData;
-
-        (new BroadcastEvent($event))->handle($manager);
-    }
-
-    public function testSpecificBroadcasterGiven()
-    {
-        $broadcaster = m::mock(Broadcaster::class);
-
-        $broadcaster->shouldReceive('broadcast')->once();
-
-        $manager = m::mock(BroadcastingFactory::class);
-
-        $manager->shouldReceive('connection')->once()->with('log')->andReturn($broadcaster);
-
-        $event = new TestBroadcastEventWithSpecificBroadcaster;
-
-        (new BroadcastEvent($event))->handle($manager);
-    }
-
-    public function testSpecificChannelsPerConnection()
-    {
-        $broadcaster = m::mock(Broadcaster::class);
-
-        $broadcaster->shouldReceive('broadcast')->once()->with(
-            ['first-channel'], TestBroadcastEventWithChannelsPerConnection::class, ['firstName' => 'Taylor', 'lastName' => 'Otwell', 'collection' => ['foo' => 'bar']]
-        );
-
-        $broadcaster->shouldReceive('broadcast')->once()->with(
-            ['second-channel'], TestBroadcastEventWithChannelsPerConnection::class, ['firstName' => 'Taylor']
-        );
-
-        $manager = m::mock(BroadcastingFactory::class);
-
-        $manager->shouldReceive('connection')->once()->with('first_connection')->andReturn($broadcaster);
-        $manager->shouldReceive('connection')->once()->with('second_connection')->andReturn($broadcaster);
-
-        $event = new TestBroadcastEventWithChannelsPerConnection;
-
-        (new BroadcastEvent($event))->handle($manager);
-    }
-
-    public function testMiddlewareProxiesMiddlewareFromUnderlyingEvent()
-    {
-        $event = new class
+        public function middleware(): array
         {
-            public function middleware(): array
-            {
-                return ['foo', 'bar'];
-            }
-        };
+            return ['foo', 'bar'];
+        }
+    };
 
-        $job = new BroadcastEvent($event);
+    $job = new BroadcastEvent($event);
 
-        $this->assertSame(['foo', 'bar'], $job->middleware());
-    }
+    expect($job->middleware())->toBe(['foo', 'bar']);
+});
 
-    public function testMiddlewareProxiesFailedHandlerFromUnderlyingEvent()
+test('middleware proxies failed handler from underlying event', function () {
+    $event = new class
     {
-        $event = new class
+        public function failed(?Throwable $e = null): void
         {
-            public function failed(?Throwable $e = null): void
-            {
-                $e->validateCall();
-            }
-        };
+            $e->validateCall();
+        }
+    };
 
-        $job = new BroadcastEvent($event);
+    $job = new BroadcastEvent($event);
 
-        $exception = m::mock(Exception::class);
-        $exception->expects('validateCall');
+    $exception = m::mock(Exception::class);
+    $exception->expects('validateCall');
 
-        $job->failed($exception);
-    }
-}
+    $job->failed($exception);
+});
 
 class TestBroadcastEvent
 {

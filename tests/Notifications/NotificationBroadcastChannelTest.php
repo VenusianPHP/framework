@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Notifications;
-
 use Voyager\Broadcasting\PrivateChannel;
 use Voyager\Contracts\Events\Dispatcher;
 use Voyager\Notifications\Channels\BroadcastChannel;
@@ -9,99 +7,86 @@ use Voyager\Notifications\Events\BroadcastNotificationCreated;
 use Voyager\Notifications\Messages\BroadcastMessage;
 use Voyager\Notifications\Notification;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class NotificationBroadcastChannelTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('database channel creates database record with proper data', function () {
+    $notification = new NotificationBroadcastChannelTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testDatabaseChannelCreatesDatabaseRecordWithProperData()
-    {
-        $notification = new NotificationBroadcastChannelTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $events = m::mock(Dispatcher::class);
+    $events->shouldReceive('dispatch')->once()->with(m::type(BroadcastNotificationCreated::class));
+    $channel = new BroadcastChannel($events);
+    $channel->send($notifiable, $notification);
+});
 
-        $events = m::mock(Dispatcher::class);
-        $events->shouldReceive('dispatch')->once()->with(m::type(BroadcastNotificationCreated::class));
-        $channel = new BroadcastChannel($events);
-        $channel->send($notifiable, $notification);
-    }
+test('notification is broadcasted on custom channels', function () {
+    $notification = new CustomChannelsTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testNotificationIsBroadcastedOnCustomChannels()
-    {
-        $notification = new CustomChannelsTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $event = new BroadcastNotificationCreated(
+        $notifiable, $notification, $notification->toArray($notifiable)
+    );
 
-        $event = new BroadcastNotificationCreated(
-            $notifiable, $notification, $notification->toArray($notifiable)
-        );
+    $channels = $event->broadcastOn();
 
-        $channels = $event->broadcastOn();
+    expect($channels[0])->toEqual(new PrivateChannel('custom-channel'));
+});
 
-        $this->assertEquals(new PrivateChannel('custom-channel'), $channels[0]);
-    }
+test('notification is broadcasted with custom event name', function () {
+    $notification = new CustomEventNameTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testNotificationIsBroadcastedWithCustomEventName()
-    {
-        $notification = new CustomEventNameTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $event = new BroadcastNotificationCreated(
+        $notifiable, $notification, $notification->toArray($notifiable)
+    );
 
-        $event = new BroadcastNotificationCreated(
-            $notifiable, $notification, $notification->toArray($notifiable)
-        );
+    $eventName = $event->broadcastType();
 
-        $eventName = $event->broadcastType();
+    expect($eventName)->toBe('custom.type');
+});
 
-        $this->assertSame('custom.type', $eventName);
-    }
+test('notification is broadcasted with custom data type', function () {
+    $notification = new CustomEventNameTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testNotificationIsBroadcastedWithCustomDataType()
-    {
-        $notification = new CustomEventNameTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $event = new BroadcastNotificationCreated(
+        $notifiable, $notification, $notification->toArray($notifiable)
+    );
 
-        $event = new BroadcastNotificationCreated(
-            $notifiable, $notification, $notification->toArray($notifiable)
-        );
+    $data = $event->broadcastWith();
 
-        $data = $event->broadcastWith();
+    expect($data['type'])->toBe('custom.type');
+});
 
-        $this->assertSame('custom.type', $data['type']);
-    }
+test('notification is broadcasted now', function () {
+    $notification = new TestNotificationBroadCastedNow;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testNotificationIsBroadcastedNow()
-    {
-        $notification = new TestNotificationBroadCastedNow;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $events = m::mock(Dispatcher::class);
+    $events->shouldReceive('dispatch')->once()->with(m::on(function ($event) {
+        return $event->connection === 'sync';
+    }));
+    $channel = new BroadcastChannel($events);
+    $channel->send($notifiable, $notification);
+});
 
-        $events = m::mock(Dispatcher::class);
-        $events->shouldReceive('dispatch')->once()->with(m::on(function ($event) {
-            return $event->connection === 'sync';
-        }));
-        $channel = new BroadcastChannel($events);
-        $channel->send($notifiable, $notification);
-    }
+test('notification is broadcasted with custom additional payload', function () {
+    $notification = new CustomBroadcastWithTestNotification;
+    $notification->id = 1;
+    $notifiable = m::mock();
 
-    public function testNotificationIsBroadcastedWithCustomAdditionalPayload()
-    {
-        $notification = new CustomBroadcastWithTestNotification;
-        $notification->id = 1;
-        $notifiable = m::mock();
+    $event = new BroadcastNotificationCreated(
+        $notifiable, $notification, $notification->toArray($notifiable)
+    );
 
-        $event = new BroadcastNotificationCreated(
-            $notifiable, $notification, $notification->toArray($notifiable)
-        );
+    $data = $event->broadcastWith();
 
-        $data = $event->broadcastWith();
-
-        $this->assertArrayHasKey('additional', $data);
-    }
-}
+    expect($data)->toHaveKey('additional');
+});
 
 class NotificationBroadcastChannelTestNotification extends Notification
 {

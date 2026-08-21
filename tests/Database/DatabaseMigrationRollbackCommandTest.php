@@ -1,89 +1,76 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Console\Migrations\RollbackCommand;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\System\Application;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
-class DatabaseMigrationRollbackCommandTest extends TestCase
+function migrationRollbackRunCommand($command, $input = [])
 {
-    use MockeryPHPUnitIntegration;
-
-    public function testRollbackCommandCallsMigratorWithProperArguments()
-    {
-        $command = new RollbackCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
-            return $callback();
-        });
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => false, 'step' => 0, 'batch' => 0]);
-
-        $this->runCommand($command);
-    }
-
-    public function testRollbackCommandCallsMigratorWithStepOption()
-    {
-        $command = new RollbackCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
-            return $callback();
-        });
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => false, 'step' => 2, 'batch' => 0]);
-
-        $this->runCommand($command, ['--step' => 2]);
-    }
-
-    public function testRollbackCommandCanBePretended()
-    {
-        $command = new RollbackCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
-            return $callback();
-        });
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], true);
-
-        $this->runCommand($command, ['--pretend' => true, '--database' => 'foo']);
-    }
-
-    public function testRollbackCommandCanBePretendedWithStepOption()
-    {
-        $command = new RollbackCommand($migrator = m::mock(Migrator::class));
-        $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
-        $app->useDatabasePath(__DIR__);
-        $command->setVenusian($app);
-        $migrator->shouldReceive('paths')->once()->andReturn([]);
-        $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
-            return $callback();
-        });
-        $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
-        $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => true, 'step' => 2, 'batch' => 0]);
-
-        $this->runCommand($command, ['--pretend' => true, '--database' => 'foo', '--step' => 2]);
-    }
-
-    protected function runCommand($command, $input = [])
-    {
-        return $command->run(new ArrayInput($input), new NullOutput);
-    }
+    return $command->run(new ArrayInput($input), new NullOutput);
 }
+
+test('rollback command calls migrator with proper arguments', function () {
+    $command = new RollbackCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
+        return $callback();
+    });
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => false, 'step' => 0, 'batch' => 0]);
+
+    migrationRollbackRunCommand($command);
+});
+
+test('rollback command calls migrator with step option', function () {
+    $command = new RollbackCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
+        return $callback();
+    });
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => false, 'step' => 2, 'batch' => 0]);
+
+    migrationRollbackRunCommand($command, ['--step' => 2]);
+});
+
+test('rollback command can be pretended', function () {
+    $command = new RollbackCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
+        return $callback();
+    });
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], true);
+
+    migrationRollbackRunCommand($command, ['--pretend' => true, '--database' => 'foo']);
+});
+
+test('rollback command can be pretended with step option', function () {
+    $command = new RollbackCommand($migrator = m::mock(Migrator::class));
+    $app = new ApplicationDatabaseRollbackStub(['path.database' => __DIR__]);
+    $app->useDatabasePath(__DIR__);
+    $command->setVenusian($app);
+    $migrator->shouldReceive('paths')->once()->andReturn([]);
+    $migrator->shouldReceive('usingConnection')->once()->andReturnUsing(function ($name, $callback) {
+        return $callback();
+    });
+    $migrator->shouldReceive('setOutput')->once()->andReturn($migrator);
+    $migrator->shouldReceive('rollback')->once()->with([__DIR__.DIRECTORY_SEPARATOR.'migrations'], ['pretend' => true, 'step' => 2, 'batch' => 0]);
+
+    migrationRollbackRunCommand($command, ['--pretend' => true, '--database' => 'foo', '--step' => 2]);
+});
 
 class ApplicationDatabaseRollbackStub extends Application
 {

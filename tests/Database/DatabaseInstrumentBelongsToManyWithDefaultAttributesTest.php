@@ -7,56 +7,47 @@ use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\BelongsToMany;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use stdClass;
 
-class DatabaseInstrumentBelongsToManyWithDefaultAttributesTest extends TestCase
+function dbBTMDefaultAttrsRelationArguments()
 {
-    use MockeryPHPUnitIntegration;
+    $parent = m::mock(Model::class);
+    $parent->shouldReceive('getKey')->andReturn(1);
+    $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
+    $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
+    $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
 
-    public function testWithPivotValueMethodSetsWhereConditionsForFetching()
-    {
-        $relation = $this->getMockBuilder(BelongsToMany::class)->onlyMethods(['touchIfTouching'])->setConstructorArgs($this->getRelationArguments())->getMock();
-        $relation->withPivotValue(['is_admin' => 1]);
-    }
+    $builder = m::mock(Builder::class);
+    $related = m::mock(Model::class);
+    $builder->shouldReceive('getModel')->andReturn($related);
 
-    public function testWithPivotValueMethodSetsDefaultArgumentsForInsertion()
-    {
-        $relation = $this->getMockBuilder(BelongsToMany::class)->onlyMethods(['touchIfTouching'])->setConstructorArgs($this->getRelationArguments())->getMock();
-        $relation->withPivotValue(['is_admin' => 1]);
+    $related->shouldReceive('getTable')->andReturn('users');
+    $related->shouldReceive('getKeyName')->andReturn('id');
+    $related->shouldReceive('qualifyColumn')->with('id')->andReturn('users.id');
 
-        $query = m::mock(stdClass::class);
-        $query->shouldReceive('from')->once()->with('club_user')->andReturn($query);
-        $query->shouldReceive('insert')->once()->with([['club_id' => 1, 'user_id' => 1, 'is_admin' => 1]])->andReturn(true);
-        $relation->getQuery()->getQuery()->shouldReceive('newQuery')->once()->andReturn($query);
+    $builder->shouldReceive('join')->once()->with('club_user', 'users.id', '=', 'club_user.user_id');
+    $builder->shouldReceive('where')->once()->with('club_user.club_id', '=', 1);
+    $builder->shouldReceive('where')->once()->with('club_user.is_admin', '=', 1, 'and');
 
-        $relation->attach(1);
-    }
+    $builder->shouldReceive('getQuery')->andReturn($mockQueryBuilder = m::mock(stdClass::class));
+    $mockQueryBuilder->shouldReceive('getGrammar')->andReturn(m::mock(Grammar::class, ['isExpression' => false]));
 
-    public function getRelationArguments()
-    {
-        $parent = m::mock(Model::class);
-        $parent->shouldReceive('getKey')->andReturn(1);
-        $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
-        $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
-        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-
-        $builder = m::mock(Builder::class);
-        $related = m::mock(Model::class);
-        $builder->shouldReceive('getModel')->andReturn($related);
-
-        $related->shouldReceive('getTable')->andReturn('users');
-        $related->shouldReceive('getKeyName')->andReturn('id');
-        $related->shouldReceive('qualifyColumn')->with('id')->andReturn('users.id');
-
-        $builder->shouldReceive('join')->once()->with('club_user', 'users.id', '=', 'club_user.user_id');
-        $builder->shouldReceive('where')->once()->with('club_user.club_id', '=', 1);
-        $builder->shouldReceive('where')->once()->with('club_user.is_admin', '=', 1, 'and');
-
-        $builder->shouldReceive('getQuery')->andReturn($mockQueryBuilder = m::mock(stdClass::class));
-        $mockQueryBuilder->shouldReceive('getGrammar')->andReturn(m::mock(Grammar::class, ['isExpression' => false]));
-
-        return [$builder, $parent, 'club_user', 'club_id', 'user_id', 'id', 'id', null, false];
-    }
+    return [$builder, $parent, 'club_user', 'club_id', 'user_id', 'id', 'id', null, false];
 }
+
+test('with pivot value method sets where conditions for fetching', function () {
+    $relation = $this->getMockBuilder(BelongsToMany::class)->onlyMethods(['touchIfTouching'])->setConstructorArgs(dbBTMDefaultAttrsRelationArguments())->getMock();
+    $relation->withPivotValue(['is_admin' => 1]);
+});
+
+test('with pivot value method sets default arguments for insertion', function () {
+    $relation = $this->getMockBuilder(BelongsToMany::class)->onlyMethods(['touchIfTouching'])->setConstructorArgs(dbBTMDefaultAttrsRelationArguments())->getMock();
+    $relation->withPivotValue(['is_admin' => 1]);
+
+    $query = m::mock(stdClass::class);
+    $query->shouldReceive('from')->once()->with('club_user')->andReturn($query);
+    $query->shouldReceive('insert')->once()->with([['club_id' => 1, 'user_id' => 1, 'is_admin' => 1]])->andReturn(true);
+    $relation->getQuery()->getQuery()->shouldReceive('newQuery')->once()->andReturn($query);
+
+    $relation->attach(1);
+});

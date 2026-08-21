@@ -8,303 +8,413 @@ use Voyager\Database\Instrument\ModelNotFoundException;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\LazyCollection;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentHasManyThroughIntegrationTest extends TestCase
+function dbHasManyThroughIntegrationConnection()
 {
-    use MockeryPHPUnitIntegration;
+    return Instrument::getConnectionResolver()->connection();
+}
 
-    protected function setUp(): void
-    {
-        $db = new DB;
+function dbHasManyThroughIntegrationSchema()
+{
+    return dbHasManyThroughIntegrationConnection()->getSchemaBuilder();
+}
 
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
+function dbHasManyThroughIntegrationCreateSchema()
+{
+    dbHasManyThroughIntegrationSchema()->create('users', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+        $table->unsignedInteger('country_id');
+        $table->string('country_short');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+
+    dbHasManyThroughIntegrationSchema()->create('posts', function ($table) {
+        $table->increments('id');
+        $table->integer('user_id');
+        $table->string('title');
+        $table->text('body');
+        $table->string('email');
+        $table->timestamps();
+    });
+
+    dbHasManyThroughIntegrationSchema()->create('countries', function ($table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->string('shortname');
+        $table->timestamps();
+    });
+}
+
+function dbHasManyThroughIntegrationSeedData()
+{
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->createMany([
+            ['title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
+            ['title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
+        ]);
+}
+
+function dbHasManyThroughIntegrationSeedDataExtended()
+{
+    $country = HasManyThroughTestCountry::create(['id' => 2, 'name' => 'United Kingdom', 'shortname' => 'uk']);
+    $country->users()->create(['id' => 2, 'email' => 'example1@gmail.com', 'country_short' => 'uk'])
+        ->posts()->createMany([
+            ['title' => 'Example1 title1', 'body' => 'Example1 body1', 'email' => 'example1post1@gmail.com'],
+            ['title' => 'Example1 title2', 'body' => 'Example1 body2', 'email' => 'example1post2@gmail.com'],
+        ]);
+    $country->users()->create(['id' => 3, 'email' => 'example2@gmail.com', 'country_short' => 'uk'])
+        ->posts()->createMany([
+            ['title' => 'Example2 title1', 'body' => 'Example2 body1', 'email' => 'example2post1@gmail.com'],
+            ['title' => 'Example2 title2', 'body' => 'Example2 body2', 'email' => 'example2post2@gmail.com'],
+        ]);
+    $country->users()->create(['id' => 4, 'email' => 'example3@gmail.com', 'country_short' => 'uk'])
+        ->posts()->createMany([
+            ['title' => 'Example3 title1', 'body' => 'Example3 body1', 'email' => 'example3post1@gmail.com'],
+            ['title' => 'Example3 title2', 'body' => 'Example3 body2', 'email' => 'example3post2@gmail.com'],
+        ]);
+}
+
+/**
+ * Seed data for a default HasManyThrough setup.
+ */
+function dbHasManyThroughIntegrationSeedDefaultData()
+{
+    HasManyThroughDefaultTestCountry::create(['id' => 1, 'name' => 'United States of America'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com'])
+        ->posts()->createMany([
+            ['title' => 'A title', 'body' => 'A body'],
+            ['title' => 'Another title', 'body' => 'Another body'],
+        ]);
+}
+
+/**
+ * Drop the default tables.
+ */
+function dbHasManyThroughIntegrationResetDefault()
+{
+    dbHasManyThroughIntegrationSchema()->drop('users_default');
+    dbHasManyThroughIntegrationSchema()->drop('posts_default');
+    dbHasManyThroughIntegrationSchema()->drop('countries_default');
+}
+
+/**
+ * Migrate tables for classes with a Laravel "default" HasManyThrough setup.
+ */
+function dbHasManyThroughIntegrationMigrateDefault()
+{
+    dbHasManyThroughIntegrationSchema()->create('users_default', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+        $table->unsignedInteger('has_many_through_default_test_country_id');
+        $table->timestamps();
+    });
+
+    dbHasManyThroughIntegrationSchema()->create('posts_default', function ($table) {
+        $table->increments('id');
+        $table->integer('has_many_through_default_test_user_id');
+        $table->string('title');
+        $table->text('body');
+        $table->timestamps();
+    });
+
+    dbHasManyThroughIntegrationSchema()->create('countries_default', function ($table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->timestamps();
+    });
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    dbHasManyThroughIntegrationCreateSchema();
+});
+
+afterEach(function () {
+    dbHasManyThroughIntegrationSchema()->drop('users');
+    dbHasManyThroughIntegrationSchema()->drop('posts');
+    dbHasManyThroughIntegrationSchema()->drop('countries');
+});
+
+test('it loads a has many through relation with custom keys', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $posts = HasManyThroughTestCountry::first()->posts;
+
+    expect($posts[0]->title)->toBe('A title')
+        ->and($posts)->toHaveCount(2);
+});
+
+test('it loads a default has many through relation', function () {
+    dbHasManyThroughIntegrationMigrateDefault();
+    dbHasManyThroughIntegrationSeedDefaultData();
+
+    $posts = HasManyThroughDefaultTestCountry::first()->posts;
+    expect($posts[0]->title)->toBe('A title')
+        ->and($posts)->toHaveCount(2);
+
+    dbHasManyThroughIntegrationResetDefault();
+});
+
+test('it loads a relation with custom intermediate and local key', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $posts = HasManyThroughIntermediateTestCountry::first()->posts;
+
+    expect($posts[0]->title)->toBe('A title')
+        ->and($posts)->toHaveCount(2);
+});
+
+test('eager loading a relation with custom intermediate and local key', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $posts = HasManyThroughIntermediateTestCountry::with('posts')->first()->posts;
+
+    expect($posts[0]->title)->toBe('A title')
+        ->and($posts)->toHaveCount(2);
+});
+
+test('where has on a relation with custom intermediate and local key', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $country = HasManyThroughIntermediateTestCountry::whereHas('posts', function ($query) {
+        $query->where('title', 'A title');
+    })->get();
+
+    expect($country)->toHaveCount(1);
+});
+
+test('with where has on a relation with custom intermediate and local key', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $country = HasManyThroughIntermediateTestCountry::withWhereHas('posts', function ($query) {
+        $query->where('title', 'A title');
+    })->get();
+
+    expect($country)->toHaveCount(1)
+        ->and($country->first()->relationLoaded('posts'))->toBeTrue()
+        ->and($country->first()->posts->pluck('title')->unique()->toArray())->toEqual(['A title']);
+});
+
+test('find method', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->createMany([
+            ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
+            ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
         ]);
 
-        $db->bootInstrument();
-        $db->setAsGlobal();
+    $country = HasManyThroughTestCountry::first();
+    $post = $country->posts()->find(1);
 
-        $this->createSchema();
-    }
+    expect($post)->not->toBeNull()
+        ->and($post->title)->toBe('A title')
+        ->and($country->posts()->find([1, 2]))->toHaveCount(2)
+        ->and($country->posts()->find(new Collection([1, 2])))->toHaveCount(2);
+});
 
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    public function createSchema()
-    {
-        $this->schema()->create('users', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-            $table->unsignedInteger('country_id');
-            $table->string('country_short');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+test('find many method', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->createMany([
+            ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
+            ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
+        ]);
 
-        $this->schema()->create('posts', function ($table) {
-            $table->increments('id');
-            $table->integer('user_id');
-            $table->string('title');
-            $table->text('body');
-            $table->string('email');
-            $table->timestamps();
-        });
+    $country = HasManyThroughTestCountry::first();
 
-        $this->schema()->create('countries', function ($table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->string('shortname');
-            $table->timestamps();
-        });
-    }
+    expect($country->posts()->findMany([1, 2]))->toHaveCount(2)
+        ->and($country->posts()->findMany(new Collection([1, 2])))->toHaveCount(2);
+});
 
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('users');
-        $this->schema()->drop('posts');
-        $this->schema()->drop('countries');
+test('first or fail throws an exception', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
 
-        parent::tearDown();
-    }
+    HasManyThroughTestCountry::first()->posts()->firstOrFail();
+})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost].');
 
-    public function testItLoadsAHasManyThroughRelationWithCustomKeys()
-    {
-        $this->seedData();
-        $posts = HasManyThroughTestCountry::first()->posts;
+test('find or fail throws an exception', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
 
-        $this->assertSame('A title', $posts[0]->title);
-        $this->assertCount(2, $posts);
-    }
+    HasManyThroughTestCountry::first()->posts()->findOrFail(1);
+})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1');
 
-    public function testItLoadsADefaultHasManyThroughRelation()
-    {
-        $this->migrateDefault();
-        $this->seedDefaultData();
+test('find or fail with many throws an exception', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
 
-        $posts = HasManyThroughDefaultTestCountry::first()->posts;
-        $this->assertSame('A title', $posts[0]->title);
-        $this->assertCount(2, $posts);
+    HasManyThroughTestCountry::first()->posts()->findOrFail([1, 2]);
+})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
 
-        $this->resetDefault();
-    }
+test('find or fail with many using collection throws an exception', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
 
-    public function testItLoadsARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $posts = HasManyThroughIntermediateTestCountry::first()->posts;
+    HasManyThroughTestCountry::first()->posts()->findOrFail(new Collection([1, 2]));
+})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
 
-        $this->assertSame('A title', $posts[0]->title);
-        $this->assertCount(2, $posts);
-    }
+test('find or method', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
 
-    public function testEagerLoadingARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $posts = HasManyThroughIntermediateTestCountry::with('posts')->first()->posts;
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(1, fn () => 'callback result');
+    expect($result)->toBeInstanceOf(HasManyThroughTestPost::class)
+        ->and($result->id)->toBe(1)
+        ->and($result->title)->toBe('A title');
 
-        $this->assertSame('A title', $posts[0]->title);
-        $this->assertCount(2, $posts);
-    }
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(1, ['posts.id'], fn () => 'callback result');
+    expect($result)->toBeInstanceOf(HasManyThroughTestPost::class)
+        ->and($result->id)->toBe(1)
+        ->and($result->title)->toBeNull();
 
-    public function testWhereHasOnARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $country = HasManyThroughIntermediateTestCountry::whereHas('posts', function ($query) {
-            $query->where('title', 'A title');
-        })->get();
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(2, fn () => 'callback result');
+    expect($result)->toBe('callback result');
+});
 
-        $this->assertCount(1, $country);
-    }
+test('find or method with many', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->createMany([
+            ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
+            ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
+        ]);
 
-    public function testWithWhereHasOnARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $country = HasManyThroughIntermediateTestCountry::withWhereHas('posts', function ($query) {
-            $query->where('title', 'A title');
-        })->get();
+    $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2], fn () => 'callback result');
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result[0]->id)->toBe(1)
+        ->and($result[1]->id)->toBe(2)
+        ->and($result[0]->title)->toBe('A title')
+        ->and($result[1]->title)->toBe('Another title');
 
-        $this->assertCount(1, $country);
-        $this->assertTrue($country->first()->relationLoaded('posts'));
-        $this->assertEquals($country->first()->posts->pluck('title')->unique()->toArray(), ['A title']);
-    }
+    $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2], ['posts.id'], fn () => 'callback result');
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result[0]->id)->toBe(1)
+        ->and($result[1]->id)->toBe(2)
+        ->and($result[0]->title)->toBeNull()
+        ->and($result[1]->title)->toBeNull();
 
-    public function testFindMethod()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->createMany([
-                ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
-                ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
-            ]);
+    $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2, 3], fn () => 'callback result');
+    expect($result)->toBe('callback result');
+});
 
-        $country = HasManyThroughTestCountry::first();
-        $post = $country->posts()->find(1);
+test('find or method with many using collection', function () {
+    HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
+        ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
+        ->posts()->createMany([
+            ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
+            ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
+        ]);
 
-        $this->assertNotNull($post);
-        $this->assertSame('A title', $post->title);
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2]), fn () => 'callback result');
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result[0]->id)->toBe(1)
+        ->and($result[1]->id)->toBe(2)
+        ->and($result[0]->title)->toBe('A title')
+        ->and($result[1]->title)->toBe('Another title');
 
-        $this->assertCount(2, $country->posts()->find([1, 2]));
-        $this->assertCount(2, $country->posts()->find(new Collection([1, 2])));
-    }
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2]), ['posts.id'], fn () => 'callback result');
+    expect($result)->toBeInstanceOf(Collection::class)
+        ->and($result[0]->id)->toBe(1)
+        ->and($result[1]->id)->toBe(2)
+        ->and($result[0]->title)->toBeNull()
+        ->and($result[1]->title)->toBeNull();
 
-    public function testFindManyMethod()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->createMany([
-                ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
-                ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
-            ]);
+    $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2, 3]), fn () => 'callback result');
+    expect($result)->toBe('callback result');
+});
 
-        $country = HasManyThroughTestCountry::first();
+test('first retrieves first record', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $post = HasManyThroughTestCountry::first()->posts()->first();
 
-        $this->assertCount(2, $country->posts()->findMany([1, 2]));
-        $this->assertCount(2, $country->posts()->findMany(new Collection([1, 2])));
-    }
+    expect($post)->not->toBeNull()
+        ->and($post->title)->toBe('A title');
+});
 
-    public function testFirstOrFailThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
-        $this->expectExceptionMessage('No query results for model [Tests\Database\HasManyThroughTestPost].');
+test('all columns are retrieved by default', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $post = HasManyThroughTestCountry::first()->posts()->first();
+    expect(array_keys($post->getAttributes()))->toEqual([
+        'id',
+        'user_id',
+        'title',
+        'body',
+        'email',
+        'created_at',
+        'updated_at',
+        'laravel_through_key',
+    ]);
+});
 
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
+test('only proper columns are selected if provided', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $post = HasManyThroughTestCountry::first()->posts()->first(['title', 'body']);
 
-        HasManyThroughTestCountry::first()->posts()->firstOrFail();
-    }
+    expect(array_keys($post->getAttributes()))->toEqual([
+        'title',
+        'body',
+        'laravel_through_key',
+    ]);
+});
 
-    public function testFindOrFailThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
-        $this->expectExceptionMessage('No query results for model [Tests\Database\HasManyThroughTestPost] 1');
+test('chunk returns correct models', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
+    $country->posts()->chunk(10, function ($postsChunk) {
+        $post = $postsChunk->first();
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key',
+        ], array_keys($post->getAttributes()));
+    });
+});
 
-        HasManyThroughTestCountry::first()->posts()->findOrFail(1);
-    }
+test('chunk by id', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-    public function testFindOrFailWithManyThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
-        $this->expectExceptionMessage('No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
+    $i = 0;
+    $count = 0;
 
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
+    $country->posts()->chunkById(2, function ($collection) use (&$i, &$count) {
+        $i++;
+        $count += $collection->count();
+    });
 
-        HasManyThroughTestCountry::first()->posts()->findOrFail([1, 2]);
-    }
+    expect($i)->toEqual(3)
+        ->and($count)->toEqual(6);
+});
 
-    public function testFindOrFailWithManyUsingCollectionThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
-        $this->expectExceptionMessage('No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
+test('cursor returns correct models', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
+    $posts = $country->posts()->cursor();
 
-        HasManyThroughTestCountry::first()->posts()->findOrFail(new Collection([1, 2]));
-    }
+    expect($posts)->toBeInstanceOf(LazyCollection::class);
 
-    public function testFindOrMethod()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(1, fn () => 'callback result');
-        $this->assertInstanceOf(HasManyThroughTestPost::class, $result);
-        $this->assertSame(1, $result->id);
-        $this->assertSame('A title', $result->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(1, ['posts.id'], fn () => 'callback result');
-        $this->assertInstanceOf(HasManyThroughTestPost::class, $result);
-        $this->assertSame(1, $result->id);
-        $this->assertNull($result->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(2, fn () => 'callback result');
-        $this->assertSame('callback result', $result);
-    }
-
-    public function testFindOrMethodWithMany()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->createMany([
-                ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
-                ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
-            ]);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2], fn () => 'callback result');
-        $this->assertInstanceOf(Collection::class, $result);
-        $this->assertSame(1, $result[0]->id);
-        $this->assertSame(2, $result[1]->id);
-        $this->assertSame('A title', $result[0]->title);
-        $this->assertSame('Another title', $result[1]->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2], ['posts.id'], fn () => 'callback result');
-        $this->assertInstanceOf(Collection::class, $result);
-        $this->assertSame(1, $result[0]->id);
-        $this->assertSame(2, $result[1]->id);
-        $this->assertNull($result[0]->title);
-        $this->assertNull($result[1]->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr([1, 2, 3], fn () => 'callback result');
-        $this->assertSame('callback result', $result);
-    }
-
-    public function testFindOrMethodWithManyUsingCollection()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->createMany([
-                ['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
-                ['id' => 2, 'title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
-            ]);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2]), fn () => 'callback result');
-        $this->assertInstanceOf(Collection::class, $result);
-        $this->assertSame(1, $result[0]->id);
-        $this->assertSame(2, $result[1]->id);
-        $this->assertSame('A title', $result[0]->title);
-        $this->assertSame('Another title', $result[1]->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2]), ['posts.id'], fn () => 'callback result');
-        $this->assertInstanceOf(Collection::class, $result);
-        $this->assertSame(1, $result[0]->id);
-        $this->assertSame(2, $result[1]->id);
-        $this->assertNull($result[0]->title);
-        $this->assertNull($result[1]->title);
-
-        $result = HasManyThroughTestCountry::first()->posts()->findOr(new Collection([1, 2, 3]), fn () => 'callback result');
-        $this->assertSame('callback result', $result);
-    }
-
-    public function testFirstRetrievesFirstRecord()
-    {
-        $this->seedData();
-        $post = HasManyThroughTestCountry::first()->posts()->first();
-
-        $this->assertNotNull($post);
-        $this->assertSame('A title', $post->title);
-    }
-
-    public function testAllColumnsAreRetrievedByDefault()
-    {
-        $this->seedData();
-        $post = HasManyThroughTestCountry::first()->posts()->first();
+    foreach ($posts as $post) {
         $this->assertEquals([
             'id',
             'user_id',
@@ -316,292 +426,108 @@ class DatabaseInstrumentHasManyThroughIntegrationTest extends TestCase
             'laravel_through_key',
         ], array_keys($post->getAttributes()));
     }
+});
 
-    public function testOnlyProperColumnsAreSelectedIfProvided()
-    {
-        $this->seedData();
-        $post = HasManyThroughTestCountry::first()->posts()->first(['title', 'body']);
+test('each returns correct models', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
+    $country->posts()->each(function ($post) {
         $this->assertEquals([
+            'id',
+            'user_id',
             'title',
             'body',
+            'email',
+            'created_at',
+            'updated_at',
             'laravel_through_key',
         ], array_keys($post->getAttributes()));
-    }
+    });
+});
 
-    public function testChunkReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
+test('each by id returns correct models', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-        $country->posts()->chunk(10, function ($postsChunk) {
-            $post = $postsChunk->first();
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        });
-    }
+    $country->posts()->eachById(function ($post) {
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key',
+        ], array_keys($post->getAttributes()));
+    });
+});
 
-    public function testChunkById()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
+test('lazy returns correct models', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-        $i = 0;
-        $count = 0;
+    $country->posts()->lazy(10)->each(function ($post) {
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key',
+        ], array_keys($post->getAttributes()));
+    });
+});
 
-        $country->posts()->chunkById(2, function ($collection) use (&$i, &$count) {
-            $i++;
-            $count += $collection->count();
-        });
+test('lazy by id', function () {
+    dbHasManyThroughIntegrationSeedData();
+    dbHasManyThroughIntegrationSeedDataExtended();
+    $country = HasManyThroughTestCountry::find(2);
 
-        $this->assertEquals(3, $i);
-        $this->assertEquals(6, $count);
-    }
+    $i = 0;
 
-    public function testCursorReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
+    $country->posts()->lazyById(2)->each(function ($post) use (&$i, &$count) {
+        $i++;
 
-        $posts = $country->posts()->cursor();
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key',
+        ], array_keys($post->getAttributes()));
+    });
 
-        $this->assertInstanceOf(LazyCollection::class, $posts);
+    expect($i)->toEqual(6);
+});
 
-        foreach ($posts as $post) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        }
-    }
+test('intermediate soft deletes are ignored', function () {
+    dbHasManyThroughIntegrationSeedData();
+    HasManyThroughSoftDeletesTestUser::first()->delete();
 
-    public function testEachReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
+    $posts = HasManyThroughSoftDeletesTestCountry::first()->posts;
 
-        $country->posts()->each(function ($post) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        });
-    }
+    expect($posts[0]->title)->toBe('A title')
+        ->and($posts)->toHaveCount(2);
+});
 
-    public function testEachByIdReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
+test('eager loading loads related models correctly', function () {
+    dbHasManyThroughIntegrationSeedData();
+    $country = HasManyThroughSoftDeletesTestCountry::with('posts')->first();
 
-        $country->posts()->eachById(function ($post) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        });
-    }
-
-    public function testLazyReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
-
-        $country->posts()->lazy(10)->each(function ($post) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        });
-    }
-
-    public function testLazyById()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $country = HasManyThroughTestCountry::find(2);
-
-        $i = 0;
-
-        $country->posts()->lazyById(2)->each(function ($post) use (&$i, &$count) {
-            $i++;
-
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key',
-            ], array_keys($post->getAttributes()));
-        });
-
-        $this->assertEquals(6, $i);
-    }
-
-    public function testIntermediateSoftDeletesAreIgnored()
-    {
-        $this->seedData();
-        HasManyThroughSoftDeletesTestUser::first()->delete();
-
-        $posts = HasManyThroughSoftDeletesTestCountry::first()->posts;
-
-        $this->assertSame('A title', $posts[0]->title);
-        $this->assertCount(2, $posts);
-    }
-
-    public function testEagerLoadingLoadsRelatedModelsCorrectly()
-    {
-        $this->seedData();
-        $country = HasManyThroughSoftDeletesTestCountry::with('posts')->first();
-
-        $this->assertSame('us', $country->shortname);
-        $this->assertSame('A title', $country->posts[0]->title);
-        $this->assertCount(2, $country->posts);
-    }
-
-    /**
-     * Helpers...
-     */
-    protected function seedData()
-    {
-        HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us'])
-            ->posts()->createMany([
-                ['title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com'],
-                ['title' => 'Another title', 'body' => 'Another body', 'email' => 'taylorotwell@gmail.com'],
-            ]);
-    }
-
-    protected function seedDataExtended()
-    {
-        $country = HasManyThroughTestCountry::create(['id' => 2, 'name' => 'United Kingdom', 'shortname' => 'uk']);
-        $country->users()->create(['id' => 2, 'email' => 'example1@gmail.com', 'country_short' => 'uk'])
-            ->posts()->createMany([
-                ['title' => 'Example1 title1', 'body' => 'Example1 body1', 'email' => 'example1post1@gmail.com'],
-                ['title' => 'Example1 title2', 'body' => 'Example1 body2', 'email' => 'example1post2@gmail.com'],
-            ]);
-        $country->users()->create(['id' => 3, 'email' => 'example2@gmail.com', 'country_short' => 'uk'])
-            ->posts()->createMany([
-                ['title' => 'Example2 title1', 'body' => 'Example2 body1', 'email' => 'example2post1@gmail.com'],
-                ['title' => 'Example2 title2', 'body' => 'Example2 body2', 'email' => 'example2post2@gmail.com'],
-            ]);
-        $country->users()->create(['id' => 4, 'email' => 'example3@gmail.com', 'country_short' => 'uk'])
-            ->posts()->createMany([
-                ['title' => 'Example3 title1', 'body' => 'Example3 body1', 'email' => 'example3post1@gmail.com'],
-                ['title' => 'Example3 title2', 'body' => 'Example3 body2', 'email' => 'example3post2@gmail.com'],
-            ]);
-    }
-
-    /**
-     * Seed data for a default HasManyThrough setup.
-     */
-    protected function seedDefaultData()
-    {
-        HasManyThroughDefaultTestCountry::create(['id' => 1, 'name' => 'United States of America'])
-            ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com'])
-            ->posts()->createMany([
-                ['title' => 'A title', 'body' => 'A body'],
-                ['title' => 'Another title', 'body' => 'Another body'],
-            ]);
-    }
-
-    /**
-     * Drop the default tables.
-     */
-    protected function resetDefault()
-    {
-        $this->schema()->drop('users_default');
-        $this->schema()->drop('posts_default');
-        $this->schema()->drop('countries_default');
-    }
-
-    /**
-     * Migrate tables for classes with a Laravel "default" HasManyThrough setup.
-     */
-    protected function migrateDefault()
-    {
-        $this->schema()->create('users_default', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-            $table->unsignedInteger('has_many_through_default_test_country_id');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('posts_default', function ($table) {
-            $table->increments('id');
-            $table->integer('has_many_through_default_test_user_id');
-            $table->string('title');
-            $table->text('body');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('countries_default', function ($table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->timestamps();
-        });
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection()
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
-}
+    expect($country->shortname)->toBe('us')
+        ->and($country->posts[0]->title)->toBe('A title')
+        ->and($country->posts)->toHaveCount(2);
+});
 
 /**
  * Instrument Models...

@@ -1,20 +1,10 @@
 <?php
 
-namespace Tests\Notifications;
-
 use Voyager\Notifications\Action;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class NotificationActionTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('action is created properly', function () {
+    $action = new Action('Text', 'url');
 
-    public function testActionIsCreatedProperly()
-    {
-        $action = new Action('Text', 'url');
-
-        $this->assertSame('Text', $action->text);
-        $this->assertSame('url', $action->url);
-    }
-}
+    expect($action->text)->toBe('Text')
+        ->and($action->url)->toBe('url');
+});

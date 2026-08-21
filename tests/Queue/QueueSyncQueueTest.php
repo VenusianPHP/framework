@@ -1,8 +1,5 @@
 <?php
 
-namespace Tests\Queue;
-
-use Exception;
 use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Events\Dispatcher;
 use Voyager\Contracts\Queue\QueueableEntity;
@@ -12,103 +9,88 @@ use Voyager\Contracts\Queue\ShouldQueueAfterCommit;
 use Voyager\Queue\InteractsWithQueue;
 use Voyager\Queue\Jobs\SyncJob;
 use Voyager\Queue\SyncQueue;
-use LogicException;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class QueueSyncQueueTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+afterEach(function () {
+    Vessel::setInstance(null);
+});
 
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
+test('push should fire job instantly', function () {
+    unset($_SERVER['__sync.test']);
 
-        parent::tearDown();
+    $sync = new SyncQueue;
+    $container = new Vessel;
+    $sync->setContainer($container);
+
+    $sync->push(SyncQueueTestHandler::class, ['foo' => 'bar']);
+    expect($_SERVER['__sync.test'][0])->toBeInstanceOf(SyncJob::class);
+    expect($_SERVER['__sync.test'][1])->toBe(['foo' => 'bar']);
+});
+
+test('failed job gets handled when an exception is thrown', function () {
+    unset($_SERVER['__sync.failed']);
+
+    $sync = new SyncQueue;
+    $container = new Vessel;
+    Vessel::setInstance($container);
+    $events = m::mock(Dispatcher::class);
+    $events->shouldReceive('dispatch')->times(4);
+    $container->instance('events', $events);
+    $container->instance(Dispatcher::class, $events);
+    $sync->setContainer($container);
+
+    try {
+        $sync->push(FailingSyncQueueTestHandler::class, ['foo' => 'bar']);
+    } catch (Exception) {
+        expect($_SERVER['__sync.failed'])->toBeTrue();
     }
 
-    public function testPushShouldFireJobInstantly()
-    {
-        unset($_SERVER['__sync.test']);
+    Vessel::setInstance();
+});
 
-        $sync = new SyncQueue;
-        $container = new Vessel;
-        $sync->setContainer($container);
+test('failed job has access to job instance', function () {
+    unset($_SERVER['__sync.failed']);
 
-        $sync->push(SyncQueueTestHandler::class, ['foo' => 'bar']);
-        $this->assertInstanceOf(SyncJob::class, $_SERVER['__sync.test'][0]);
-        $this->assertEquals(['foo' => 'bar'], $_SERVER['__sync.test'][1]);
+    $sync = new SyncQueue;
+    $container = new Vessel;
+    $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
+    $sync->setContainer($container);
+
+    SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
+        return ['data' => ['extra' => 'extraValue']];
+    });
+
+    try {
+        $sync->push(new FailingSyncQueueJob());
+    } catch (LogicException) {
+        expect($_SERVER['__sync.failed'])->toBe('extraValue');
     }
+});
 
-    public function testFailedJobGetsHandledWhenAnExceptionIsThrown()
-    {
-        unset($_SERVER['__sync.failed']);
+test('creates payload object', function () {
+    $sync = new SyncQueue;
+    $container = new Vessel;
+    $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
+    $sync->setContainer($container);
 
-        $sync = new SyncQueue;
-        $container = new Vessel;
-        Vessel::setInstance($container);
-        $events = m::mock(Dispatcher::class);
-        $events->shouldReceive('dispatch')->times(4);
-        $container->instance('events', $events);
-        $container->instance(Dispatcher::class, $events);
-        $sync->setContainer($container);
+    SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
+        return ['data' => ['extra' => 'extraValue']];
+    });
 
-        try {
-            $sync->push(FailingSyncQueueTestHandler::class, ['foo' => 'bar']);
-        } catch (Exception) {
-            $this->assertTrue($_SERVER['__sync.failed']);
-        }
-
-        Vessel::setInstance();
+    try {
+        $sync->push(new SyncQueueJob());
+    } catch (LogicException $e) {
+        expect($e->getMessage())->toBe('extraValue');
     }
+});
 
-    public function testFailedJobHasAccessToJobInstance()
-    {
-        unset($_SERVER['__sync.failed']);
-
-        $sync = new SyncQueue;
-        $container = new Vessel;
-        $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
-        $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
-        $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
-        $sync->setContainer($container);
-
-        SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
-            return ['data' => ['extra' => 'extraValue']];
-        });
-
-        try {
-            $sync->push(new FailingSyncQueueJob());
-        } catch (LogicException) {
-            $this->assertSame('extraValue', $_SERVER['__sync.failed']);
-        }
-    }
-
-    public function testCreatesPayloadObject()
-    {
-        $sync = new SyncQueue;
-        $container = new Vessel;
-        $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
-        $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
-        $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
-        $sync->setContainer($container);
-
-        SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
-            return ['data' => ['extra' => 'extraValue']];
-        });
-
-        try {
-            $sync->push(new SyncQueueJob());
-        } catch (LogicException $e) {
-            $this->assertSame('extraValue', $e->getMessage());
-        }
-    }
-
-    // Laravel covers the four after-commit dispatch paths here with mocks of
-    // Database's DatabaseTransactionsManager. They come back with Database in
-    // wave 6; SyncQueue's own after-commit logic is unchanged from upstream.
-}
+// Laravel covers the four after-commit dispatch paths here with mocks of
+// Database's DatabaseTransactionsManager. They come back with Database in
+// wave 6; SyncQueue's own after-commit logic is unchanged from upstream.
 
 class SyncQueueTestEntity implements QueueableEntity
 {

@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Vessel\Vessel;
 use Voyager\Database\Connection;
 use Voyager\Database\Schema\SQLiteBuilder;
@@ -9,86 +7,73 @@ use Voyager\Filesystem\Filesystem;
 use Voyager\MagicAliases\MagicAlias;
 use Voyager\NutsAndBolts\MagicAliases\File;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseSQLiteBuilderTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    $app = new Vessel;
 
-    protected function setUp(): void
-    {
-        $app = new Vessel;
+    Vessel::setInstance($app)
+        ->singleton('files', Filesystem::class);
 
-        Vessel::setInstance($app)
-            ->singleton('files', Filesystem::class);
+    MagicAlias::setMagicAliasApplication($app);
+});
 
-        MagicAlias::setMagicAliasApplication($app);
-    }
+afterEach(function () {
+    Vessel::setInstance(null);
+    MagicAlias::setMagicAliasApplication(null);
+});
 
-    protected function tearDown(): void
-    {
-        Vessel::setInstance(null);
-        MagicAlias::setMagicAliasApplication(null);
+test('create database', function () {
+    $connection = m::mock(Connection::class);
+    $connection->shouldReceive('getSchemaGrammar')->once();
 
-        parent::tearDown();
-    }
+    $builder = new SQLiteBuilder($connection);
 
-    public function testCreateDatabase()
-    {
-        $connection = m::mock(Connection::class);
-        $connection->shouldReceive('getSchemaGrammar')->once();
+    File::shouldReceive('put')
+        ->once()
+        ->with('my_temporary_database_a', '')
+        ->andReturn(20); // bytes
 
-        $builder = new SQLiteBuilder($connection);
+    expect($builder->createDatabase('my_temporary_database_a'))->toBeTrue();
 
-        File::shouldReceive('put')
-            ->once()
-            ->with('my_temporary_database_a', '')
-            ->andReturn(20); // bytes
+    File::shouldReceive('put')
+        ->once()
+        ->with('my_temporary_database_b', '')
+        ->andReturn(false);
 
-        $this->assertTrue($builder->createDatabase('my_temporary_database_a'));
+    expect($builder->createDatabase('my_temporary_database_b'))->toBeFalse();
+});
 
-        File::shouldReceive('put')
-            ->once()
-            ->with('my_temporary_database_b', '')
-            ->andReturn(false);
+test('drop database if exists', function () {
+    $connection = m::mock(Connection::class);
+    $connection->shouldReceive('getSchemaGrammar')->once();
 
-        $this->assertFalse($builder->createDatabase('my_temporary_database_b'));
-    }
+    $builder = new SQLiteBuilder($connection);
 
-    public function testDropDatabaseIfExists()
-    {
-        $connection = m::mock(Connection::class);
-        $connection->shouldReceive('getSchemaGrammar')->once();
+    File::shouldReceive('exists')
+        ->once()
+        ->andReturn(true);
 
-        $builder = new SQLiteBuilder($connection);
+    File::shouldReceive('delete')
+        ->once()
+        ->with('my_temporary_database_b')
+        ->andReturn(true);
 
-        File::shouldReceive('exists')
-            ->once()
-            ->andReturn(true);
+    expect($builder->dropDatabaseIfExists('my_temporary_database_b'))->toBeTrue();
 
-        File::shouldReceive('delete')
-            ->once()
-            ->with('my_temporary_database_b')
-            ->andReturn(true);
+    File::shouldReceive('exists')
+        ->once()
+        ->andReturn(false);
 
-        $this->assertTrue($builder->dropDatabaseIfExists('my_temporary_database_b'));
+    expect($builder->dropDatabaseIfExists('my_temporary_database_c'))->toBeTrue();
 
-        File::shouldReceive('exists')
-            ->once()
-            ->andReturn(false);
+    File::shouldReceive('exists')
+        ->once()
+        ->andReturn(true);
 
-        $this->assertTrue($builder->dropDatabaseIfExists('my_temporary_database_c'));
+    File::shouldReceive('delete')
+        ->once()
+        ->with('my_temporary_database_c')
+        ->andReturn(false);
 
-        File::shouldReceive('exists')
-            ->once()
-            ->andReturn(true);
-
-        File::shouldReceive('delete')
-            ->once()
-            ->with('my_temporary_database_c')
-            ->andReturn(false);
-
-        $this->assertFalse($builder->dropDatabaseIfExists('my_temporary_database_c'));
-    }
-}
+    expect($builder->dropDatabaseIfExists('my_temporary_database_c'))->toBeFalse();
+});

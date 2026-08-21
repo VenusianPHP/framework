@@ -1,7 +1,5 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Collection;
 use Voyager\Database\Instrument\Model;
@@ -9,88 +7,79 @@ use Voyager\Database\Instrument\Relations\HasMany;
 use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Query\Builder as QueryBuilder;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class InstrumentHasOneOrManyDeprecationTest extends TestCase
+function instrumentHasOneOrManyDeprecationHasManyRelation(): HasMany
 {
-    use MockeryPHPUnitIntegration;
+    $queryBuilder = m::mock(QueryBuilder::class);
+    $builder = m::mock(Builder::class, [$queryBuilder]);
+    $builder->shouldReceive('whereNotNull')->with('table.foreign_key');
+    $builder->shouldReceive('where')->with('table.foreign_key', '=', 1);
+    $related = m::mock(Model::class);
+    $builder->shouldReceive('getModel')->andReturn($related);
+    $parent = m::mock(Model::class);
+    $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
+    $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
 
-    public function testHasManyMatchWithNullLocalKey(): void
-    {
-        $relation = $this->getHasManyRelation();
-
-        $result1 = new HasOneOrManyDeprecationModelStub;
-        $result1->foreign_key = 1;
-
-        $result2 = new HasOneOrManyDeprecationModelStub;
-        $result2->foreign_key = '';
-
-        $model1 = new HasOneOrManyDeprecationModelStub;
-        $model1->id = 1;
-        $model2 = new HasOneOrManyDeprecationModelStub;
-        $model2->id = null;
-
-        $relation->getRelated()->shouldReceive('newCollection')->andReturnUsing(function ($array) {
-            return new Collection($array);
-        });
-
-        $models = $relation->match([$model1, $model2], new Collection([$result1, $result2]), 'foo');
-
-        $this->assertCount(1, $models[0]->foo);
-        $this->assertNull($models[1]->foo);
-    }
-
-    public function testHasOneMatchWithNullLocalKey(): void
-    {
-        $relation = $this->getHasOneRelation();
-
-        $result1 = new HasOneOrManyDeprecationModelStub;
-        $result1->foreign_key = 1;
-
-        $model1 = new HasOneOrManyDeprecationModelStub;
-        $model1->id = 1;
-        $model2 = new HasOneOrManyDeprecationModelStub;
-        $model2->id = null;
-
-        $models = $relation->match([$model1, $model2], new Collection([$result1]), 'foo');
-
-        $this->assertInstanceOf(HasOneOrManyDeprecationModelStub::class, $models[0]->foo);
-        $this->assertNull($models[1]->foo);
-    }
-
-    protected function getHasManyRelation(): HasMany
-    {
-        $queryBuilder = m::mock(QueryBuilder::class);
-        $builder = m::mock(Builder::class, [$queryBuilder]);
-        $builder->shouldReceive('whereNotNull')->with('table.foreign_key');
-        $builder->shouldReceive('where')->with('table.foreign_key', '=', 1);
-        $related = m::mock(Model::class);
-        $builder->shouldReceive('getModel')->andReturn($related);
-        $parent = m::mock(Model::class);
-        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-        $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
-        $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
-
-        return new HasMany($builder, $parent, 'table.foreign_key', 'id');
-    }
-
-    protected function getHasOneRelation(): HasOne
-    {
-        $queryBuilder = m::mock(QueryBuilder::class);
-        $builder = m::mock(Builder::class, [$queryBuilder]);
-        $builder->shouldReceive('whereNotNull')->with('table.foreign_key');
-        $builder->shouldReceive('where')->with('table.foreign_key', '=', 1);
-        $related = m::mock(Model::class);
-        $builder->shouldReceive('getModel')->andReturn($related);
-        $parent = m::mock(Model::class);
-        $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
-        $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
-        $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
-
-        return new HasOne($builder, $parent, 'table.foreign_key', 'id');
-    }
+    return new HasMany($builder, $parent, 'table.foreign_key', 'id');
 }
+
+function instrumentHasOneOrManyDeprecationHasOneRelation(): HasOne
+{
+    $queryBuilder = m::mock(QueryBuilder::class);
+    $builder = m::mock(Builder::class, [$queryBuilder]);
+    $builder->shouldReceive('whereNotNull')->with('table.foreign_key');
+    $builder->shouldReceive('where')->with('table.foreign_key', '=', 1);
+    $related = m::mock(Model::class);
+    $builder->shouldReceive('getModel')->andReturn($related);
+    $parent = m::mock(Model::class);
+    $parent->shouldReceive('getAttribute')->with('id')->andReturn(1);
+    $parent->shouldReceive('getCreatedAtColumn')->andReturn('created_at');
+    $parent->shouldReceive('getUpdatedAtColumn')->andReturn('updated_at');
+
+    return new HasOne($builder, $parent, 'table.foreign_key', 'id');
+}
+
+test('has many match with null local key', function () {
+    $relation = instrumentHasOneOrManyDeprecationHasManyRelation();
+
+    $result1 = new HasOneOrManyDeprecationModelStub;
+    $result1->foreign_key = 1;
+
+    $result2 = new HasOneOrManyDeprecationModelStub;
+    $result2->foreign_key = '';
+
+    $model1 = new HasOneOrManyDeprecationModelStub;
+    $model1->id = 1;
+    $model2 = new HasOneOrManyDeprecationModelStub;
+    $model2->id = null;
+
+    $relation->getRelated()->shouldReceive('newCollection')->andReturnUsing(function ($array) {
+        return new Collection($array);
+    });
+
+    $models = $relation->match([$model1, $model2], new Collection([$result1, $result2]), 'foo');
+
+    $this->assertCount(1, $models[0]->foo);
+    $this->assertNull($models[1]->foo);
+});
+
+test('has one match with null local key', function () {
+    $relation = instrumentHasOneOrManyDeprecationHasOneRelation();
+
+    $result1 = new HasOneOrManyDeprecationModelStub;
+    $result1->foreign_key = 1;
+
+    $model1 = new HasOneOrManyDeprecationModelStub;
+    $model1->id = 1;
+    $model2 = new HasOneOrManyDeprecationModelStub;
+    $model2->id = null;
+
+    $models = $relation->match([$model1, $model2], new Collection([$result1]), 'foo');
+
+    $this->assertInstanceOf(HasOneOrManyDeprecationModelStub::class, $models[0]->foo);
+    $this->assertNull($models[1]->foo);
+});
 
 class HasOneOrManyDeprecationModelStub extends Model
 {

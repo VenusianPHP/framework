@@ -4,139 +4,121 @@ namespace Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentBelongsToManySyncReturnValueTypeTest extends TestCase
+/**
+ * Get a database connection instance.
+ *
+ * @return \Voyager\Database\ConnectionInterface
+ */
+function dbBtmSyncReturnValueTypeConnection()
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-
-        $db->bootInstrument();
-        $db->setAsGlobal();
-
-        $this->createSchema();
-    }
-
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    public function createSchema()
-    {
-        $this->schema()->create('users', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-        });
-
-        $this->schema()->create('articles', function ($table) {
-            $table->string('id');
-            $table->string('title');
-
-            $table->primary('id');
-        });
-
-        $this->schema()->create('article_user', function ($table) {
-            $table->string('article_id');
-            $table->foreign('article_id')->references('id')->on('articles');
-            $table->integer('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->boolean('visible')->default(false);
-        });
-    }
-
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('users');
-        $this->schema()->drop('articles');
-        $this->schema()->drop('article_user');
-
-        parent::tearDown();
-    }
-
-    /**
-     * Helpers...
-     */
-    protected function seedData()
-    {
-        BelongsToManySyncTestTestUser::create(['id' => 1, 'email' => 'taylorotwell@gmail.com']);
-        BelongsToManySyncTestTestArticle::insert([
-            ['id' => '7b7306ae-5a02-46fa-a84c-9538f45c7dd4', 'title' => 'uuid title'],
-            ['id' => (string) (PHP_INT_MAX + 1), 'title' => 'Another title'],
-            ['id' => '1', 'title' => 'Another title'],
-        ]);
-    }
-
-    public function testSyncReturnValueType()
-    {
-        $this->seedData();
-
-        $user = BelongsToManySyncTestTestUser::query()->first();
-        $articleIDs = BelongsToManySyncTestTestArticle::all()->pluck('id')->toArray();
-
-        $changes = $user->articles()->sync($articleIDs);
-
-        collect($changes['attached'])->map(function ($id) {
-            $this->assertSame(gettype($id), (new BelongsToManySyncTestTestArticle)->getKeyType());
-        });
-
-        $user->articles->each(function (BelongsToManySyncTestTestArticle $article) {
-            $this->assertSame('0', (string) $article->pivot->visible);
-        });
-    }
-
-    public function testSyncWithPivotDefaultsReturnValueType()
-    {
-        $this->seedData();
-
-        $user = BelongsToManySyncTestTestUser::query()->first();
-        $articleIDs = BelongsToManySyncTestTestArticle::all()->pluck('id')->toArray();
-
-        $changes = $user->articles()->syncWithPivotValues($articleIDs, ['visible' => true]);
-
-        collect($changes['attached'])->each(function ($id) {
-            $this->assertSame(gettype($id), (new BelongsToManySyncTestTestArticle)->getKeyType());
-        });
-
-        $user->articles->each(function (BelongsToManySyncTestTestArticle $article) {
-            $this->assertSame('1', (string) $article->pivot->visible);
-        });
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\ConnectionInterface
-     */
-    protected function connection()
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
+    return Instrument::getConnectionResolver()->connection();
 }
+
+/**
+ * Get a schema builder instance.
+ *
+ * @return \Voyager\Database\Schema\Builder
+ */
+function dbBtmSyncReturnValueTypeSchema()
+{
+    return dbBtmSyncReturnValueTypeConnection()->getSchemaBuilder();
+}
+
+/**
+ * Setup the database schema.
+ *
+ * @return void
+ */
+function dbBtmSyncReturnValueTypeCreateSchema()
+{
+    dbBtmSyncReturnValueTypeSchema()->create('users', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+    });
+
+    dbBtmSyncReturnValueTypeSchema()->create('articles', function ($table) {
+        $table->string('id');
+        $table->string('title');
+
+        $table->primary('id');
+    });
+
+    dbBtmSyncReturnValueTypeSchema()->create('article_user', function ($table) {
+        $table->string('article_id');
+        $table->foreign('article_id')->references('id')->on('articles');
+        $table->integer('user_id')->unsigned();
+        $table->foreign('user_id')->references('id')->on('users');
+        $table->boolean('visible')->default(false);
+    });
+}
+
+/**
+ * Helpers...
+ */
+function dbBtmSyncReturnValueTypeSeedData()
+{
+    BelongsToManySyncTestTestUser::create(['id' => 1, 'email' => 'taylorotwell@gmail.com']);
+    BelongsToManySyncTestTestArticle::insert([
+        ['id' => '7b7306ae-5a02-46fa-a84c-9538f45c7dd4', 'title' => 'uuid title'],
+        ['id' => (string) (PHP_INT_MAX + 1), 'title' => 'Another title'],
+        ['id' => '1', 'title' => 'Another title'],
+    ]);
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+
+    $db->bootInstrument();
+    $db->setAsGlobal();
+
+    dbBtmSyncReturnValueTypeCreateSchema();
+});
+
+afterEach(function () {
+    dbBtmSyncReturnValueTypeSchema()->drop('users');
+    dbBtmSyncReturnValueTypeSchema()->drop('articles');
+    dbBtmSyncReturnValueTypeSchema()->drop('article_user');
+});
+
+test('sync return value type', function () {
+    dbBtmSyncReturnValueTypeSeedData();
+
+    $user = BelongsToManySyncTestTestUser::query()->first();
+    $articleIDs = BelongsToManySyncTestTestArticle::all()->pluck('id')->toArray();
+
+    $changes = $user->articles()->sync($articleIDs);
+
+    collect($changes['attached'])->map(function ($id) {
+        expect(gettype($id))->toBe((new BelongsToManySyncTestTestArticle)->getKeyType());
+    });
+
+    $user->articles->each(function (BelongsToManySyncTestTestArticle $article) {
+        expect((string) $article->pivot->visible)->toBe('0');
+    });
+});
+
+test('sync with pivot defaults return value type', function () {
+    dbBtmSyncReturnValueTypeSeedData();
+
+    $user = BelongsToManySyncTestTestUser::query()->first();
+    $articleIDs = BelongsToManySyncTestTestArticle::all()->pluck('id')->toArray();
+
+    $changes = $user->articles()->syncWithPivotValues($articleIDs, ['visible' => true]);
+
+    collect($changes['attached'])->each(function ($id) {
+        expect(gettype($id))->toBe((new BelongsToManySyncTestTestArticle)->getKeyType());
+    });
+
+    $user->articles->each(function (BelongsToManySyncTestTestArticle $article) {
+        expect((string) $article->pivot->visible)->toBe('1');
+    });
+});
 
 class BelongsToManySyncTestTestUser extends Instrument
 {

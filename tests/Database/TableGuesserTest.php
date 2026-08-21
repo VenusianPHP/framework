@@ -1,58 +1,47 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Console\Migrations\TableGuesser;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class TableGuesserTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('migration is properly parsed', function () {
+    [$table, $create] = TableGuesser::guess('create_users_table');
+    expect($table)->toBe('users');
+    expect($create)->toBeTrue();
 
-    public function testMigrationIsProperlyParsed()
-    {
-        [$table, $create] = TableGuesser::guess('create_users_table');
-        $this->assertSame('users', $table);
-        $this->assertTrue($create);
+    [$table, $create] = TableGuesser::guess('add_status_column_to_users_table');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('add_status_column_to_users_table');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
+    [$table, $create] = TableGuesser::guess('add_is_sent_to_crm_column_to_users_table');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('add_is_sent_to_crm_column_to_users_table');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
+    [$table, $create] = TableGuesser::guess('change_status_column_in_users_table');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('change_status_column_in_users_table');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
+    [$table, $create] = TableGuesser::guess('drop_status_column_from_users_table');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
+});
 
-        [$table, $create] = TableGuesser::guess('drop_status_column_from_users_table');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
-    }
+test('migration is properly parsed without table suffix', function () {
+    [$table, $create] = TableGuesser::guess('create_users');
+    expect($table)->toBe('users');
+    expect($create)->toBeTrue();
 
-    public function testMigrationIsProperlyParsedWithoutTableSuffix()
-    {
-        [$table, $create] = TableGuesser::guess('create_users');
-        $this->assertSame('users', $table);
-        $this->assertTrue($create);
+    [$table, $create] = TableGuesser::guess('add_status_column_to_users');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('add_status_column_to_users');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
+    [$table, $create] = TableGuesser::guess('add_is_sent_to_crm_column_column_to_users');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('add_is_sent_to_crm_column_column_to_users');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
+    [$table, $create] = TableGuesser::guess('change_status_column_in_users');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
 
-        [$table, $create] = TableGuesser::guess('change_status_column_in_users');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
-
-        [$table, $create] = TableGuesser::guess('drop_status_column_from_users');
-        $this->assertSame('users', $table);
-        $this->assertFalse($create);
-    }
-}
+    [$table, $create] = TableGuesser::guess('drop_status_column_from_users');
+    expect($table)->toBe('users');
+    expect($create)->toBeFalse();
+});

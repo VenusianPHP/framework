@@ -15,136 +15,123 @@ use Voyager\Database\Seeder;
 use Voyager\Events\NullDispatcher;
 use Voyager\Testing\Assert;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
-class SeedCommandTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+afterEach(function () {
+    SeedCommand::prohibit(false);
 
-    public function testHandle()
-    {
-        $input = new ArrayInput(['--force' => true, '--database' => 'sqlite']);
-        $output = new NullOutput;
-        $outputStyle = new OutputStyle($input, $output);
+    Model::unsetEventDispatcher();
+});
 
-        $seeder = m::mock(Seeder::class);
-        $seeder->shouldReceive('setContainer')->once()->andReturnSelf();
-        $seeder->shouldReceive('setCommand')->once()->andReturnSelf();
-        $seeder->shouldReceive('__invoke')->once();
+test('handle', function () {
+    $input = new ArrayInput(['--force' => true, '--database' => 'sqlite']);
+    $output = new NullOutput;
+    $outputStyle = new OutputStyle($input, $output);
 
-        $resolver = m::mock(ConnectionResolverInterface::class);
-        $resolver->shouldReceive('getDefaultConnection')->once();
-        $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
+    $seeder = m::mock(Seeder::class);
+    $seeder->shouldReceive('setContainer')->once()->andReturnSelf();
+    $seeder->shouldReceive('setCommand')->once()->andReturnSelf();
+    $seeder->shouldReceive('__invoke')->once();
 
-        $container = m::mock(Vessel::class);
-        $container->shouldReceive('call');
-        $container->shouldReceive('environment')->once()->andReturn('testing');
-        $container->shouldReceive('runningUnitTests')->andReturn('true');
-        $container->shouldReceive('make')->with('DatabaseSeeder')->andReturn($seeder);
-        $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
-            $outputStyle
-        );
-        $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
-            new Factory($outputStyle)
-        );
+    $resolver = m::mock(ConnectionResolverInterface::class);
+    $resolver->shouldReceive('getDefaultConnection')->once();
+    $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
 
-        $command = new SeedCommand($resolver);
-        $command->setVenusian($container);
+    $container = m::mock(Vessel::class);
+    $container->shouldReceive('call');
+    $container->shouldReceive('environment')->once()->andReturn('testing');
+    $container->shouldReceive('runningUnitTests')->andReturn('true');
+    $container->shouldReceive('make')->with('DatabaseSeeder')->andReturn($seeder);
+    $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
+        $outputStyle
+    );
+    $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
+        new Factory($outputStyle)
+    );
 
-        // call run to set up IO, then fire manually.
-        $command->run($input, $output);
-        $command->handle();
+    $command = new SeedCommand($resolver);
+    $command->setVenusian($container);
 
-        $container->shouldHaveReceived('call')->with([$command, 'handle']);
-    }
+    // call run to set up IO, then fire manually.
+    $command->run($input, $output);
+    $command->handle();
 
-    public function testWithoutModelEvents()
-    {
-        $input = new ArrayInput([
-            '--force' => true,
-            '--database' => 'sqlite',
-            '--class' => UserWithoutModelEventsSeeder::class,
-        ]);
-        $output = new NullOutput;
-        $outputStyle = new OutputStyle($input, $output);
+    $container->shouldHaveReceived('call')->with([$command, 'handle']);
+});
 
-        $instance = new UserWithoutModelEventsSeeder();
+test('without model events', function () {
+    $input = new ArrayInput([
+        '--force' => true,
+        '--database' => 'sqlite',
+        '--class' => UserWithoutModelEventsSeeder::class,
+    ]);
+    $output = new NullOutput;
+    $outputStyle = new OutputStyle($input, $output);
 
-        $seeder = m::mock($instance);
-        $seeder->shouldReceive('setContainer')->once()->andReturnSelf();
-        $seeder->shouldReceive('setCommand')->once()->andReturnSelf();
+    $instance = new UserWithoutModelEventsSeeder();
 
-        $resolver = m::mock(ConnectionResolverInterface::class);
-        $resolver->shouldReceive('getDefaultConnection')->once();
-        $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
+    $seeder = m::mock($instance);
+    $seeder->shouldReceive('setContainer')->once()->andReturnSelf();
+    $seeder->shouldReceive('setCommand')->once()->andReturnSelf();
 
-        $container = m::mock(Vessel::class);
-        $container->shouldReceive('call');
-        $container->shouldReceive('environment')->once()->andReturn('testing');
-        $container->shouldReceive('runningUnitTests')->andReturn('true');
-        $container->shouldReceive('make')->with(UserWithoutModelEventsSeeder::class)->andReturn($seeder);
-        $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
-            $outputStyle
-        );
-        $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
-            new Factory($outputStyle)
-        );
+    $resolver = m::mock(ConnectionResolverInterface::class);
+    $resolver->shouldReceive('getDefaultConnection')->once();
+    $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
 
-        $command = new SeedCommand($resolver);
-        $command->setVenusian($container);
+    $container = m::mock(Vessel::class);
+    $container->shouldReceive('call');
+    $container->shouldReceive('environment')->once()->andReturn('testing');
+    $container->shouldReceive('runningUnitTests')->andReturn('true');
+    $container->shouldReceive('make')->with(UserWithoutModelEventsSeeder::class)->andReturn($seeder);
+    $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
+        $outputStyle
+    );
+    $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
+        new Factory($outputStyle)
+    );
 
-        Model::setEventDispatcher($dispatcher = m::mock(Dispatcher::class));
+    $command = new SeedCommand($resolver);
+    $command->setVenusian($container);
 
-        // call run to set up IO, then fire manually.
-        $command->run($input, $output);
-        $command->handle();
+    Model::setEventDispatcher($dispatcher = m::mock(Dispatcher::class));
 
-        Assert::assertSame($dispatcher, Model::getEventDispatcher());
+    // call run to set up IO, then fire manually.
+    $command->run($input, $output);
+    $command->handle();
 
-        $container->shouldHaveReceived('call')->with([$command, 'handle']);
-    }
+    Assert::assertSame($dispatcher, Model::getEventDispatcher());
 
-    public function testProhibitable()
-    {
-        $input = new ArrayInput([]);
-        $output = new NullOutput;
-        $outputStyle = new OutputStyle($input, $output);
+    $container->shouldHaveReceived('call')->with([$command, 'handle']);
+});
 
-        $resolver = m::mock(ConnectionResolverInterface::class);
+test('prohibitable', function () {
+    $input = new ArrayInput([]);
+    $output = new NullOutput;
+    $outputStyle = new OutputStyle($input, $output);
 
-        $container = m::mock(Vessel::class);
-        $container->shouldReceive('call');
-        $container->shouldReceive('runningUnitTests')->andReturn('true');
-        $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
-            $outputStyle
-        );
-        $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
-            new Factory($outputStyle)
-        );
+    $resolver = m::mock(ConnectionResolverInterface::class);
 
-        $command = new SeedCommand($resolver);
-        $command->setVenusian($container);
+    $container = m::mock(Vessel::class);
+    $container->shouldReceive('call');
+    $container->shouldReceive('runningUnitTests')->andReturn('true');
+    $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(
+        $outputStyle
+    );
+    $container->shouldReceive('make')->with(Factory::class, m::any())->andReturn(
+        new Factory($outputStyle)
+    );
 
-        // call run to set up IO, then fire manually.
-        $command->run($input, $output);
+    $command = new SeedCommand($resolver);
+    $command->setVenusian($container);
 
-        SeedCommand::prohibit();
+    // call run to set up IO, then fire manually.
+    $command->run($input, $output);
 
-        Assert::assertSame(Command::FAILURE, $command->handle());
-    }
+    SeedCommand::prohibit();
 
-    protected function tearDown(): void
-    {
-        SeedCommand::prohibit(false);
-
-        Model::unsetEventDispatcher();
-
-        parent::tearDown();
-    }
-}
+    Assert::assertSame(Command::FAILURE, $command->handle());
+});
 
 class UserWithoutModelEventsSeeder extends Seeder
 {

@@ -4,191 +4,172 @@ namespace Tests\Database;
 
 use Voyager\Database\Instrument\Concerns\PreventsCircularRecursion;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseConcernsPreventsCircularRecursionTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    PreventsCircularRecursionWithRecursiveMethod::$globalStack = 0;
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('recursive calls are prevented without preventing subsequent calls', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
 
-        PreventsCircularRecursionWithRecursiveMethod::$globalStack = 0;
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0);
 
-    public function testRecursiveCallsArePreventedWithoutPreventingSubsequentCalls()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    expect($instance->callStack())->toEqual(0);
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(1)
+        ->and($instance->instanceStack)->toEqual(1);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
+    expect($instance->callStack())->toEqual(1);
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(2)
+        ->and($instance->instanceStack)->toEqual(2);
+});
 
-        $this->assertEquals(0, $instance->callStack());
-        $this->assertEquals(1, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
+test('recursive default callback is called only on recursion', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
 
-        $this->assertEquals(1, $instance->callStack());
-        $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0)
+        ->and($instance->defaultStack)->toEqual(0);
 
-    public function testRecursiveDefaultCallbackIsCalledOnlyOnRecursion()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    expect($instance->callCallableDefaultStack())->toEqual(['instance' => 1, 'default' => 0]);
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(1)
+        ->and($instance->instanceStack)->toEqual(1)
+        ->and($instance->defaultStack)->toEqual(1);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
-        $this->assertEquals(0, $instance->defaultStack);
+    expect($instance->callCallableDefaultStack())->toEqual(['instance' => 2, 'default' => 1]);
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(2)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($instance->defaultStack)->toEqual(2);
+});
 
-        $this->assertEquals(['instance' => 1, 'default' => 0], $instance->callCallableDefaultStack());
-        $this->assertEquals(1, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
-        $this->assertEquals(1, $instance->defaultStack);
+test('recursive default callback is called only once per call stack', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
 
-        $this->assertEquals(['instance' => 2, 'default' => 1], $instance->callCallableDefaultStack());
-        $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(2, $instance->defaultStack);
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0)
+        ->and($instance->defaultStack)->toEqual(0);
 
-    public function testRecursiveDefaultCallbackIsCalledOnlyOncePerCallStack()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    expect($instance->callCallableDefaultStackRepeatedly())->toEqual(
+        [
+            ['instance' => 1, 'default' => 0],
+            ['instance' => 1, 'default' => 0],
+            ['instance' => 1, 'default' => 0],
+        ],
+    );
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(1)
+        ->and($instance->instanceStack)->toEqual(1)
+        ->and($instance->defaultStack)->toEqual(1);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
-        $this->assertEquals(0, $instance->defaultStack);
+    expect($instance->callCallableDefaultStackRepeatedly())->toEqual(
+        [
+            ['instance' => 2, 'default' => 1],
+            ['instance' => 2, 'default' => 1],
+            ['instance' => 2, 'default' => 1],
+        ],
+    );
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(2)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($instance->defaultStack)->toEqual(2);
+});
 
-        $this->assertEquals(
-            [
-                ['instance' => 1, 'default' => 0],
-                ['instance' => 1, 'default' => 0],
-                ['instance' => 1, 'default' => 0],
-            ],
-            $instance->callCallableDefaultStackRepeatedly(),
-        );
-        $this->assertEquals(1, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
-        $this->assertEquals(1, $instance->defaultStack);
+test('recursive calls are limited to individual instances', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    $other = $instance->other;
 
-        $this->assertEquals(
-            [
-                ['instance' => 2, 'default' => 1],
-                ['instance' => 2, 'default' => 1],
-                ['instance' => 2, 'default' => 1],
-            ],
-            $instance->callCallableDefaultStackRepeatedly(),
-        );
-        $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(2, $instance->defaultStack);
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0)
+        ->and($other->instanceStack)->toEqual(0);
 
-    public function testRecursiveCallsAreLimitedToIndividualInstances()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
-        $other = $instance->other;
+    $instance->callStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(1)
+        ->and($instance->instanceStack)->toEqual(1)
+        ->and($other->instanceStack)->toEqual(0);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
-        $this->assertEquals(0, $other->instanceStack);
+    $instance->callStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(2)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($other->instanceStack)->toEqual(0);
 
-        $instance->callStack();
-        $this->assertEquals(1, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
-        $this->assertEquals(0, $other->instanceStack);
+    $other->callStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(3)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($other->instanceStack)->toEqual(1);
 
-        $instance->callStack();
-        $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(0, $other->instanceStack);
+    $other->callStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(4)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($other->instanceStack)->toEqual(2);
+});
 
-        $other->callStack();
-        $this->assertEquals(3, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(1, $other->instanceStack);
+test('recursive calls to circular reference calls other instance once', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    $other = $instance->other;
 
-        $other->callStack();
-        $this->assertEquals(4, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(2, $other->instanceStack);
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0)
+        ->and($other->instanceStack)->toEqual(0);
 
-    public function testRecursiveCallsToCircularReferenceCallsOtherInstanceOnce()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
-        $other = $instance->other;
+    $instance->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(2)
+        ->and($instance->instanceStack)->toEqual(1)
+        ->and($other->instanceStack)->toEqual(1);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
-        $this->assertEquals(0, $other->instanceStack);
+    $instance->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(4)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($other->instanceStack)->toEqual(2);
 
-        $instance->callOtherStack();
-        $this->assertEquals(2, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
-        $this->assertEquals(1, $other->instanceStack);
+    $other->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(6)
+        ->and($other->instanceStack)->toEqual(3)
+        ->and($instance->instanceStack)->toEqual(3);
 
-        $instance->callOtherStack();
-        $this->assertEquals(4, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(2, $other->instanceStack);
+    $other->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(8)
+        ->and($other->instanceStack)->toEqual(4)
+        ->and($instance->instanceStack)->toEqual(4);
+});
 
-        $other->callOtherStack();
-        $this->assertEquals(6, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(3, $other->instanceStack);
-        $this->assertEquals(3, $instance->instanceStack);
+test('recursive calls to circular linked list calls each instance once', function () {
+    $instance = new PreventsCircularRecursionWithRecursiveMethod();
+    $second = $instance->other;
+    $third = new PreventsCircularRecursionWithRecursiveMethod($second);
+    $instance->other = $third;
 
-        $other->callOtherStack();
-        $this->assertEquals(8, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(4, $other->instanceStack);
-        $this->assertEquals(4, $instance->instanceStack);
-    }
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(0)
+        ->and($instance->instanceStack)->toEqual(0)
+        ->and($second->instanceStack)->toEqual(0)
+        ->and($third->instanceStack)->toEqual(0);
 
-    public function testRecursiveCallsToCircularLinkedListCallsEachInstanceOnce()
-    {
-        $instance = new PreventsCircularRecursionWithRecursiveMethod();
-        $second = $instance->other;
-        $third = new PreventsCircularRecursionWithRecursiveMethod($second);
-        $instance->other = $third;
+    $instance->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(3)
+        ->and($instance->instanceStack)->toEqual(1)
+        ->and($second->instanceStack)->toEqual(1)
+        ->and($third->instanceStack)->toEqual(1);
 
-        $this->assertEquals(0, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(0, $instance->instanceStack);
-        $this->assertEquals(0, $second->instanceStack);
-        $this->assertEquals(0, $third->instanceStack);
+    $second->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(6)
+        ->and($instance->instanceStack)->toEqual(2)
+        ->and($second->instanceStack)->toEqual(2)
+        ->and($third->instanceStack)->toEqual(2);
 
-        $instance->callOtherStack();
-        $this->assertEquals(3, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(1, $instance->instanceStack);
-        $this->assertEquals(1, $second->instanceStack);
-        $this->assertEquals(1, $third->instanceStack);
+    $third->callOtherStack();
+    expect(PreventsCircularRecursionWithRecursiveMethod::$globalStack)->toEqual(9)
+        ->and($instance->instanceStack)->toEqual(3)
+        ->and($second->instanceStack)->toEqual(3)
+        ->and($third->instanceStack)->toEqual(3);
+});
 
-        $second->callOtherStack();
-        $this->assertEquals(6, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(2, $instance->instanceStack);
-        $this->assertEquals(2, $second->instanceStack);
-        $this->assertEquals(2, $third->instanceStack);
+test('mocked model call to without recursion method works', function () {
+    $mock = m::mock(TestModel::class)->makePartial();
 
-        $third->callOtherStack();
-        $this->assertEquals(9, PreventsCircularRecursionWithRecursiveMethod::$globalStack);
-        $this->assertEquals(3, $instance->instanceStack);
-        $this->assertEquals(3, $second->instanceStack);
-        $this->assertEquals(3, $third->instanceStack);
-    }
-
-    public function testMockedModelCallToWithoutRecursionMethodWorks(): void
-    {
-        $mock = m::mock(TestModel::class)->makePartial();
-
-        // Model toArray method implementation
-        $toArray = $mock->withoutRecursion(
-            fn () => array_merge($mock->attributesToArray(), $mock->relationsToArray()),
-            fn () => $mock->attributesToArray(),
-        );
-        $this->assertEquals([], $toArray);
-    }
-}
+    // Model toArray method implementation
+    $toArray = $mock->withoutRecursion(
+        fn () => array_merge($mock->attributesToArray(), $mock->relationsToArray()),
+        fn () => $mock->attributesToArray(),
+    );
+    expect($toArray)->toEqual([]);
+});
 
 class PreventsCircularRecursionWithRecursiveMethod
 {

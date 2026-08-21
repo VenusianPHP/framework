@@ -4,301 +4,280 @@ namespace Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
-
-class DatabaseInstrumentHasOneOrManyWithAttributesPendingTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-        $db->bootInstrument();
-        $db->setAsGlobal();
-    }
-
-    public function testHasManyAddsAttributes(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
 
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes([$key => $value], asConditions: false);
+beforeEach(function () {
+    $db = new DB;
 
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->parent_id);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testHasOneAddsAttributes(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasOne(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes([$key => $value], asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->parent_id);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testMorphManyAddsAttributes(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->morphMany(RelatedPendingAttributesModel::class, 'relatable')
-            ->withAttributes([$key => $value], asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->relatable_id);
-        $this->assertSame($parent::class, $relatedModel->relatable_type);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testMorphOneAddsAttributes(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->morphOne(RelatedPendingAttributesModel::class, 'relatable')
-            ->withAttributes([$key => $value], asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->relatable_id);
-        $this->assertSame($parent::class, $relatedModel->relatable_type);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testPendingAttributesCanBeOverridden(): void
-    {
-        $key = 'a key';
-        $defaultValue = 'a value';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'relatable')
-            ->withAttributes([$key => $defaultValue], asConditions: false);
-
-        $relatedModel = $relationship->make([$key => $value]);
-
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testQueryingDoesNotBreakWither(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+    $db->bootInstrument();
+    $db->setAsGlobal();
+});
 
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->where($key, $value)
-            ->withAttributes([$key => $value], asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->parent_id);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testAttributesCanBeAppended(): void
-    {
-        $parent = new RelatedPendingAttributesModel;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes(['a' => 'A'], asConditions: false)
-            ->withAttributes(['b' => 'B'], asConditions: false)
-            ->withAttributes(['a' => 'AA'], asConditions: false);
-
-        $relatedModel = $relationship->make([
-            'b' => 'BB',
-            'c' => 'C',
-        ]);
-
-        $this->assertSame('AA', $relatedModel->a);
-        $this->assertSame('BB', $relatedModel->b);
-        $this->assertSame('C', $relatedModel->c);
-    }
-
-    public function testSingleAttributeApi(): void
-    {
-        $parent = new RelatedPendingAttributesModel;
-        $key = 'attr';
-        $value = 'Value';
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes($key, $value, asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testWheresAreNotSet(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes([$key => $value], asConditions: false);
-
-        $wheres = $relationship->toBase()->wheres;
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => $parent->qualifyColumn('parent_id'),
-            'operator' => '=',
-            'value' => $parentId,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'NotNull',
-            'column' => $parent->qualifyColumn('parent_id'),
-            'boolean' => 'and',
-        ], $wheres);
-
-        // Ensure no other wheres exist
-        $this->assertCount(2, $wheres);
-    }
-
-    public function testNullValueIsAccepted(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes([$key => null], asConditions: false);
-
-        $wheres = $relationship->toBase()->wheres;
-        $relatedModel = $relationship->make();
-
-        $this->assertNull($relatedModel->$key);
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => $parent->qualifyColumn('parent_id'),
-            'operator' => '=',
-            'value' => $parentId,
-            'boolean' => 'and',
-        ], $wheres);
-
-        $this->assertContains([
-            'type' => 'NotNull',
-            'column' => $parent->qualifyColumn('parent_id'),
-            'boolean' => 'and',
-        ], $wheres);
-
-        // Ensure no other wheres exist
-        $this->assertCount(2, $wheres);
-    }
-
-    public function testOneKeepsAttributesFromHasMany(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes([$key => $value], asConditions: false)
-            ->one();
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->parent_id);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testOneKeepsAttributesFromMorphMany(): void
-    {
-        $parentId = 123;
-        $key = 'a key';
-        $value = 'the value';
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->morphMany(RelatedPendingAttributesModel::class, 'relatable')
-            ->withAttributes([$key => $value], asConditions: false)
-            ->one();
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->relatable_id);
-        $this->assertSame($parent::class, $relatedModel->relatable_type);
-        $this->assertSame($value, $relatedModel->$key);
-    }
-
-    public function testHasManyAddsCastedAttributes(): void
-    {
-        $parentId = 123;
-
-        $parent = new RelatedPendingAttributesModel;
-        $parent->id = $parentId;
-
-        $relationship = $parent
-            ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
-            ->withAttributes(['is_admin' => 1], asConditions: false);
-
-        $relatedModel = $relationship->make();
-
-        $this->assertSame($parentId, $relatedModel->parent_id);
-        $this->assertSame(true, $relatedModel->is_admin);
-    }
-}
+test('has many adds attributes', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->parent_id)->toBe($parentId)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('has one adds attributes', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasOne(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->parent_id)->toBe($parentId)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('morph many adds attributes', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->morphMany(RelatedPendingAttributesModel::class, 'relatable')
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->relatable_id)->toBe($parentId)
+        ->and($relatedModel->relatable_type)->toBe($parent::class)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('morph one adds attributes', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->morphOne(RelatedPendingAttributesModel::class, 'relatable')
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->relatable_id)->toBe($parentId)
+        ->and($relatedModel->relatable_type)->toBe($parent::class)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('pending attributes can be overridden', function () {
+    $key = 'a key';
+    $defaultValue = 'a value';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'relatable')
+        ->withAttributes([$key => $defaultValue], asConditions: false);
+
+    $relatedModel = $relationship->make([$key => $value]);
+
+    expect($relatedModel->$key)->toBe($value);
+});
+
+test('querying does not break wither', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->where($key, $value)
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->parent_id)->toBe($parentId)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('attributes can be appended', function () {
+    $parent = new RelatedPendingAttributesModel;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes(['a' => 'A'], asConditions: false)
+        ->withAttributes(['b' => 'B'], asConditions: false)
+        ->withAttributes(['a' => 'AA'], asConditions: false);
+
+    $relatedModel = $relationship->make([
+        'b' => 'BB',
+        'c' => 'C',
+    ]);
+
+    expect($relatedModel->a)->toBe('AA')
+        ->and($relatedModel->b)->toBe('BB')
+        ->and($relatedModel->c)->toBe('C');
+});
+
+test('single attribute api', function () {
+    $parent = new RelatedPendingAttributesModel;
+    $key = 'attr';
+    $value = 'Value';
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes($key, $value, asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->$key)->toBe($value);
+});
+
+test('wheres are not set', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes([$key => $value], asConditions: false);
+
+    $wheres = $relationship->toBase()->wheres;
+
+    $this->assertContains([
+        'type' => 'Basic',
+        'column' => $parent->qualifyColumn('parent_id'),
+        'operator' => '=',
+        'value' => $parentId,
+        'boolean' => 'and',
+    ], $wheres);
+
+    $this->assertContains([
+        'type' => 'NotNull',
+        'column' => $parent->qualifyColumn('parent_id'),
+        'boolean' => 'and',
+    ], $wheres);
+
+    // Ensure no other wheres exist
+    expect($wheres)->toHaveCount(2);
+});
+
+test('null value is accepted', function () {
+    $parentId = 123;
+    $key = 'a key';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes([$key => null], asConditions: false);
+
+    $wheres = $relationship->toBase()->wheres;
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->$key)->toBeNull();
+
+    $this->assertContains([
+        'type' => 'Basic',
+        'column' => $parent->qualifyColumn('parent_id'),
+        'operator' => '=',
+        'value' => $parentId,
+        'boolean' => 'and',
+    ], $wheres);
+
+    $this->assertContains([
+        'type' => 'NotNull',
+        'column' => $parent->qualifyColumn('parent_id'),
+        'boolean' => 'and',
+    ], $wheres);
+
+    // Ensure no other wheres exist
+    expect($wheres)->toHaveCount(2);
+});
+
+test('one keeps attributes from has many', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes([$key => $value], asConditions: false)
+        ->one();
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->parent_id)->toBe($parentId)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('one keeps attributes from morph many', function () {
+    $parentId = 123;
+    $key = 'a key';
+    $value = 'the value';
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->morphMany(RelatedPendingAttributesModel::class, 'relatable')
+        ->withAttributes([$key => $value], asConditions: false)
+        ->one();
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->relatable_id)->toBe($parentId)
+        ->and($relatedModel->relatable_type)->toBe($parent::class)
+        ->and($relatedModel->$key)->toBe($value);
+});
+
+test('has many adds casted attributes', function () {
+    $parentId = 123;
+
+    $parent = new RelatedPendingAttributesModel;
+    $parent->id = $parentId;
+
+    $relationship = $parent
+        ->hasMany(RelatedPendingAttributesModel::class, 'parent_id')
+        ->withAttributes(['is_admin' => 1], asConditions: false);
+
+    $relatedModel = $relationship->make();
+
+    expect($relatedModel->parent_id)->toBe($parentId)
+        ->and($relatedModel->is_admin)->toBe(true);
+});
 
 class RelatedPendingAttributesModel extends Model
 {

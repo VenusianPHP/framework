@@ -1,33 +1,22 @@
 <?php
 
-namespace Tests\Queue;
-
 use Voyager\Queue\Jobs\RedisJob;
 use Voyager\Queue\MaxAttemptsExceededException;
 use Voyager\Queue\TimeoutExceededException;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class QueueExceptionTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('it can create timeout exception for job', function () {
+    $e = TimeoutExceededException::forJob($job = new MyFakeRedisJob());
 
-    public function test_it_can_create_timeout_exception_for_job()
-    {
-        $e = TimeoutExceededException::forJob($job = new MyFakeRedisJob());
+    expect($e->getMessage())->toBe('App\\Jobs\\UnderlyingJob has timed out.')
+        ->and($e->job)->toBe($job);
+});
 
-        $this->assertSame('App\\Jobs\\UnderlyingJob has timed out.', $e->getMessage());
-        $this->assertSame($job, $e->job);
-    }
+test('it can create max attempts exception for job', function () {
+    $e = MaxAttemptsExceededException::forJob($job = new MyFakeRedisJob());
 
-    public function test_it_can_create_max_attempts_exception_for_job()
-    {
-        $e = MaxAttemptsExceededException::forJob($job = new MyFakeRedisJob());
-
-        $this->assertSame('App\\Jobs\\UnderlyingJob has been attempted too many times.', $e->getMessage());
-        $this->assertSame($job, $e->job);
-    }
-}
+    expect($e->getMessage())->toBe('App\\Jobs\\UnderlyingJob has been attempted too many times.')
+        ->and($e->job)->toBe($job);
+});
 
 class MyFakeRedisJob extends RedisJob
 {

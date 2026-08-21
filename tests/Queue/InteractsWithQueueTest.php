@@ -1,36 +1,25 @@
 <?php
 
-namespace Tests\Queue;
-
-use Exception;
 use Voyager\Contracts\Queue\Job;
 use Voyager\Queue\InteractsWithQueue;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class InteractsWithQueueTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('creates an exception from string', function () {
+    $queueJob = m::mock(Job::class);
+    $queueJob->shouldReceive('fail')->withArgs(function ($e) {
+        $this->assertInstanceOf(Exception::class, $e);
+        $this->assertEquals('Whoops!', $e->getMessage());
 
-    public function testCreatesAnExceptionFromString()
+        return true;
+    });
+
+    $job = new class
     {
-        $queueJob = m::mock(Job::class);
-        $queueJob->shouldReceive('fail')->withArgs(function ($e) {
-            $this->assertInstanceOf(Exception::class, $e);
-            $this->assertEquals('Whoops!', $e->getMessage());
+        use InteractsWithQueue;
 
-            return true;
-        });
+        public $job;
+    };
 
-        $job = new class
-        {
-            use InteractsWithQueue;
-
-            public $job;
-        };
-
-        $job->job = $queueJob;
-        $job->fail('Whoops!');
-    }
-}
+    $job->job = $queueJob;
+    $job->fail('Whoops!');
+});

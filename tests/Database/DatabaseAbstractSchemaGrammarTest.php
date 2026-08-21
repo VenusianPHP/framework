@@ -5,28 +5,19 @@ namespace Tests\Database;
 use Voyager\Database\Connection;
 use Voyager\Database\Schema\Grammars\Grammar;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseAbstractSchemaGrammarTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('create database', function () {
+    $connection = m::mock(Connection::class);
+    $grammar = new class($connection) extends Grammar {
+    };
 
-    public function testCreateDatabase()
-    {
-        $connection = m::mock(Connection::class);
-        $grammar = new class($connection) extends Grammar {
-        };
+    expect($grammar->compileCreateDatabase('foo'))->toBe('create database "foo"');
+});
 
-        $this->assertSame('create database "foo"', $grammar->compileCreateDatabase('foo'));
-    }
+test('drop database if exists', function () {
+    $connection = m::mock(Connection::class);
+    $grammar = new class($connection) extends Grammar {
+    };
 
-    public function testDropDatabaseIfExists()
-    {
-        $connection = m::mock(Connection::class);
-        $grammar = new class($connection) extends Grammar {
-        };
-
-        $this->assertSame('drop database if exists "foo"', $grammar->compileDropDatabaseIfExists('foo'));
-    }
-}
+    expect($grammar->compileDropDatabaseIfExists('foo'))->toBe('drop database if exists "foo"');
+});

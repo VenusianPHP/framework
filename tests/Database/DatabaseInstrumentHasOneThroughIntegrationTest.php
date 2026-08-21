@@ -6,167 +6,238 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\ModelNotFoundException;
 use Voyager\Database\Instrument\SoftDeletes;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentHasOneThroughIntegrationTest extends TestCase
+function dbHasOneThroughIntegrationConnection()
 {
-    use MockeryPHPUnitIntegration;
+    return Instrument::getConnectionResolver()->connection();
+}
 
-    protected function setUp(): void
-    {
-        $db = new DB;
+function dbHasOneThroughIntegrationSchema()
+{
+    return dbHasOneThroughIntegrationConnection()->getSchemaBuilder();
+}
 
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
+function dbHasOneThroughIntegrationCreateSchema()
+{
+    dbHasOneThroughIntegrationSchema()->create('users', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+        $table->unsignedInteger('position_id')->unique()->nullable();
+        $table->string('position_short');
+        $table->timestamps();
+        $table->softDeletes();
+    });
 
-        $db->bootInstrument();
-        $db->setAsGlobal();
+    dbHasOneThroughIntegrationSchema()->create('contracts', function ($table) {
+        $table->increments('id');
+        $table->integer('user_id')->unique();
+        $table->string('title');
+        $table->text('body');
+        $table->string('email');
+        $table->timestamps();
+    });
 
-        $this->createSchema();
-    }
+    dbHasOneThroughIntegrationSchema()->create('positions', function ($table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->string('shortname');
+        $table->timestamps();
+    });
+}
 
-    /**
-     * Setup the database schema.
-     *
-     * @return void
-     */
-    public function createSchema()
-    {
-        $this->schema()->create('users', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-            $table->unsignedInteger('position_id')->unique()->nullable();
-            $table->string('position_short');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+/**
+ * Helpers...
+ */
+function dbHasOneThroughIntegrationSeedData()
+{
+    HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
+        ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps'])
+        ->contract()->create(['title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
+}
 
-        $this->schema()->create('contracts', function ($table) {
-            $table->increments('id');
-            $table->integer('user_id')->unique();
-            $table->string('title');
-            $table->text('body');
-            $table->string('email');
-            $table->timestamps();
-        });
+function dbHasOneThroughIntegrationSeedDataExtended()
+{
+    $position = HasOneThroughTestPosition::create(['id' => 2, 'name' => 'Vice President', 'shortname' => 'vp']);
+    $position->user()->create(['id' => 2, 'email' => 'example1@gmail.com', 'position_short' => 'vp'])
+        ->contract()->create(
+            ['title' => 'Example1 title1', 'body' => 'Example1 body1', 'email' => 'example1contract1@gmail.com']
+        );
+}
 
-        $this->schema()->create('positions', function ($table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->string('shortname');
-            $table->timestamps();
-        });
-    }
+/**
+ * Seed data for a default HasOneThrough setup.
+ */
+function dbHasOneThroughIntegrationSeedDefaultData()
+{
+    HasOneThroughDefaultTestPosition::create(['id' => 1, 'name' => 'President'])
+        ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com'])
+        ->contract()->create(['title' => 'A title', 'body' => 'A body']);
+}
 
-    /**
-     * Tear down the database schema.
-     *
-     * @return void
-     */
-    protected function tearDown(): void
-    {
-        $this->schema()->drop('users');
-        $this->schema()->drop('contracts');
-        $this->schema()->drop('positions');
+/**
+ * Drop the default tables.
+ */
+function dbHasOneThroughIntegrationResetDefault()
+{
+    dbHasOneThroughIntegrationSchema()->drop('users_default');
+    dbHasOneThroughIntegrationSchema()->drop('contracts_default');
+    dbHasOneThroughIntegrationSchema()->drop('positions_default');
+}
 
-        parent::tearDown();
-    }
+/**
+ * Migrate tables for classes with a Laravel "default" HasOneThrough setup.
+ */
+function dbHasOneThroughIntegrationMigrateDefault()
+{
+    dbHasOneThroughIntegrationSchema()->create('users_default', function ($table) {
+        $table->increments('id');
+        $table->string('email')->unique();
+        $table->unsignedInteger('has_one_through_default_test_position_id')->unique()->nullable();
+        $table->timestamps();
+    });
 
-    public function testItLoadsAHasOneThroughRelationWithCustomKeys()
-    {
-        $this->seedData();
-        $contract = HasOneThroughTestPosition::first()->contract;
+    dbHasOneThroughIntegrationSchema()->create('contracts_default', function ($table) {
+        $table->increments('id');
+        $table->integer('has_one_through_default_test_user_id')->unique();
+        $table->string('title');
+        $table->text('body');
+        $table->timestamps();
+    });
 
-        $this->assertSame('A title', $contract->title);
-    }
+    dbHasOneThroughIntegrationSchema()->create('positions_default', function ($table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->timestamps();
+    });
+}
 
-    public function testItLoadsADefaultHasOneThroughRelation()
-    {
-        $this->migrateDefault();
-        $this->seedDefaultData();
+beforeEach(function () {
+    $db = new DB;
 
-        $contract = HasOneThroughDefaultTestPosition::first()->contract;
-        $this->assertSame('A title', $contract->title);
-        $this->assertArrayNotHasKey('email', $contract->getAttributes());
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
 
-        $this->resetDefault();
-    }
+    $db->bootInstrument();
+    $db->setAsGlobal();
 
-    public function testItLoadsARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $contract = HasOneThroughIntermediateTestPosition::first()->contract;
+    dbHasOneThroughIntegrationCreateSchema();
+});
 
-        $this->assertSame('A title', $contract->title);
-    }
+afterEach(function () {
+    dbHasOneThroughIntegrationSchema()->drop('users');
+    dbHasOneThroughIntegrationSchema()->drop('contracts');
+    dbHasOneThroughIntegrationSchema()->drop('positions');
+});
 
-    public function testEagerLoadingARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $contract = HasOneThroughIntermediateTestPosition::with('contract')->first()->contract;
+test('it loads a has one through relation with custom keys', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughTestPosition::first()->contract;
 
-        $this->assertSame('A title', $contract->title);
-    }
+    expect($contract->title)->toBe('A title');
+});
 
-    public function testWhereHasOnARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $position = HasOneThroughIntermediateTestPosition::whereHas('contract', function ($query) {
-            $query->where('title', 'A title');
-        })->get();
+test('it loads a default has one through relation', function () {
+    dbHasOneThroughIntegrationMigrateDefault();
+    dbHasOneThroughIntegrationSeedDefaultData();
 
-        $this->assertCount(1, $position);
-    }
+    $contract = HasOneThroughDefaultTestPosition::first()->contract;
+    expect($contract->title)->toBe('A title');
+    $this->assertArrayNotHasKey('email', $contract->getAttributes());
 
-    public function testWithWhereHasOnARelationWithCustomIntermediateAndLocalKey()
-    {
-        $this->seedData();
-        $position = HasOneThroughIntermediateTestPosition::withWhereHas('contract', function ($query) {
-            $query->where('title', 'A title');
-        })->get();
+    dbHasOneThroughIntegrationResetDefault();
+});
 
-        $this->assertCount(1, $position);
-        $this->assertTrue($position->first()->relationLoaded('contract'));
-        $this->assertEquals($position->first()->contract->pluck('title')->unique()->toArray(), ['A title']);
-    }
+test('it loads a relation with custom intermediate and local key', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughIntermediateTestPosition::first()->contract;
 
-    public function testFirstOrFailThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
-        $this->expectExceptionMessage('No query results for model [Tests\Database\HasOneThroughTestContract].');
+    expect($contract->title)->toBe('A title');
+});
 
-        HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
-            ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps']);
+test('eager loading a relation with custom intermediate and local key', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughIntermediateTestPosition::with('contract')->first()->contract;
 
-        HasOneThroughTestPosition::first()->contract()->firstOrFail();
-    }
+    expect($contract->title)->toBe('A title');
+});
 
-    public function testFindOrFailThrowsAnException()
-    {
-        $this->expectException(ModelNotFoundException::class);
+test('where has on a relation with custom intermediate and local key', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $position = HasOneThroughIntermediateTestPosition::whereHas('contract', function ($query) {
+        $query->where('title', 'A title');
+    })->get();
 
-        HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
-            ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps']);
+    expect($position)->toHaveCount(1);
+});
 
-        HasOneThroughTestPosition::first()->contract()->findOrFail(1);
-    }
+test('with where has on a relation with custom intermediate and local key', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $position = HasOneThroughIntermediateTestPosition::withWhereHas('contract', function ($query) {
+        $query->where('title', 'A title');
+    })->get();
 
-    public function testFirstRetrievesFirstRecord()
-    {
-        $this->seedData();
-        $contract = HasOneThroughTestPosition::first()->contract()->first();
+    expect($position)->toHaveCount(1);
+    expect($position->first()->relationLoaded('contract'))->toBeTrue();
+    $this->assertEquals($position->first()->contract->pluck('title')->unique()->toArray(), ['A title']);
+});
 
-        $this->assertNotNull($contract);
-        $this->assertSame('A title', $contract->title);
-    }
+test('first or fail throws an exception', function () {
+    HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
+        ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps']);
 
-    public function testAllColumnsAreRetrievedByDefault()
-    {
-        $this->seedData();
-        $contract = HasOneThroughTestPosition::first()->contract()->first();
+    HasOneThroughTestPosition::first()->contract()->firstOrFail();
+})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasOneThroughTestContract].');
+
+test('find or fail throws an exception', function () {
+    HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
+        ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps']);
+
+    HasOneThroughTestPosition::first()->contract()->findOrFail(1);
+})->throws(ModelNotFoundException::class);
+
+test('first retrieves first record', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughTestPosition::first()->contract()->first();
+
+    expect($contract)->not->toBeNull();
+    expect($contract->title)->toBe('A title');
+});
+
+test('all columns are retrieved by default', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughTestPosition::first()->contract()->first();
+    expect(array_keys($contract->getAttributes()))->toEqual([
+        'id',
+        'user_id',
+        'title',
+        'body',
+        'email',
+        'created_at',
+        'updated_at',
+        'laravel_through_key',
+    ]);
+});
+
+test('only proper columns are selected if provided', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $contract = HasOneThroughTestPosition::first()->contract()->first(['title', 'body']);
+
+    expect(array_keys($contract->getAttributes()))->toEqual([
+        'title',
+        'body',
+        'laravel_through_key',
+    ]);
+});
+
+test('chunk returns correct models', function () {
+    dbHasOneThroughIntegrationSeedData();
+    dbHasOneThroughIntegrationSeedDataExtended();
+    $position = HasOneThroughTestPosition::find(1);
+
+    $position->contract()->chunk(10, function ($contractsChunk) {
+        $contract = $contractsChunk->first();
         $this->assertEquals([
             'id',
             'user_id',
@@ -175,206 +246,82 @@ class DatabaseInstrumentHasOneThroughIntegrationTest extends TestCase
             'email',
             'created_at',
             'updated_at',
-            'laravel_through_key',
-        ], array_keys($contract->getAttributes()));
-    }
+            'laravel_through_key', ], array_keys($contract->getAttributes()));
+    });
+});
 
-    public function testOnlyProperColumnsAreSelectedIfProvided()
-    {
-        $this->seedData();
-        $contract = HasOneThroughTestPosition::first()->contract()->first(['title', 'body']);
+test('cursor returns correct models', function () {
+    dbHasOneThroughIntegrationSeedData();
+    dbHasOneThroughIntegrationSeedDataExtended();
+    $position = HasOneThroughTestPosition::find(1);
 
+    $contracts = $position->contract()->cursor();
+
+    foreach ($contracts as $contract) {
         $this->assertEquals([
+            'id',
+            'user_id',
             'title',
             'body',
-            'laravel_through_key',
-        ], array_keys($contract->getAttributes()));
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key', ], array_keys($contract->getAttributes()));
     }
+});
 
-    public function testChunkReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $position = HasOneThroughTestPosition::find(1);
+test('each returns correct models', function () {
+    dbHasOneThroughIntegrationSeedData();
+    dbHasOneThroughIntegrationSeedDataExtended();
+    $position = HasOneThroughTestPosition::find(1);
 
-        $position->contract()->chunk(10, function ($contractsChunk) {
-            $contract = $contractsChunk->first();
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key', ], array_keys($contract->getAttributes()));
-        });
-    }
+    $position->contract()->each(function ($contract) {
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key', ], array_keys($contract->getAttributes()));
+    });
+});
 
-    public function testCursorReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $position = HasOneThroughTestPosition::find(1);
+test('lazy returns correct models', function () {
+    dbHasOneThroughIntegrationSeedData();
+    dbHasOneThroughIntegrationSeedDataExtended();
+    $position = HasOneThroughTestPosition::find(1);
 
-        $contracts = $position->contract()->cursor();
+    $position->contract()->lazy()->each(function ($contract) {
+        $this->assertEquals([
+            'id',
+            'user_id',
+            'title',
+            'body',
+            'email',
+            'created_at',
+            'updated_at',
+            'laravel_through_key', ], array_keys($contract->getAttributes()));
+    });
+});
 
-        foreach ($contracts as $contract) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key', ], array_keys($contract->getAttributes()));
-        }
-    }
+test('intermediate soft deletes are ignored', function () {
+    dbHasOneThroughIntegrationSeedData();
+    HasOneThroughSoftDeletesTestUser::first()->delete();
 
-    public function testEachReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $position = HasOneThroughTestPosition::find(1);
+    $contract = HasOneThroughSoftDeletesTestPosition::first()->contract;
 
-        $position->contract()->each(function ($contract) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key', ], array_keys($contract->getAttributes()));
-        });
-    }
+    expect($contract->title)->toBe('A title');
+});
 
-    public function testLazyReturnsCorrectModels()
-    {
-        $this->seedData();
-        $this->seedDataExtended();
-        $position = HasOneThroughTestPosition::find(1);
+test('eager loading loads related models correctly', function () {
+    dbHasOneThroughIntegrationSeedData();
+    $position = HasOneThroughSoftDeletesTestPosition::with('contract')->first();
 
-        $position->contract()->lazy()->each(function ($contract) {
-            $this->assertEquals([
-                'id',
-                'user_id',
-                'title',
-                'body',
-                'email',
-                'created_at',
-                'updated_at',
-                'laravel_through_key', ], array_keys($contract->getAttributes()));
-        });
-    }
-
-    public function testIntermediateSoftDeletesAreIgnored()
-    {
-        $this->seedData();
-        HasOneThroughSoftDeletesTestUser::first()->delete();
-
-        $contract = HasOneThroughSoftDeletesTestPosition::first()->contract;
-
-        $this->assertSame('A title', $contract->title);
-    }
-
-    public function testEagerLoadingLoadsRelatedModelsCorrectly()
-    {
-        $this->seedData();
-        $position = HasOneThroughSoftDeletesTestPosition::with('contract')->first();
-
-        $this->assertSame('ps', $position->shortname);
-        $this->assertSame('A title', $position->contract->title);
-    }
-
-    /**
-     * Helpers...
-     */
-    protected function seedData()
-    {
-        HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])
-            ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps'])
-            ->contract()->create(['title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
-    }
-
-    protected function seedDataExtended()
-    {
-        $position = HasOneThroughTestPosition::create(['id' => 2, 'name' => 'Vice President', 'shortname' => 'vp']);
-        $position->user()->create(['id' => 2, 'email' => 'example1@gmail.com', 'position_short' => 'vp'])
-            ->contract()->create(
-                ['title' => 'Example1 title1', 'body' => 'Example1 body1', 'email' => 'example1contract1@gmail.com']
-            );
-    }
-
-    /**
-     * Seed data for a default HasOneThrough setup.
-     */
-    protected function seedDefaultData()
-    {
-        HasOneThroughDefaultTestPosition::create(['id' => 1, 'name' => 'President'])
-            ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com'])
-            ->contract()->create(['title' => 'A title', 'body' => 'A body']);
-    }
-
-    /**
-     * Drop the default tables.
-     */
-    protected function resetDefault()
-    {
-        $this->schema()->drop('users_default');
-        $this->schema()->drop('contracts_default');
-        $this->schema()->drop('positions_default');
-    }
-
-    /**
-     * Migrate tables for classes with a Laravel "default" HasOneThrough setup.
-     */
-    protected function migrateDefault()
-    {
-        $this->schema()->create('users_default', function ($table) {
-            $table->increments('id');
-            $table->string('email')->unique();
-            $table->unsignedInteger('has_one_through_default_test_position_id')->unique()->nullable();
-            $table->timestamps();
-        });
-
-        $this->schema()->create('contracts_default', function ($table) {
-            $table->increments('id');
-            $table->integer('has_one_through_default_test_user_id')->unique();
-            $table->string('title');
-            $table->text('body');
-            $table->timestamps();
-        });
-
-        $this->schema()->create('positions_default', function ($table) {
-            $table->increments('id');
-            $table->string('name');
-            $table->timestamps();
-        });
-    }
-
-    /**
-     * Get a database connection instance.
-     *
-     * @return \Voyager\Database\Connection
-     */
-    protected function connection()
-    {
-        return Instrument::getConnectionResolver()->connection();
-    }
-
-    /**
-     * Get a schema builder instance.
-     *
-     * @return \Voyager\Database\Schema\Builder
-     */
-    protected function schema()
-    {
-        return $this->connection()->getSchemaBuilder();
-    }
-}
+    expect($position->shortname)->toBe('ps');
+    expect($position->contract->title)->toBe('A title');
+});
 
 /**
  * Instrument Models...

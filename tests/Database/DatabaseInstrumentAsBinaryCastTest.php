@@ -6,111 +6,84 @@ use Voyager\Database\Instrument\Casts\AsBinary;
 use Voyager\Database\Instrument\Model;
 use Voyager\NutsAndBolts\BinaryCodec;
 use InvalidArgumentException;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Uid\Ulid;
 
-class DatabaseInstrumentAsBinaryCastTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+afterEach(function () {
+    $reflection = new \ReflectionClass(BinaryCodec::class);
+    $property = $reflection->getProperty('customCodecs');
+    $property->setValue(null, []);
+});
 
-    protected function tearDown(): void
-    {
-        $reflection = new \ReflectionClass(BinaryCodec::class);
-        $property = $reflection->getProperty('customCodecs');
-        $property->setValue(null, []);
+test('cast throws when format missing', function () {
+    $model = new AsBinaryTestModel;
+    $model->setRawAttributes(['no_format' => 'value']);
+    $model->no_format;
+})->throws(InvalidArgumentException::class, 'The binary codec format is required.');
 
-        parent::tearDown();
-    }
+test('cast throws on invalid format', function () {
+    $model = new AsBinaryTestModel;
+    $model->setRawAttributes(['invalid_format' => 'value']);
+    $model->invalid_format;
+})->throws(InvalidArgumentException::class, 'Unsupported binary codec format [invalid]. Allowed formats are: uuid, ulid.');
 
-    public function testCastThrowsWhenFormatMissing()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The binary codec format is required.');
+test('get decodes uuid from binary', function () {
+    $uuid = '550e8400-e29b-41d4-a716-446655440000';
+    $model = new AsBinaryTestModel;
+    $model->setRawAttributes(['uuid' => Uuid::fromString($uuid)->getBytes()]);
 
-        $model = new AsBinaryTestModel;
-        $model->setRawAttributes(['no_format' => 'value']);
-        $model->no_format;
-    }
+    expect($model->uuid)->toBe($uuid);
+});
 
-    public function testCastThrowsOnInvalidFormat()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unsupported binary codec format [invalid]. Allowed formats are: uuid, ulid.');
+test('set encodes uuid to binary', function () {
+    $uuid = '550e8400-e29b-41d4-a716-446655440000';
+    $model = new AsBinaryTestModel;
+    $model->uuid = $uuid;
 
-        $model = new AsBinaryTestModel;
-        $model->setRawAttributes(['invalid_format' => 'value']);
-        $model->invalid_format;
-    }
+    expect($model->getAttributes()['uuid'])->toBe(Uuid::fromString($uuid)->getBytes());
+});
 
-    public function testGetDecodesUuidFromBinary()
-    {
-        $uuid = '550e8400-e29b-41d4-a716-446655440000';
-        $model = new AsBinaryTestModel;
-        $model->setRawAttributes(['uuid' => Uuid::fromString($uuid)->getBytes()]);
+test('get decodes ulid from binary', function () {
+    $ulid = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+    $model = new AsBinaryTestModel;
+    $model->setRawAttributes(['ulid' => Ulid::fromString($ulid)->toBinary()]);
 
-        $this->assertSame($uuid, $model->uuid);
-    }
+    expect($model->ulid)->toBe($ulid);
+});
 
-    public function testSetEncodesUuidToBinary()
-    {
-        $uuid = '550e8400-e29b-41d4-a716-446655440000';
-        $model = new AsBinaryTestModel;
-        $model->uuid = $uuid;
+test('set encodes ulid to binary', function () {
+    $ulid = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+    $model = new AsBinaryTestModel;
+    $model->ulid = $ulid;
 
-        $this->assertSame(Uuid::fromString($uuid)->getBytes(), $model->getAttributes()['uuid']);
-    }
+    expect($model->getAttributes()['ulid'])->toBe(Ulid::fromString($ulid)->toBinary());
+});
 
-    public function testGetDecodesUlidFromBinary()
-    {
-        $ulid = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
-        $model = new AsBinaryTestModel;
-        $model->setRawAttributes(['ulid' => Ulid::fromString($ulid)->toBinary()]);
+test('get returns null for null value', function () {
+    $model = new AsBinaryTestModel;
+    $model->setRawAttributes(['uuid' => null]);
 
-        $this->assertSame($ulid, $model->ulid);
-    }
+    expect($model->uuid)->toBeNull();
+});
 
-    public function testSetEncodesUlidToBinary()
-    {
-        $ulid = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
-        $model = new AsBinaryTestModel;
-        $model->ulid = $ulid;
+test('set encodes null to null', function () {
+    $model = new AsBinaryTestModel;
+    $model->uuid = null;
 
-        $this->assertSame(Ulid::fromString($ulid)->toBinary(), $model->getAttributes()['ulid']);
-    }
+    expect($model->getAttributes()['uuid'])->toBeNull();
+});
 
-    public function testGetReturnsNullForNullValue()
-    {
-        $model = new AsBinaryTestModel;
-        $model->setRawAttributes(['uuid' => null]);
+test('uuid helper method', function () {
+    expect(AsBinary::uuid())->toBe(AsBinary::class.':uuid');
+});
 
-        $this->assertNull($model->uuid);
-    }
+test('ulid helper method', function () {
+    expect(AsBinary::ulid())->toBe(AsBinary::class.':ulid');
+});
 
-    public function testSetEncodesNullToNull()
-    {
-        $model = new AsBinaryTestModel;
-        $model->uuid = null;
-
-        $this->assertNull($model->getAttributes()['uuid']);
-    }
-
-    public function testUuidHelperMethod()
-    {
-        $this->assertSame(AsBinary::class.':uuid', AsBinary::uuid());
-    }
-
-    public function testUlidHelperMethod()
-    {
-        $this->assertSame(AsBinary::class.':ulid', AsBinary::ulid());
-    }
-
-    public function testOfHelperMethod()
-    {
-        $this->assertSame(AsBinary::class.':custom', AsBinary::of('custom'));
-    }
-}
+test('of helper method', function () {
+    expect(AsBinary::of('custom'))->toBe(AsBinary::class.':custom');
+});
 
 class AsBinaryTestModel extends Model
 {

@@ -6,81 +6,59 @@ use Voyager\Database\ClassMorphViolationException;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\Pivot;
 use Voyager\Database\Instrument\Relations\Relation;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentStrictMorphsTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    Relation::requireMorphMap();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function () {
+    Relation::morphMap([], false);
+    Relation::requireMorphMap(false);
+});
 
-        Relation::requireMorphMap();
-    }
+test('strict mode throws an exception on class map', function () {
+    $model = new TestModel;
 
-    public function testStrictModeThrowsAnExceptionOnClassMap()
-    {
-        $this->expectException(ClassMorphViolationException::class);
+    $model->getMorphClass();
+})->throws(ClassMorphViolationException::class);
 
-        $model = new TestModel;
+test('strict mode does not throw exception when morph map', function () {
+    $model = new TestModel;
 
-        $model->getMorphClass();
-    }
+    Relation::morphMap([
+        'test' => TestModel::class,
+    ]);
 
-    public function testStrictModeDoesNotThrowExceptionWhenMorphMap()
-    {
-        $model = new TestModel;
+    $morphName = $model->getMorphClass();
+    expect($morphName)->toBe('test');
+});
 
-        Relation::morphMap([
-            'test' => TestModel::class,
-        ]);
+test('maps can be enforced in one method', function () {
+    $model = new TestModel;
 
-        $morphName = $model->getMorphClass();
-        $this->assertSame('test', $morphName);
-    }
+    Relation::requireMorphMap(false);
 
-    public function testMapsCanBeEnforcedInOneMethod()
-    {
-        $model = new TestModel;
+    Relation::enforceMorphMap([
+        'test' => TestModel::class,
+    ]);
 
-        Relation::requireMorphMap(false);
+    $morphName = $model->getMorphClass();
+    expect($morphName)->toBe('test');
+});
 
-        Relation::enforceMorphMap([
-            'test' => TestModel::class,
-        ]);
+test('map ignore generic pivot class', function () {
+    $this->expectNotToPerformAssertions();
 
-        $morphName = $model->getMorphClass();
-        $this->assertSame('test', $morphName);
-    }
+    $pivotModel = new Pivot();
 
-    public function testMapIgnoreGenericPivotClass()
-    {
-        $this->expectNotToPerformAssertions();
+    $pivotModel->getMorphClass();
+});
 
-        $pivotModel = new Pivot();
+test('map can be enforced to custom pivot class', function () {
+    $pivotModel = new TestPivotModel();
 
-        $pivotModel->getMorphClass();
-    }
-
-    public function testMapCanBeEnforcedToCustomPivotClass()
-    {
-        $this->expectException(ClassMorphViolationException::class);
-
-        $pivotModel = new TestPivotModel();
-
-        $pivotModel->getMorphClass();
-    }
-
-    protected function tearDown(): void
-    {
-        Relation::morphMap([], false);
-        Relation::requireMorphMap(false);
-
-        parent::tearDown();
-    }
-}
+    $pivotModel->getMorphClass();
+})->throws(ClassMorphViolationException::class);
 
 class TestModel extends Model
 {

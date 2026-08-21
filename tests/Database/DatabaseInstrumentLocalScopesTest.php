@@ -4,93 +4,74 @@ namespace Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentLocalScopesTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+beforeEach(function () {
+    tap(new DB)->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ])->bootInstrument();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function () {
+    Model::unsetConnectionResolver();
+});
 
-        tap(new DB)->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ])->bootInstrument();
-    }
+test('can check existence of local scope', function () {
+    $model = new InstrumentLocalScopesTestModel;
 
-    protected function tearDown(): void
-    {
-        Model::unsetConnectionResolver();
+    $this->assertTrue($model->hasNamedScope('active'));
+    $this->assertTrue($model->hasNamedScope('type'));
 
-        parent::tearDown();
-    }
+    $this->assertFalse($model->hasNamedScope('nonExistentLocalScope'));
+});
 
-    public function testCanCheckExistenceOfLocalScope()
-    {
-        $model = new InstrumentLocalScopesTestModel;
+test('local scope is applied', function () {
+    $model = new InstrumentLocalScopesTestModel;
+    $query = $model->newQuery()->active();
 
-        $this->assertTrue($model->hasNamedScope('active'));
-        $this->assertTrue($model->hasNamedScope('type'));
+    $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
+    $this->assertEquals([true], $query->getBindings());
+});
 
-        $this->assertFalse($model->hasNamedScope('nonExistentLocalScope'));
-    }
+test('dynamic local scope is applied', function () {
+    $model = new InstrumentLocalScopesTestModel;
+    $query = $model->newQuery()->type('foo');
 
-    public function testLocalScopeIsApplied()
-    {
-        $model = new InstrumentLocalScopesTestModel;
-        $query = $model->newQuery()->active();
+    $this->assertSame('select * from "table" where "type" = ?', $query->toSql());
+    $this->assertEquals(['foo'], $query->getBindings());
+});
 
-        $this->assertSame('select * from "table" where "active" = ?', $query->toSql());
-        $this->assertEquals([true], $query->getBindings());
-    }
+test('local scopes can chained', function () {
+    $model = new InstrumentLocalScopesTestModel;
+    $query = $model->newQuery()->active()->type('foo');
 
-    public function testDynamicLocalScopeIsApplied()
-    {
-        $model = new InstrumentLocalScopesTestModel;
-        $query = $model->newQuery()->type('foo');
+    $this->assertSame('select * from "table" where "active" = ? and "type" = ?', $query->toSql());
+    $this->assertEquals([true, 'foo'], $query->getBindings());
+});
 
-        $this->assertSame('select * from "table" where "type" = ?', $query->toSql());
-        $this->assertEquals(['foo'], $query->getBindings());
-    }
+test('local scope nesting doesnt double first where clause negation', function () {
+    $model = new InstrumentLocalScopesTestModel;
+    $query = $model
+        ->newQuery()
+        ->whereNot('firstWhere', true)
+        ->orWhere('secondWhere', true)
+        ->active();
 
-    public function testLocalScopesCanChained()
-    {
-        $model = new InstrumentLocalScopesTestModel;
-        $query = $model->newQuery()->active()->type('foo');
+    $this->assertSame('select * from "table" where (not "firstWhere" = ? or "secondWhere" = ?) and "active" = ?', $query->toSql());
+    $this->assertEquals([true, true, true], $query->getBindings());
+});
 
-        $this->assertSame('select * from "table" where "active" = ? and "type" = ?', $query->toSql());
-        $this->assertEquals([true, 'foo'], $query->getBindings());
-    }
+test('local scope nesting groups or not where clause', function () {
+    $model = new InstrumentLocalScopesTestModel;
+    $query = $model
+        ->newQuery()
+        ->where('firstWhere', true)
+        ->orWhereNot('secondWhere', true)
+        ->active();
 
-    public function testLocalScopeNestingDoesntDoubleFirstWhereClauseNegation()
-    {
-        $model = new InstrumentLocalScopesTestModel;
-        $query = $model
-            ->newQuery()
-            ->whereNot('firstWhere', true)
-            ->orWhere('secondWhere', true)
-            ->active();
-
-        $this->assertSame('select * from "table" where (not "firstWhere" = ? or "secondWhere" = ?) and "active" = ?', $query->toSql());
-        $this->assertEquals([true, true, true], $query->getBindings());
-    }
-
-    public function testLocalScopeNestingGroupsOrNotWhereClause()
-    {
-        $model = new InstrumentLocalScopesTestModel;
-        $query = $model
-            ->newQuery()
-            ->where('firstWhere', true)
-            ->orWhereNot('secondWhere', true)
-            ->active();
-
-        $this->assertSame('select * from "table" where ("firstWhere" = ? or not "secondWhere" = ?) and "active" = ?', $query->toSql());
-        $this->assertEquals([true, true, true], $query->getBindings());
-    }
-}
+    $this->assertSame('select * from "table" where ("firstWhere" = ? or not "secondWhere" = ?) and "active" = ?', $query->toSql());
+    $this->assertEquals([true, true, true], $query->getBindings());
+});
 
 class InstrumentLocalScopesTestModel extends Model
 {

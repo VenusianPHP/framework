@@ -8,6 +8,7 @@ use Generator;
 use Traversable;
 use DateInterval;
 use ArrayIterator;
+use SortDirection;
 use DateTimeInterface;
 use IteratorAggregate;
 use DateTimeImmutable;
@@ -217,6 +218,19 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
         return false;
     }
 
+    /**
+     * Determine if an item is not contained in the enumerable, using strict comparison.
+     *
+     * @param  mixed  $key
+     * @param  mixed  $operator
+     * @param  mixed  $value
+     * @return bool
+     */
+    public function doesntContainStrict(mixed $key, mixed $operator = null, mixed $value = null): bool
+    {
+        return ! $this->containsStrict(...func_get_args());
+    }
+
     #[\Override]
     public function doesntContain(mixed $key, mixed $operator = null, mixed $value = null): bool
     {
@@ -372,8 +386,12 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function get(int|string $key, mixed $default = null): mixed
+    public function get(int|string|null $key, mixed $default = null): mixed
     {
+        if (is_null($key)) {
+            return null;
+        }
+
         foreach ($this as $outerKey => $outerValue) {
             if ($outerKey == $key) {
                 return $outerValue;
@@ -454,25 +472,25 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function intersectUsing(Arrayable|array $items, callable $callback): static
+    public function intersectUsing(Arrayable|array|null $items, callable $callback): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
 
     #[\Override]
-    public function intersectAssoc(Arrayable|array $items): static
+    public function intersectAssoc(Arrayable|array|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
 
     #[\Override]
-    public function intersectAssocUsing(Arrayable|array $items, callable $callback): static
+    public function intersectAssocUsing(Arrayable|array|null $items, callable $callback): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
 
     #[\Override]
-    public function intersectByKeys(array|Arrayable $items): static
+    public function intersectByKeys(array|Arrayable|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -580,13 +598,13 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function merge(Arrayable|array $items): static
+    public function merge(Arrayable|array|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
 
     #[\Override]
-    public function mergeRecursive(Arrayable|array $items): static
+    public function mergeRecursive(Arrayable|array|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -620,7 +638,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function union(Arrayable|array $items): static
+    public function union(Arrayable|array|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -704,7 +722,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function concat(array $source): static
+    public function concat(iterable $source): static
     {
         return (new static(function () use ($source) {
             yield from $this;
@@ -713,19 +731,15 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function random(int|callable|null $number = null): mixed
+    public function random(int|callable|null $number = null, bool $preserveKeys = false): mixed
     {
-        if (is_null($number)) {
-            return $this->take(1);
-        }
+        $result = $this->collect()->random(...func_get_args());
 
-        $resolved = is_callable($number) ? $number($this->collect()) : $number;
-
-        return new static($this->collect()->random($resolved)->all());
+        return is_null($number) ? $result : new static($result);
     }
 
     #[\Override]
-    public function replace(Arrayable|array $items): static
+    public function replace(Arrayable|array|null $items): static
     {
         return new static(function () use ($items) {
             $items = $this->getArrayableItems($items);
@@ -746,7 +760,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function replaceRecursive(Arrayable|array $items): static
+    public function replaceRecursive(Arrayable|array|null $items): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -880,18 +894,22 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function skipUntil(callable $value): static
+    public function skipUntil(mixed $value): static
     {
-        return $this->skipWhile($this->negate($value));
+        $callback = $this->useAsCallable($value) ? $value : $this->equality($value);
+
+        return $this->skipWhile($this->negate($callback));
     }
 
     #[\Override]
-    public function skipWhile(callable $value): static
+    public function skipWhile(mixed $value): static
     {
-        return new static(function () use ($value) {
+        $callback = $this->useAsCallable($value) ? $value : $this->equality($value);
+
+        return new static(function () use ($callback) {
             $iterator = $this->getIterator();
 
-            while ($iterator->valid() && $value($iterator->current(), $iterator->key())) {
+            while ($iterator->valid() && $callback($iterator->current(), $iterator->key())) {
                 $iterator->next();
             }
 
@@ -1067,7 +1085,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function sortKeys(int $options = SORT_REGULAR, bool $descending = false): static
+    public function sortKeys(int $options = SORT_REGULAR, SortDirection|bool $descending = false): static
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }
@@ -1123,11 +1141,13 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function takeUntil(callable $value): static
+    public function takeUntil(mixed $value): static
     {
-        return new static(function () use ($value) {
+        $callback = $this->useAsCallable($value) ? $value : $this->equality($value);
+
+        return new static(function () use ($callback) {
             foreach ($this as $key => $item) {
-                if ($value($item, $key)) {
+                if ($callback($item, $key)) {
                     break;
                 }
 
@@ -1164,9 +1184,11 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function takeWhile(callable $value): static
+    public function takeWhile(mixed $value): static
     {
-        return $this->takeUntil(fn ($item, $key) => ! $value($item, $key));
+        $callback = $this->useAsCallable($value) ? $value : $this->equality($value);
+
+        return $this->takeUntil(fn ($item, $key) => ! $callback($item, $key));
     }
 
     public function tapEach(callable $callback): static
@@ -1332,7 +1354,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
         return new ArrayIterator((array) $source);
     }
 
-    protected function explodePluckParameters(array|string $value, ?string $key): array
+    protected function explodePluckParameters(array|string|int|Closure $value, array|string|int|Closure|null $key): array
     {
         $value = is_string($value) ? explode('.', $value) : $value;
         $key = is_null($key) || is_array($key) || $key instanceof Closure ? $key : explode('.', $key);
@@ -1366,6 +1388,8 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
             return;
         }
 
-        usleep($microseconds);
+        class_exists(Sleep::class)
+            ? Sleep::usleep($microseconds)
+            : usleep($microseconds);
     }
 }

@@ -7,64 +7,51 @@ use Voyager\Database\Instrument\Concerns\HasAttributes;
 use Voyager\Database\Instrument\Model;
 use Voyager\NutsAndBolts\Collection;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseConcernsHasAttributesTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('without constructor', function () {
+    $instance = new HasAttributesWithoutConstructor();
+    $attributes = $instance->getMutatedAttributes();
+    expect($attributes)->toEqual(['some_attribute']);
+});
 
-    public function testWithoutConstructor()
-    {
-        $instance = new HasAttributesWithoutConstructor();
-        $attributes = $instance->getMutatedAttributes();
-        $this->assertEquals(['some_attribute'], $attributes);
-    }
+test('with constructor arguments', function () {
+    $instance = new HasAttributesWithConstructorArguments(null);
+    $attributes = $instance->getMutatedAttributes();
+    expect($attributes)->toEqual(['some_attribute']);
+});
 
-    public function testWithConstructorArguments()
-    {
-        $instance = new HasAttributesWithConstructorArguments(null);
-        $attributes = $instance->getMutatedAttributes();
-        $this->assertEquals(['some_attribute'], $attributes);
-    }
-
-    public function testRelationsToArray()
-    {
-        $mock = m::mock(HasAttributesWithoutConstructor::class)
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods()
-            ->shouldReceive('getArrayableRelations')->andReturn([
-                'arrayable_relation' => Collection::make(['foo' => 'bar']),
-                'invalid_relation' => 'invalid',
-                'null_relation' => null,
-            ])
-            ->getMock();
-
-        $this->assertEquals([
-            'arrayable_relation' => ['foo' => 'bar'],
+test('relations to array', function () {
+    $mock = m::mock(HasAttributesWithoutConstructor::class)
+        ->makePartial()
+        ->shouldAllowMockingProtectedMethods()
+        ->shouldReceive('getArrayableRelations')->andReturn([
+            'arrayable_relation' => Collection::make(['foo' => 'bar']),
+            'invalid_relation' => 'invalid',
             'null_relation' => null,
-        ], $mock->relationsToArray());
-    }
+        ])
+        ->getMock();
 
-    public function testCastingEmptyStringToArrayDoesNotError()
-    {
-        $instance = new HasAttributesWithArrayCast();
-        $this->assertEquals(['foo' => null], $instance->attributesToArray());
+    expect($mock->relationsToArray())->toEqual([
+        'arrayable_relation' => ['foo' => 'bar'],
+        'null_relation' => null,
+    ]);
+});
 
-        $this->assertTrue(json_last_error() === JSON_ERROR_NONE);
-    }
+test('casting empty string to array does not error', function () {
+    $instance = new HasAttributesWithArrayCast();
+    expect($instance->attributesToArray())->toEqual(['foo' => null])
+        ->and(json_last_error() === JSON_ERROR_NONE)->toBeTrue();
+});
 
-    public function testUnsettingCachedAttribute()
-    {
-        $instance = new HasCacheableAttributeWithAccessor();
-        $this->assertEquals('foo', $instance->getAttribute('cacheableProperty'));
-        $this->assertTrue($instance->cachedAttributeIsset('cacheableProperty'));
+test('unsetting cached attribute', function () {
+    $instance = new HasCacheableAttributeWithAccessor();
+    expect($instance->getAttribute('cacheableProperty'))->toEqual('foo')
+        ->and($instance->cachedAttributeIsset('cacheableProperty'))->toBeTrue();
 
-        unset($instance->cacheableProperty);
+    unset($instance->cacheableProperty);
 
-        $this->assertFalse($instance->cachedAttributeIsset('cacheableProperty'));
-    }
-}
+    expect($instance->cachedAttributeIsset('cacheableProperty'))->toBeFalse();
+});
 
 class HasAttributesWithoutConstructor
 {

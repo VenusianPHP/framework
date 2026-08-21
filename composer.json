@@ -123,6 +123,7 @@
         },
         "files": [
             "tests/NutsAndBolts/Enums.php",
+            "tests/Collections/Enums.php",
             "tests/Pipeline/Enums.php",
             "tests/NutsAndBolts/Fixtures/functions.php",
             "tests/Vessel/Fixtures/AttributeTargets.php",

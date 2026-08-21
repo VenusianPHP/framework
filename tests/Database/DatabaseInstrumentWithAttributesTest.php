@@ -6,128 +6,115 @@ use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Casts\Attribute;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Schema\Builder;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabaseInstrumentWithAttributesTest extends TestCase
+function dbWithAttrsBootTable() : void
 {
-    use MockeryPHPUnitIntegration;
-
-    protected function setUp(): void
-    {
-        $db = new DB;
-
-        $db->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-        ]);
-        $db->bootInstrument();
-        $db->setAsGlobal();
-    }
-
-    protected function tearDown(): void
-    {
-        $this->schema()->dropIfExists((new WithAttributesModel)->getTable());
-
-        parent::tearDown();
-    }
-
-    public function testAddsAttributes(): void
-    {
-        $key = 'a key';
-        $value = 'the value';
-
-        $query = WithAttributesModel::query()
-            ->withAttributes([$key => $value]);
-
-        $model = $query->make();
-
-        $this->assertSame($value, $model->$key);
-    }
-
-    public function testAddsWheres(): void
-    {
-        $key = 'a key';
-        $value = 'the value';
-
-        $query = WithAttributesModel::query()
-            ->withAttributes([$key => $value]);
-
-        $wheres = $query->toBase()->wheres;
-
-        $this->assertContains([
-            'type' => 'Basic',
-            'column' => 'with_attributes_models.'.$key,
-            'operator' => '=',
-            'value' => $value,
-            'boolean' => 'and',
-        ], $wheres);
-    }
-
-    public function testAddsWithCasts(): void
-    {
-        $query = WithAttributesModel::query()
-            ->withAttributes([
-                'is_admin' => 1,
-                'first_name' => 'FIRST',
-                'last_name' => 'LAST',
-                'type' => WithAttributesEnum::internal,
-            ]);
-
-        $model = $query->make();
-
-        $this->assertSame(true, $model->is_admin);
-        $this->assertSame('First', $model->first_name);
-        $this->assertSame('Last', $model->last_name);
-        $this->assertSame(WithAttributesEnum::internal, $model->type);
-
-        $this->assertEqualsCanonicalizing([
-            'is_admin' => 1,
-            'first_name' => 'first',
-            'last_name' => 'last',
-            'type' => 'int',
-        ], $model->getAttributes());
-    }
-
-    public function testAddsWithCastsViaDb(): void
-    {
-        $this->bootTable();
-
-        $query = WithAttributesModel::query()
-            ->withAttributes([
-                'is_admin' => 1,
-                'first_name' => 'FIRST',
-                'last_name' => 'LAST',
-                'type' => WithAttributesEnum::internal,
-            ]);
-
-        $query->create();
-
-        $model = WithAttributesModel::first();
-
-        $this->assertSame(true, $model->is_admin);
-        $this->assertSame('First', $model->first_name);
-        $this->assertSame('Last', $model->last_name);
-        $this->assertSame(WithAttributesEnum::internal, $model->type);
-    }
-
-    protected function bootTable(): void
-    {
-        $this->schema()->create((new WithAttributesModel)->getTable(), function ($table) {
-            $table->id();
-            $table->boolean('is_admin');
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('type');
-            $table->timestamps();
-        });
-    }
-
-    protected function schema(): Builder
-    {
-        return WithAttributesModel::getConnectionResolver()->connection()->getSchemaBuilder();
-    }
+    dbWithAttrsSchema()->create((new WithAttributesModel)->getTable(), function ($table) {
+        $table->id();
+        $table->boolean('is_admin');
+        $table->string('first_name');
+        $table->string('last_name');
+        $table->string('type');
+        $table->timestamps();
+    });
 }
+
+function dbWithAttrsSchema() : Builder
+{
+    return WithAttributesModel::getConnectionResolver()->connection()->getSchemaBuilder();
+}
+
+beforeEach(function () {
+    $db = new DB;
+
+    $db->addConnection([
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+    ]);
+    $db->bootInstrument();
+    $db->setAsGlobal();
+});
+
+afterEach(function () {
+    dbWithAttrsSchema()->dropIfExists((new WithAttributesModel)->getTable());
+
+    parent::tearDown();
+});
+
+test('adds attributes', function () {
+    $key = 'a key';
+    $value = 'the value';
+
+    $query = WithAttributesModel::query()
+        ->withAttributes([$key => $value]);
+
+    $model = $query->make();
+
+    $this->assertSame($value, $model->$key);
+});
+
+test('adds wheres', function () {
+    $key = 'a key';
+    $value = 'the value';
+
+    $query = WithAttributesModel::query()
+        ->withAttributes([$key => $value]);
+
+    $wheres = $query->toBase()->wheres;
+
+    $this->assertContains([
+        'type' => 'Basic',
+        'column' => 'with_attributes_models.'.$key,
+        'operator' => '=',
+        'value' => $value,
+        'boolean' => 'and',
+    ], $wheres);
+});
+
+test('adds with casts', function () {
+    $query = WithAttributesModel::query()
+        ->withAttributes([
+            'is_admin' => 1,
+            'first_name' => 'FIRST',
+            'last_name' => 'LAST',
+            'type' => WithAttributesEnum::internal,
+        ]);
+
+    $model = $query->make();
+
+    $this->assertSame(true, $model->is_admin);
+    $this->assertSame('First', $model->first_name);
+    $this->assertSame('Last', $model->last_name);
+    $this->assertSame(WithAttributesEnum::internal, $model->type);
+
+    $this->assertEqualsCanonicalizing([
+        'is_admin' => 1,
+        'first_name' => 'first',
+        'last_name' => 'last',
+        'type' => 'int',
+    ], $model->getAttributes());
+});
+
+test('adds with casts via db', function () {
+    dbWithAttrsBootTable();
+
+    $query = WithAttributesModel::query()
+        ->withAttributes([
+            'is_admin' => 1,
+            'first_name' => 'FIRST',
+            'last_name' => 'LAST',
+            'type' => WithAttributesEnum::internal,
+        ]);
+
+    $query->create();
+
+    $model = WithAttributesModel::first();
+
+    $this->assertSame(true, $model->is_admin);
+    $this->assertSame('First', $model->first_name);
+    $this->assertSame('Last', $model->last_name);
+    $this->assertSame(WithAttributesEnum::internal, $model->type);
+});
 
 class WithAttributesModel extends Model
 {

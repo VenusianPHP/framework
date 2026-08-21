@@ -1,73 +1,61 @@
 <?php
 
-namespace Tests\Database;
-
 use Voyager\Database\Connection;
 use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Grammars\PostgresGrammar;
 use Mockery as m;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use PHPUnit\Framework\TestCase;
 
-class DatabasePostgresQueryGrammarTest extends TestCase
-{
-    use MockeryPHPUnitIntegration;
+test('to raw sql', function () {
+    $connection = m::mock(Connection::class);
+    $connection->shouldReceive('escape')->with('foo', false)->andReturn("'foo'");
+    $grammar = new PostgresGrammar($connection);
 
-    public function testToRawSql()
-    {
-        $connection = m::mock(Connection::class);
-        $connection->shouldReceive('escape')->with('foo', false)->andReturn("'foo'");
-        $grammar = new PostgresGrammar($connection);
+    $query = $grammar->substituteBindingsIntoRawSql(
+        'select * from "users" where \'{}\' ?? \'Hello\\\'\\\'World?\' AND "email" = ?',
+        ['foo'],
+    );
 
-        $query = $grammar->substituteBindingsIntoRawSql(
-            'select * from "users" where \'{}\' ?? \'Hello\\\'\\\'World?\' AND "email" = ?',
-            ['foo'],
-        );
+    $this->assertSame('select * from "users" where \'{}\' ? \'Hello\\\'\\\'World?\' AND "email" = \'foo\'', $query);
+});
 
-        $this->assertSame('select * from "users" where \'{}\' ? \'Hello\\\'\\\'World?\' AND "email" = \'foo\'', $query);
-    }
+test('custom operators', function () {
+    PostgresGrammar::customOperators(['@@@', '@>', '']);
+    PostgresGrammar::customOperators(['@@>', 1]);
 
-    public function testCustomOperators()
-    {
-        PostgresGrammar::customOperators(['@@@', '@>', '']);
-        PostgresGrammar::customOperators(['@@>', 1]);
+    $connection = m::mock(Connection::class);
+    $grammar = new PostgresGrammar($connection);
 
-        $connection = m::mock(Connection::class);
-        $grammar = new PostgresGrammar($connection);
+    $operators = $grammar->getOperators();
 
-        $operators = $grammar->getOperators();
+    $this->assertIsList($operators);
+    $this->assertContains('@@@', $operators);
+    $this->assertContains('@@>', $operators);
+    $this->assertNotContains('', $operators);
+    $this->assertNotContains(1, $operators);
+    $this->assertSame(array_unique($operators), $operators);
+});
 
-        $this->assertIsList($operators);
-        $this->assertContains('@@@', $operators);
-        $this->assertContains('@@>', $operators);
-        $this->assertNotContains('', $operators);
-        $this->assertNotContains(1, $operators);
-        $this->assertSame(array_unique($operators), $operators);
-    }
+test('compile truncate', function () {
+    $connection = m::mock(Connection::class);
+    $connection->shouldReceive('getTablePrefix')->andReturn('');
 
-    public function testCompileTruncate()
-    {
-        $connection = m::mock(Connection::class);
-        $connection->shouldReceive('getTablePrefix')->andReturn('');
+    $postgres = new PostgresGrammar($connection);
+    $builder = m::mock(Builder::class);
+    $builder->from = 'users';
 
-        $postgres = new PostgresGrammar($connection);
-        $builder = m::mock(Builder::class);
-        $builder->from = 'users';
+    $this->assertEquals([
+        'truncate "users" restart identity cascade' => [],
+    ], $postgres->compileTruncate($builder));
 
-        $this->assertEquals([
-            'truncate "users" restart identity cascade' => [],
-        ], $postgres->compileTruncate($builder));
+    PostgresGrammar::cascadeOnTruncate(false);
 
-        PostgresGrammar::cascadeOnTruncate(false);
+    $this->assertEquals([
+        'truncate "users" restart identity' => [],
+    ], $postgres->compileTruncate($builder));
 
-        $this->assertEquals([
-            'truncate "users" restart identity' => [],
-        ], $postgres->compileTruncate($builder));
+    PostgresGrammar::cascadeOnTruncate();
 
-        PostgresGrammar::cascadeOnTruncate();
-
-        $this->assertEquals([
-            'truncate "users" restart identity cascade' => [],
-        ], $postgres->compileTruncate($builder));
-    }
-}
+    $this->assertEquals([
+        'truncate "users" restart identity cascade' => [],
+    ], $postgres->compileTruncate($builder));
+});
