@@ -1,0 +1,15 @@
+/vendor/
+
+# Written when `computer` is exercised from the framework repo itself.
+/storage/
+/bootstrap/cache/*.php
+
+/.phpunit.cache/
+.phpunit.result.cache
+.phpunit.cache
+.DS_Store
+composer.lock
+.idea/workspace.xml
+
+# Agent worktrees, each carrying its own copied vendor/.
+/.claude/worktrees/
