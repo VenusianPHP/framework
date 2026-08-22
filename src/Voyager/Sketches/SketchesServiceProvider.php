@@ -37,6 +37,10 @@ class SketchesServiceProvider extends ServiceProvider implements DeferrableProvi
 
     public function boot(): void
     {
+        if (! $this->app->bound('config')) {
+            return;
+        }
+
         $this->discoverAppSketches();
         $this->registerConfiguredSketches();
     }
@@ -46,6 +50,10 @@ class SketchesServiceProvider extends ServiceProvider implements DeferrableProvi
      */
     protected function discoverAppSketches(): void
     {
+        if (! method_exists($this->app, 'path') || ! method_exists($this->app, 'basePath')) {
+            return;
+        }
+
         $path = $this->app->path('Runner/Sketches');
 
         if (! is_dir($path)) {
