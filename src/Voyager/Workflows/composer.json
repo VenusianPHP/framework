@@ -1,0 +1,37 @@
+{
+    "name": "voyager/workflows",
+    "description": "The Voyager Graph Workflows package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Zachary Huang"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "voyager/contracts": "^0.8.0",
+        "voyager/nuts-and-bolts": "^0.8.0"
+    },
+    "suggest": {
+        "react/async": "Required to use the react async runtime (^4.0)."
+    },
+    "provide": {},
+    "autoload": {
+        "psr-4": {
+            "Voyager\\Workflows\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.8.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

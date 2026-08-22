@@ -1,6 +1,6 @@
 # Packages
 
-One concept per publishable `voyager/*` package. There are **31**, matching
+One concept per publishable `voyager/*` package. There are **32**, matching
 the root `composer.json` `replace` block. `Voyager\System` is the
 composition root and is **not** a split package — no concept file, no
 `composer.json`, not in `replace`. See
@@ -45,6 +45,7 @@ composition root and is **not** a split package — no concept file, no
 * [voyager/testing](testing.md) - test fakes and concerns.
 * [voyager/translation](translation.md) - translator.
 * [voyager/validation](validation.md) - validator; Can / HTTP exception / precognition cut.
+* [voyager/workflows](workflows.md) - graph workflows with a driver-based async runtime.
 
 # Related
 

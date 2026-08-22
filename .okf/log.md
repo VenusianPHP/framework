@@ -1,5 +1,36 @@
 # Update Log
 
+## 2026-08-22
+* **New**: [voyager/workflows](packages/workflows.md) — finished the async half of
+  the Workflows component and made its behaviour driver-based. Added
+  `Voyager\Contracts\Workflows\Awaitable` (one `then()`) and `AsyncRuntime` (five
+  operations: `async`, `resolve`, `await`, `all`, `delay`), plus `RuntimeAware`,
+  which `AsyncRunnable` now extends so a flow can hand its runtime to every
+  member it orchestrates. `AsyncRuntimeManager` (over `NutsAndBolts\Manager`)
+  resolves `sync` / `fiber` / `react` from `config('workflows.runtime')`, named
+  by the `AsyncRuntimeDriver` enum; `sync` is the default so async graphs run
+  with no optional package installed. Rebuilt `AsyncWorkflowLogic`, `AsyncNode`,
+  and `AsyncFlow` against the contract and added `AsyncBatchNode`,
+  `AsyncParallelBatchNode`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`. No
+  ReactPHP type appears anywhere in the package outside `Runtimes/ReactRuntime.php`
+  and `Runtimes/ReactAwaitable.php`.
+
+  Three upstream PocketFlow-PHP defects were fixed rather than ported:
+  `AsyncFlow::_runAsync` now runs `prepAsync`/`postAsync` around orchestration
+  (upstream skips both, unlike its own sync `Flow::_run`); batch flows put their
+  param loop in `_runAsync` rather than `runAsync`, so nesting one inside another
+  `AsyncFlow` no longer silently runs a single orchestration; and retry backoff
+  goes through `AsyncRuntime::delay()` instead of blocking `sleep()`.
+  `AsyncParallelBatchFlow` clones the nodes it visits, since params live on node
+  state and concurrent branches otherwise overwrite each other.
+
+  Added `config/workflows.php`, `WorkflowsServiceProvider` (not yet in
+  `DefaultProviders`), `voyager/workflows` to the root `replace` block (31 → 32
+  packages), and `react/async` to `require-dev`. Tests live in
+  `tests/Workflows/` and run the same assertions once per runtime via the new
+  `async runtimes` dataset in `tests/Pest.php`. **Not yet executed** — the
+  working tree is on a read/write-only mount.
+
 ## 2026-08-21
 * **Update**: Ported Laravel's `SupportStrTest.php` (2,004 lines, 115 test
   methods) into `tests/NutsAndBolts/StrTest.php`, merged alongside the

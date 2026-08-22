@@ -32,12 +32,12 @@ class Js implements Htmlable, Stringable
      * Create a new class instance.
      *
      * @param  mixed  $data
-     * @param  int|null  $flags
-     * @param  int  $depth
+     * @param int|null $flags
+     * @param int $depth
      *
      * @throws \JsonException
      */
-    public function __construct($data, $flags = 0, $depth = 512)
+    public function __construct(mixed $data, ?int $flags = 0, int $depth = 512)
     {
         $this->js = $this->convertDataToJavaScriptExpression($data, $flags, $depth);
     }
@@ -46,13 +46,13 @@ class Js implements Htmlable, Stringable
      * Create a new JavaScript string from the given data.
      *
      * @param  mixed  $data
-     * @param  int  $flags
-     * @param  int  $depth
+     * @param int $flags
+     * @param int $depth
      * @return static
      *
      * @throws \JsonException
      */
-    public static function from($data, $flags = 0, $depth = 512)
+    public static function from(mixed $data, int $flags = 0, int $depth = 512): static
     {
         return new static($data, $flags, $depth);
     }
@@ -61,13 +61,13 @@ class Js implements Htmlable, Stringable
      * Convert the given data to a JavaScript expression.
      *
      * @param  mixed  $data
-     * @param  int  $flags
-     * @param  int  $depth
+     * @param int $flags
+     * @param int $depth
      * @return string
      *
      * @throws \JsonException
      */
-    protected function convertDataToJavaScriptExpression($data, $flags = 0, $depth = 512)
+    protected function convertDataToJavaScriptExpression(mixed $data, int $flags = 0, int $depth = 512): string
     {
         if ($data instanceof self) {
             return $data->toHtml();
@@ -99,13 +99,13 @@ class Js implements Htmlable, Stringable
      * Invalid UTF-8 sequences are replaced with � instead of throwing.
      *
      * @param  mixed  $data
-     * @param  int  $flags
-     * @param  int  $depth
+     * @param int $flags
+     * @param int $depth
      * @return string
      *
      * @throws \JsonException
      */
-    public static function encode($data, $flags = 0, $depth = 512)
+    public static function encode(mixed $data, int $flags = 0, int $depth = 512): string
     {
         if ($data instanceof Jsonable) {
             return $data->toJson($flags | static::REQUIRED_FLAGS);
@@ -127,7 +127,7 @@ class Js implements Htmlable, Stringable
      *
      * @throws \JsonException
      */
-    protected function convertJsonToJavaScriptExpression($json, $flags = 0)
+    protected function convertJsonToJavaScriptExpression($json, $flags = 0): string
     {
         if ($json === '[]' || $json === '{}') {
             return $json;
@@ -145,7 +145,7 @@ class Js implements Htmlable, Stringable
      *
      * @return string
      */
-    public function toHtml()
+    public function toHtml(): string
     {
         return $this->js;
     }
@@ -155,7 +155,7 @@ class Js implements Htmlable, Stringable
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toHtml();
     }
