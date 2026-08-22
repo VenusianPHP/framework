@@ -27,7 +27,7 @@ class DispatchSketch
         return (int) $this->pipeline
             ->send($context)
             ->through($this->middleware)
-            ->then(function (SketchRunContext $context) {
+            ->then(function (SketchRunContext $context): int {
                 $context->exitStatus = $this->runner->run($context->sketch);
 
                 return $context->exitStatus;
