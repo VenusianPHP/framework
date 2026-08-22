@@ -4,10 +4,10 @@ title: Laravel lineage
 description: Venusian ports Laravel's generic non-web surface under Voyager\, from laravel/framework@v12.67.0, because the product is windowed apps and hardware ICs — not a second Laravel HTTP stack.
 tags: [lineage, laravel, illuminate, licensing, upstream, port]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: readme
     resource: ../../README.md

@@ -4,10 +4,10 @@ title: Maintaining this knowledge bundle
 description: The repository's own rules for reading, extending, and verifying the .okf bundle, as set out in AGENTS.md and OKF 0.2.
 tags: [okf, documentation, conventions, agents]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: agents-md
     resource: ../../AGENTS.md
@@ -93,13 +93,14 @@ verified:
 
 Use `human:` only for a person. Use `agent:` or `process:` for machine checks.
 
-The 2026-08-21 Framework Auditor pass used:
+The 2026-08-22 Framework Auditor pass used:
 
 ```
-verification_key: agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758
+verification_key: agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000
 ```
 
-That SHA is `0.8.x` HEAD after PR 1 (`VenusianPHP/framework#1`).
+That SHA is `0.8.x` HEAD `(0.8.T) - Workflows Component Tests`. The
+2026-08-21 pass used `8a8600fda67358ec3b38b579f9f13e5107bdc758` (after PR 1).
 
 # Related
 

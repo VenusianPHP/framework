@@ -16,7 +16,7 @@ composition root and is **not** a split package — no concept file, no
 
 # Contracts, container, aliases
 
-* [voyager/contracts](contracts.md) - framework-wide interfaces (114 PHP files; the directory exists).
+* [voyager/contracts](contracts.md) - framework-wide interfaces (120 PHP files; the directory exists).
 * [voyager/vessel](vessel.md) - service container.
 * [voyager/magic-aliases](magic-aliases.md) - MagicAlias base class.
 
@@ -45,7 +45,7 @@ composition root and is **not** a split package — no concept file, no
 * [voyager/testing](testing.md) - test fakes and concerns.
 * [voyager/translation](translation.md) - translator.
 * [voyager/validation](validation.md) - validator; Can / HTTP exception / precognition cut.
-* [voyager/workflows](workflows.md) - graph workflows with a driver-based async runtime.
+* [voyager/workflows](workflows.md) - graph workflows with a driver-based async runtime (5 Pest files).
 
 # Related
 

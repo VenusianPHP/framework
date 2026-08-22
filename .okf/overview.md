@@ -5,10 +5,10 @@ description: A Laravel-like PHP framework for windowed applications and hardware
 resource: https://github.com/VenusianPHP/framework
 tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: readme
     resource: ../README.md
@@ -23,8 +23,8 @@ sources:
     resource: ../composer.json
     title: venusian/framework composer.json (version 0.8.0)
   - id: src-tree
-    resource: every PHP file under ../src/Voyager (32 component directories, 1050 PHP files)
-    title: Framework source tree at 8a8600fda67358ec3b38b579f9f13e5107bdc758
+    resource: every PHP file under ../src/Voyager (33 component directories, 1081 PHP files)
+    title: Framework source tree at e4450c2d96ec2451305ce21fc13030c7a581a000
   - id: tests-yml
     resource: ../.github/workflows/tests.yml
     title: GitHub Actions tests workflow
@@ -54,12 +54,13 @@ badge URLs.[^readme]
 package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
 `Voyager\`.[^root-composer]
 
-This is no longer a Support-only sketch. `src/Voyager/` holds **32**
-component directories and **1050** PHP files, including Vessel, System,
-Console, Database, Queue, Validation, and Contracts.[^src-tree] The only
-provider still commented out in
+This is no longer a Support-only sketch. `src/Voyager/` holds **33**
+component directories and **1081** PHP files, including Vessel, System,
+Console, Database, Queue, Validation, Workflows, and Contracts.[^src-tree]
+The only provider still commented out in
 [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) is
 `Voyager\Sketches\SketchesServiceProvider` (labelled wave 7).
+`WorkflowsServiceProvider` exists but is **not** on that list.
 
 # What is in the tree
 
@@ -67,13 +68,13 @@ provider still commented out in
 |-----------|----------------|----------:|
 | `Broadcasting/` | `voyager/broadcasting` | 20 |
 | `Bus/` | `voyager/bus` | 16 |
-| `Cache/` | `voyager/cache` | 53 |
+| `Cache/` | `voyager/cache` | 55 |
 | `Collections/` | `voyager/collections` | 11 |
 | `Concurrency/` | `voyager/concurrency` | 6 |
 | `Conditionable/` | `voyager/conditionable` | 2 |
 | `Config/` | `voyager/config` | 1 |
 | `Console/` | `voyager/console` | 78 |
-| `Contracts/` | `voyager/contracts` | 114 |
+| `Contracts/` | `voyager/contracts` | 120 |
 | `Database/` | `voyager/database` | 230 |
 | `Encryption/` | `voyager/encryption` | 3 |
 | `Events/` | `voyager/events` | 7 |
@@ -97,11 +98,13 @@ provider still commented out in
 | `Translation/` | `voyager/translation` | 11 |
 | `Validation/` | `voyager/validation` | 45 |
 | `Vessel/` | `voyager/vessel` | 18 |
+| `Workflows/` | `voyager/workflows` | 23 |
 
 Counts from `find src/Voyager/<Dir> -name '*.php'` at
-`8a8600fda67358ec3b38b579f9f13e5107bdc758`.[^src-tree]
+`e4450c2d96ec2451305ce21fc13030c7a581a000` plus the housekeeping commits
+on this pass.[^src-tree]
 
-The root `replace` block lists the **31** `voyager/*` names above and does
+The root `replace` block lists the **32** `voyager/*` names above and does
 **not** list `voyager/system`.[^root-composer] System is the application
 skeleton — see [package split](/architecture/package-split.md).
 
@@ -117,7 +120,8 @@ One concept per publishable package lives under [packages](/packages/).
   `laravel/prompts`, `doctrine/inflector`, …). Read `composer.json` rather
   than a stale short list.[^root-composer]
 - Dev: `pestphp/pest ^4`, `mockery/mockery ^1.6`, `fakerphp/faker ^1.24`,
-  `opis/json-schema ^2.4.1`.[^root-composer]
+  `opis/json-schema ^2.4.1`, `react/async ^4.0` (optional Workflows
+  runtime; not a production require).[^root-composer]
 
 # Tests and CI
 
@@ -125,14 +129,21 @@ One concept per publishable package lives under [packages](/packages/).
 `vendor/bin/pest` on PHP 8.4 and 8.5.[^tests-yml]
 
 PR 1 (`ci/stable-tests`, merged as `8a8600f`) made that workflow green.
-Actions run `32527823474` reported **6257 passed**, 12 skipped, 7 deprecated,
-14 notices, 18843 assertions on **both** matrix cells.[^pr1-ci] Do not cite
-"184 tests" or "no test suite" as current.
+Do not cite "184 tests" or "no test suite" as current.
 
-`phpunit.xml` excludes every `tests/**/deferred/` directory. Default-suite
-tests are Pest v4 closures. The only leftover PHPUnit `TestCase` that is a
-real test is `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
-See [known gaps](/known-gaps.md).
+Local `vendor/bin/pest` at this pass (`e4450c2` plus housekeeping):
+**7528 passed** on PHP 8.4 and **7525 passed** on PHP 8.5, 20 skipped,
+23395 assertions on both. 8.5 reports 10 deprecated vs 7 on 8.4
+(SplObjectStorage aliases elsewhere; Workflows FiberRuntime now uses
+array access). Workflow is unchanged; `react/async` is already
+`require-dev`.
+
+`phpunit.xml` excludes 14 `tests/**/deferred/` paths. Default-suite
+tests are Pest v4 closures, including `tests/Workflows/` (5 files)
+parametrized by the `async runtimes` and `overlapping async runtimes`
+datasets in `tests/Pest.php`. The only leftover PHPUnit `TestCase` that
+is a real test is `tests/Testing/deferred/ConfigShowCommandTest.php`
+(Testbench). See [known gaps](/known-gaps.md).
 
 # Where the Laravel code came from
 
@@ -149,6 +160,6 @@ and [local development](/playbooks/local-development.md).
 [^readme]: Venusian Framework README
 [^agents-md]: Agent guidelines — venusian/framework
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^src-tree]: Framework source tree at 8a8600f
+[^src-tree]: Framework source tree at e4450c2
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5

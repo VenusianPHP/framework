@@ -1,20 +1,20 @@
 ---
 type: Architecture Decision
 title: Monorepo with composer replace
-description: Venusian develops 31 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
+description: Venusian develops 32 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
 tags: [monorepo, composer, packaging]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: root-composer
     resource: ../../composer.json
     title: venusian/framework composer.json (version 0.8.0)
   - id: subpackage-manifests
     resource: ../../src/Voyager/*/composer.json
-    title: Per-package composer manifests (31 files)
+    title: Per-package composer manifests (32 files)
   - id: gitattributes
     resource: ../../.gitattributes
     title: Repository export-ignore rules
@@ -34,17 +34,17 @@ once it is split out.
 
 # Replace block
 
-Root `composer.json` lists **31** packages, each `"self.version"`:[^root-composer]
+Root `composer.json` lists **32** packages, each `"self.version"`:[^root-composer]
 
 `voyager/broadcasting`, `bus`, `cache`, `collections`, `concurrency`,
 `conditionable`, `config`, `console`, `contracts`, `database`, `encryption`,
 `events`, `filesystem`, `hashing`, `http`, `json-schema`, `log`, `macroable`,
 `magic-aliases`, `notifications`, `nuts-and-bolts`, `pagination`, `pipeline`,
 `process`, `queue`, `redis`, `reflection`, `testing`, `translation`,
-`validation`, `vessel`.
+`validation`, `vessel`, `workflows`.
 
-Each of those 31 directories has a `composer.json`.[^subpackage-manifests]
-`src/Voyager/Contracts/` exists (114 PHP files) — it is not an empty
+Each of those 32 directories has a `composer.json`.[^subpackage-manifests]
+`src/Voyager/Contracts/` exists (120 PHP files) — it is not an empty
 `replace` stub.
 
 # System is not a split package
@@ -69,7 +69,7 @@ ScrapyardIO URLs on Macroable. The old `fabricate/*` requires are gone.
 **The `.okf/` bundle is not shipped.** `.gitattributes` export-ignores
 `/tests`, `/phpunit.xml`, `/.github`, `/AGENTS.md`, `/.okf`, `/bootstrap`,
 `/storage`, and `/config-stubs`.[^gitattributes] `/config` is **not**
-export-ignored and holds nine published config files.
+export-ignored and holds ten published config files.
 
 # Related
 
