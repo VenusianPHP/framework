@@ -1,6 +1,20 @@
 # Update Log
 
 ## 2026-08-22
+* **Update**: Converted the last leftover PHPUnit `TestCase` suites that
+  were still class-wrapped after `012f303`. Survey at that SHA: default
+  suite already had **0** leftover `extends TestCase` classes (Laradeps
+  had converted Database / Broadcasting / Queue / Notifications). Workflows
+  added no tests. Converted the five remaining deferred leftovers —
+  `tests/Queue/deferred/` (4) and
+  `tests/Notifications/deferred/NotificationSendQueuedNotificationTest.php`
+  — to Pest v4 closures. Baseline vs converted: same 6 pre-existing
+  `QueueDatabaseQueueUnitTest` failures; the Mockery-only Notifications
+  case went risky → pass (Pest counts fulfilled Mockery expectations).
+  Left `tests/Testing/deferred/ConfigShowCommandTest.php` as Testbench
+  PHPUnit. `phpunit.xml` exclusions unchanged. See [known gaps](known-gaps.md).
+
+## 2026-08-22
 * **New**: [voyager/workflows](packages/workflows.md) — finished the async half of
   the Workflows component and made its behaviour driver-based. Added
   `Voyager\Contracts\Workflows\Awaitable` (one `then()`) and `AsyncRuntime` (five
