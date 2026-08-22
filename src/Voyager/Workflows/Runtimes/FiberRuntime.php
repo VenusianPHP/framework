@@ -42,6 +42,11 @@ class FiberRuntime implements AsyncRuntime
      */
     private array $timers = [];
 
+    /**
+     * Fibers this runtime started and still owns.
+     *
+     * @var SplObjectStorage<Fiber, mixed>
+     */
     private SplObjectStorage $owned;
 
     public function __construct()

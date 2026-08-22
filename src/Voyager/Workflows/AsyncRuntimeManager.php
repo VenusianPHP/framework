@@ -15,10 +15,7 @@ use Voyager\Workflows\Runtimes\SyncRuntime;
  */
 class AsyncRuntimeManager extends Manager
 {
-    /**
-     * @param  \UnitEnum|string|null  $driver
-     */
-    public function driver($driver = null): AsyncRuntime
+    public function driver(UnitEnum|string|null $driver = null): AsyncRuntime
     {
         return parent::driver(match (true) {
             $driver instanceof BackedEnum => $driver->value,
