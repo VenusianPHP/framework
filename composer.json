@@ -86,14 +86,16 @@
         "voyager/testing": "self.version",
         "voyager/translation": "self.version",
         "voyager/validation": "self.version",
-        "voyager/vessel": "self.version"
+        "voyager/vessel": "self.version",
+        "voyager/workflows": "self.version"
     },
     "suggest": {},
     "require-dev": {
         "fakerphp/faker": "^1.24",
         "mockery/mockery": "^1.6",
         "opis/json-schema": "^2.4.1",
-        "pestphp/pest": "^4"
+        "pestphp/pest": "^4",
+        "react/async": "^4.0"
     },
     "autoload": {
         "files": [
