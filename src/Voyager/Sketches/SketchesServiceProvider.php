@@ -4,7 +4,6 @@ namespace Voyager\Sketches;
 
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\Contracts\Sketches\SketchRegistry as SketchRegistryContract;
-use Voyager\Contracts\Vessel\Vessel;
 use Voyager\NutsAndBolts\ServiceProvider;
 
 class SketchesServiceProvider extends ServiceProvider implements DeferrableProvider
@@ -16,21 +15,21 @@ class SketchesServiceProvider extends ServiceProvider implements DeferrableProvi
 
     public function register(): void
     {
-        $this->app->singleton(SketchRegistry::class, function (Vessel $app) {
+        $this->app->singleton(SketchRegistry::class, function ($app) {
             return new SketchRegistry($app);
         });
 
-        $this->app->singleton(SketchRegistryContract::class, function (Vessel $app) {
+        $this->app->singleton(SketchRegistryContract::class, function ($app) {
             return $app->make(SketchRegistry::class);
         });
 
-        $this->app->singleton('sketch', function (Vessel $app) {
+        $this->app->singleton('sketch', function ($app) {
             return $app->make(SketchRegistry::class);
         });
 
         $this->app->singleton(SketchRunner::class, fn () => new SketchRunner);
 
-        $this->app->singleton('sketch.runner', function (Vessel $app) {
+        $this->app->singleton('sketch.runner', function ($app) {
             return $app->make(SketchRunner::class);
         });
     }
