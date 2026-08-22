@@ -4,10 +4,10 @@ title: Port hazards — type hints added to ported Laravel code
 description: Adding strict PHP type hints to Laravel code written for untyped parameters silently narrows behaviour; the failure is a wrong answer, not an error.
 tags: [porting, type-hints, php, laravel, bugs, review]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: audit
     resource: runtime audit of Str, Collection, EnumeratesValues and LazyCollection against ../../vendor/autoload.php on 2026-08-19

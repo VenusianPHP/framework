@@ -1,6 +1,40 @@
 # Update Log
 
 ## 2026-08-22
+* **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
+  `e4450c2d96ec2451305ce21fc13030c7a581a000` ((0.8.T) - Workflows Component
+  Tests) plus the commits on this pass.
+  **Verification key:** `agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000`.
+  Concepts stay `status: draft` (human sign-off is Angel's).
+* **Correction**: Tree counts at that SHA, measured not invented:
+  **33** `src/Voyager/` directories, **1081** PHP files; **32** `voyager/*`
+  replace entries including `voyager/workflows`; Contracts **120** (6 under
+  `Contracts/Workflows`); Cache **55**; `config/` **10** files including
+  `workflows.php`. Overview, package-split, namespace, dependency-direction,
+  contracts, config, and cache concepts updated.
+* **Correction**: [voyager/workflows](packages/workflows.md) did not mention
+  the test suite. `tests/Workflows/` is 5 Pest v4 files. Datasets
+  `async runtimes` and `overlapping async runtimes` live in `tests/Pest.php`.
+  Known gaps still true against source: no sync `BatchNode`/`BatchFlow`;
+  `WorkflowsServiceProvider` not in `DefaultProviders`; `AsyncRunnable`
+  cannot declare `_runAsync` (`SharedBag` is in the package).
+* **Correction**: Default-suite leftover PHPUnit `TestCase` is **0**. No
+  `MockeryPHPUnitIntegration`. The claim "Workflows added no tests" is
+  false at `e4450c2`. Deferred leftover that is a real TestCase remains
+  `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
+  `phpunit.xml` excludes 14 deferred paths; 51 deferred PHP files.
+* **Fix**: First execution of the Workflows suite (the landing commit said
+  it was not run) found `FiberRuntime::loop()` throwing deadlock after a
+  top-level `await(delay())` fulfilled the last timer. Re-check settlement
+  before treating an empty schedule as deadlock. PHP 8.5
+  `SplObjectStorage::{attach,contains,detach}` in that class replaced with
+  array access. `AsyncRuntimeManager::driver()` parameter left untyped —
+  narrowing it against `Manager::driver($driver = null)` fatals.
+* **Update**: Local `vendor/bin/pest` green: **7528 passed** on PHP 8.4,
+  **7525 passed** on PHP 8.5, 20 skipped, 23395 assertions. Workflow
+  unchanged; `react/async` stays `require-dev`.
+
+## 2026-08-22
 * **Update**: Converted the last leftover PHPUnit `TestCase` suites that
   were still class-wrapped after `012f303`. Survey at that SHA: default
   suite already had **0** leftover `extends TestCase` classes (Laradeps

@@ -4,10 +4,10 @@ title: Dependency direction
 description: The layering rule governing which Venusian package may depend on which, including the contracts split and the measured upward edges into System.
 tags: [architecture, layering, dependencies, packaging, contracts, rules]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: agents-md
     resource: ../../AGENTS.md
@@ -45,7 +45,7 @@ The NutsAndBolts packages may depend on each other freely; they are one family.
 **Family contracts that stayed put.** `Voyager\NutsAndBolts\Contracts\Enumerable`
 still lives in `src/Voyager/Collections/Contracts/Enumerable.php`.
 
-**Framework-wide contracts.** `src/Voyager/Contracts/` exists (114 PHP files,
+**Framework-wide contracts.** `src/Voyager/Contracts/` exists (120 PHP files,
 namespace `Voyager\Contracts\…`, package `voyager/contracts`). That includes
 `Voyager\Contracts\NutsAndBolts\{Arrayable,Jsonable,CanBeEscapedWhenCastToString,…}`.
 The old "declared in replace, no directory" picture is false.
@@ -64,9 +64,9 @@ Components                 Broadcasting, Bus, Cache, Concurrency, Config,
                            Hashing, Http (client), JsonSchema, Log,
                            Notifications, Pagination, Pipeline, Process,
                            Queue, Redis, Testing, Translation, Validation,
-                           Vessel, MagicAliases
+                           Vessel, MagicAliases, Workflows
    ^
-voyager/contracts          114 PHP files; Voyager\Contracts\*
+voyager/contracts          120 PHP files; Voyager\Contracts\*
    ^
 NutsAndBolts family        NutsAndBolts, Collections, Conditionable,
                            Macroable, Reflection
@@ -104,8 +104,8 @@ the current graph.
 
 Pagination names `Database\Instrument\Model` via `instanceof`. Database
 **constructs** paginators. Both packages are now in the tree; the old "port
-Pagination first so wave 6 does not stall" sequencing note is spent. Four
-`loadMorph` tests remain in `tests/Pagination/deferred/`.
+Pagination first so wave 6 does not stall" sequencing note is spent.
+`tests/Pagination/deferred` is gone (`phpunit.xml` still lists the path).
 
 # Enforcement
 

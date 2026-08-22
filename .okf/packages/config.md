@@ -5,10 +5,10 @@ description: Configuration repository.
 resource: ../../src/Voyager/Config
 tags: [php, package, voyager, config]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: package-source
     resource: ../../src/Voyager/Config
@@ -21,8 +21,8 @@ sources:
 # Overview
 
 1 PHP file under `src/Voyager/Config/` plus `config/*.php` at the repo root
-(9 files: app, broadcasting, cache, concurrency, database, filesystems,
-hashing, logging, queue). Upstream `v12.67.0`. Requires
+(10 files: app, broadcasting, cache, concurrency, database, filesystems,
+hashing, logging, queue, workflows). Upstream `v12.67.0`. Requires
 `voyager/collections` and `voyager/contracts` `^0.8.0`.
 
 # Related

@@ -1,8 +1,8 @@
 ---
 okf_version: '0.2'
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
 ---
 
 # Venusian Framework
@@ -21,7 +21,7 @@ generic (non-web) Laravel surface has been ported into this monorepo under the
 
 # Packages
 
-* [Packages](packages/) - one concept per publishable `voyager/*` package (31). `Voyager\System` is the composition root and is not a split package.
+* [Packages](packages/) - one concept per publishable `voyager/*` package (32). `Voyager\System` is the composition root and is not a split package.
 
 # API
 

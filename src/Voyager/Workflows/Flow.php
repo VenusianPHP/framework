@@ -57,7 +57,7 @@ class Flow extends BaseNode
      * Orchestrate the execution of nodes in the graph.
      *
      * @param SharedBag $shared The shared data store
-     * @param array|null $params Optional runtime parameters
+     * @param array<string, mixed>|null $params Optional runtime parameters
      * @return string|null The final action returned by the last node
      * @throws WorkflowRuntimeException If an async node is encountered
      */

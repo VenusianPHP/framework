@@ -4,10 +4,10 @@ title: Local development
 description: How to install and run the Venusian 0.8.x working tree. Pest v4 is the suite; CI runs vendor/bin/pest on PHP 8.4 and 8.5.
 tags: [development, testing, pest, composer, onboarding]
 status: draft
-generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: root-composer
     resource: ../../composer.json
@@ -57,20 +57,24 @@ vendor/bin/pest
 That is the command CI runs on PHP 8.4 and 8.5 after `actions/checkout@v5`
 and `composer update`.[^tests-yml]
 
-PR 1 (merge `8a8600f`) reported **6257 passed**, 12 skipped, 7 deprecated,
-14 notices, 18843 assertions on both versions.[^pr1-ci] Do not cite 184 tests.
+Local `vendor/bin/pest` at this pass: **7528 passed** on PHP 8.4,
+**7525 passed** on PHP 8.5, 20 skipped, 23395 assertions. Do not cite
+184 tests or the PR 1 total as current.
 
 `phpunit.xml` defines one suite (`Framework`) over `./tests` with
-`suffix="Test.php"`, `failOnWarning` and `failOnRisky`. Every
-`tests/**/deferred/` directory is excluded.[^phpunit-xml]
+`suffix="Test.php"`, `failOnWarning` and `failOnRisky`. 14
+`tests/**/deferred/` paths are excluded.[^phpunit-xml]
 
 `tests/Pest.php` does not bind a default TestCase. It extends
-`toAcceptIterables`, resets `Sleep` and UUID generation in `afterEach`, and
-defines `nativeStringable()`.
+`toAcceptIterables`, resets `Sleep` and UUID generation in `afterEach`,
+defines `nativeStringable()`, and ships the Workflows datasets
+`async runtimes` and `overlapping async runtimes`. The file header still
+says the framework has no container; Vessel and System are in the tree.
 
 Default-suite packages are Pest v4 closures, including Database, Queue,
-Notifications, and Broadcasting. Deferred directories stay excluded.
-See [known gaps](/known-gaps.md).
+Notifications, Broadcasting, and Workflows (5 files). Deferred directories
+stay excluded. See [known gaps](/known-gaps.md). `react/async` is
+`require-dev` only; sync and fiber Workflows tests pass without it.
 
 # Smoke test
 

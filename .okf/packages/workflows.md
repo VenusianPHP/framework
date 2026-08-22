@@ -5,17 +5,29 @@ description: Graph workflows — prep/exec/post nodes, action-routed flows, and 
 resource: ../../src/Voyager/Workflows
 tags: [php, package, voyager, workflows, async, graph]
 status: draft
-generated: { by: agent:cursor, at: 2026-08-22T20:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: package-source
     resource: ../../src/Voyager/Workflows
-    title: Workflows package source
+    title: Workflows package source (23 PHP files)
   - id: package-manifest
     resource: ../../src/Voyager/Workflows/composer.json
     title: voyager/workflows composer.json
   - id: runtime-config
     resource: ../../config/workflows.php
     title: config/workflows.php
+  - id: contracts
+    resource: ../../src/Voyager/Contracts/Workflows
+    title: Voyager\Contracts\Workflows (6 PHP files)
+  - id: tests
+    resource: ../../tests/Workflows
+    title: Workflows Pest suite (5 files)
+  - id: pest-datasets
+    resource: ../../tests/Pest.php
+    title: async runtimes and overlapping async runtimes datasets
   - id: upstream
     resource: https://github.com/The-Pocket/PocketFlow-PHP
     title: PocketFlow-PHP, the graph model this package descends from
@@ -27,12 +39,34 @@ A directed graph of nodes, each running a `prep` -> `exec` -> `post` lifecycle,
 where the string returned by `post` names the successor to visit. Descended from
 PocketFlow-PHP, with the async layer rebuilt.
 
+**23** PHP files under `src/Voyager/Workflows/`. Contracts live in
+`src/Voyager/Contracts/Workflows/` (**6** PHP files). Package name
+`voyager/workflows`. Requires `voyager/contracts` and `voyager/nuts-and-bolts`
+`^0.8.0`. Suggests `react/async` for the react runtime. Root
+`require-dev` already pins `react/async ^4.0`; that is not a production
+require.
+
 Sync surface: `BaseNode`, `Node` (retry plus `execFallback`), `Flow`,
 `ConditionalTransition`, `SharedBag` (`#[AllowDynamicProperties]`).
 
 Async surface: `AsyncNode`, `AsyncFlow`, `AsyncBatchNode`,
 `AsyncParallelBatchNode`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`, all built
 on the `AsyncWorkflowLogic` trait.
+
+# Tests
+
+`tests/Workflows/` is **5** Pest v4 files (closures, no `TestCase`):
+
+* `AsyncRuntimeTest.php`
+* `AsyncRuntimeManagerTest.php`
+* `AsyncNodeTest.php`
+* `AsyncFlowTest.php`
+* `AsyncBatchTest.php`
+
+`tests/Pest.php` defines two datasets. `async runtimes` is sync, fiber, and
+react when `React\Async\async` exists. `overlapping async runtimes` is fiber
+and the same optional react row. Sync is the CI default; fiber needs no extra
+package; react is filtered out if `react/async` is missing.
 
 # The async runtime seam
 
@@ -65,6 +99,11 @@ Shipped runtimes, resolved by `AsyncRuntimeManager` (extends
 no optional package installed. `Manager::extend()` registers further runtimes
 without touching the package.
 
+`AsyncRuntimeManager::driver()` stays untyped on the parameter. Parent
+`Manager::driver($driver = null)` is untyped; narrowing the child to
+`UnitEnum|string|null` fatals (LSP). The return type is `AsyncRuntime`.
+The body already accepts a backed enum, a unit enum, or a string.
+
 # Behaviour worth knowing
 
 * **Lifecycle methods return `mixed`.** A plain value or an `Awaitable` are both
@@ -90,6 +129,11 @@ without touching the package.
   decision, not a guarantee.
 * **A sync `Flow` refuses `AsyncRunnable` members**, and async nodes and flows
   refuse `run()`.
+* **`FiberRuntime::loop()` re-checks settlement after `expireTimers()`.** A
+  top-level `await(delay())` fulfills the last timer and empties the schedule
+  in the same turn; treating that as deadlock was a bug the suite caught on
+  first execution. PHP 8.5 deprecated `SplObjectStorage::attach` /
+  `contains` / `detach`; this runtime uses array access.
 
 # Known gaps
 
@@ -103,7 +147,10 @@ without touching the package.
 - [voyager/contracts](contracts.md)
 - [voyager/nuts-and-bolts](nuts-and-bolts.md)
 
-[^package-source]: Workflows package source
+[^package-source]: Workflows package source (23 PHP files)
 [^package-manifest]: voyager/workflows composer.json
 [^runtime-config]: config/workflows.php
+[^contracts]: Voyager\Contracts\Workflows (6 PHP files)
+[^tests]: Workflows Pest suite (5 files)
+[^pest-datasets]: async runtimes and overlapping async runtimes datasets
 [^upstream]: PocketFlow-PHP, the graph model this package descends from

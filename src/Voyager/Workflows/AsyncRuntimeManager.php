@@ -16,7 +16,7 @@ use Voyager\Workflows\Runtimes\SyncRuntime;
 class AsyncRuntimeManager extends Manager
 {
     /**
-     * @param  \UnitEnum|string|null  $driver
+     * @param  UnitEnum|string|null  $driver
      */
     public function driver($driver = null): AsyncRuntime
     {

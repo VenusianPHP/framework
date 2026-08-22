@@ -42,6 +42,11 @@ class FiberRuntime implements AsyncRuntime
      */
     private array $timers = [];
 
+    /**
+     * Fibers this runtime started and still owns.
+     *
+     * @var SplObjectStorage<Fiber, mixed>
+     */
     private SplObjectStorage $owned;
 
     public function __construct()
@@ -61,7 +66,7 @@ class FiberRuntime implements AsyncRuntime
             }
         });
 
-        $this->owned->attach($fiber);
+        $this->owned[$fiber] = null;
 
         // Start eagerly so work is underway before anyone awaits it. The fiber
         // runs until its first suspension point and then hands control back.
@@ -98,7 +103,7 @@ class FiberRuntime implements AsyncRuntime
 
         $current = Fiber::getCurrent();
 
-        if (!is_null($current) && $this->owned->contains($current)) {
+        if (!is_null($current) && isset($this->owned[$current])) {
             while (!$value->isSettled()) {
                 $this->blocked[] = ['fiber' => $current, 'awaitable' => $value];
 
@@ -139,6 +144,12 @@ class FiberRuntime implements AsyncRuntime
             $this->expireTimers();
             $this->wake();
 
+            // A timer can fulfill $until and empty $this->timers in the same
+            // turn. Re-check before treating "nothing scheduled" as deadlock.
+            if ($until->isSettled()) {
+                return;
+            }
+
             if ($this->ready !== []) {
                 $fiber = array_shift($this->ready);
 
@@ -169,7 +180,7 @@ class FiberRuntime implements AsyncRuntime
     private function release(Fiber $fiber): void
     {
         if ($fiber->isTerminated()) {
-            $this->owned->detach($fiber);
+            unset($this->owned[$fiber]);
         }
     }
 

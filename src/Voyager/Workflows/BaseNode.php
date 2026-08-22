@@ -2,7 +2,6 @@
 
 namespace Voyager\Workflows;
 
-use LogicException;
 use Voyager\Contracts\Workflows\WorkflowLogicException;
 use Voyager\Contracts\Workflows\WorkflowRuntimeException;
 
@@ -110,7 +109,7 @@ abstract class BaseNode
      * @param mixed $execRes The result from exec()
      * @return string|null The action name to transition to, or null to stop
      */
-    public function post(SharedBag $shared, mixed $prepRes, mixed $execRes): string|null
+    public function post(SharedBag $shared, mixed $prepRes, mixed $execRes): ?string
     {
         return null;
     }

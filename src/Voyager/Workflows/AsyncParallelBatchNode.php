@@ -2,7 +2,6 @@
 
 namespace Voyager\Workflows;
 
-use Throwable;
 use Voyager\Contracts\Workflows\AsyncRuntime;
 
 /**
@@ -31,7 +30,7 @@ class AsyncParallelBatchNode extends AsyncNode
 
     /**
      * @param mixed $items The resolved items from prepAsync()
-     * @throws Throwable
+     * @throws \Throwable
      */
     public function _execAsync(mixed $items): mixed
     {

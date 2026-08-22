@@ -4,14 +4,14 @@ title: Known gaps in Venusian v0.8.0
 description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
-stale_after: 2026-11-21
+generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+stale_after: 2026-11-22
 sources:
   - id: src-tree
     resource: every PHP file under ../src/Voyager
-    title: Framework source tree at 8a8600f
+    title: Framework source tree at e4450c2
   - id: tests-tree
     resource: ../tests and ../phpunit.xml
     title: Test tree, Pest.php, and deferred exclusions
@@ -26,7 +26,7 @@ sources:
     title: MagicAlias::shouldReceive return type
   - id: subpackage-manifests
     resource: ../src/Voyager/*/composer.json
-    title: Per-package composer manifests (31 files)
+    title: Per-package composer manifests (32 files)
   - id: default-providers
     resource: ../src/Voyager/System/DefaultProviders.php
     title: Default service providers
@@ -39,8 +39,9 @@ sources:
 # Overview
 
 Claims below were checked against `src/`, `tests/`, `composer.json`, and
-`.github/workflows/tests.yml` at `8a8600fda67358ec3b38b579f9f13e5107bdc758`
-(0.8.x after PR 1), not against older bundle text.[^src-tree]
+`.github/workflows/tests.yml` at `e4450c2d96ec2451305ce21fc13030c7a581a000`
+(0.8.x HEAD: Workflows Component Tests) plus the housekeeping commits on
+this pass, not against older bundle text.[^src-tree]
 
 The 2026-08-19 Support-foundation defects (`Stringable` resolution, `Str`
 iterable hints, `LazyCollection::make(Closure)`, `Str::singular()`, `now()`,
@@ -53,17 +54,17 @@ are not copied forward.
 
 | Old claim | Tree fact |
 |-----------|-----------|
-| `src/Voyager/Contracts/` does not exist | **114** PHP files; `voyager/contracts` has its own `composer.json`[^src-tree] |
+| `src/Voyager/Contracts/` does not exist | **120** PHP files (6 under `Contracts/Workflows`); `voyager/contracts` has its own `composer.json`[^src-tree] |
 | Database / wave 6 has not landed | **230** PHP files; `Instrument\Model` and `Capsule\Manager` exist; `DatabaseServiceProvider` is in [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php)[^default-providers] |
-| `config/` is empty | **9** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue` |
+| `config/` is empty | **10** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue`, `workflows` |
 | No test suite / 184 Pest tests | PR 1 CI: **6257 passed**, 12 skipped, 18843 assertions on PHP 8.4 and 8.5[^pr1-ci] |
 | CI uses `checkout@v4` and only `intl` | `actions/checkout@v5`; extensions include `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`[^tests-yml] |
-| Waves 5–6 tests are still PHPUnit | After `012f303` plus the Pest leftover conversion, the default suite has **0** `extends PHPUnit\Framework\TestCase` classes. Broadcasting, Notifications, Queue, and Database are Pest v4. Deferred leftovers that still wrap a TestCase are listed below. |
+| Waves 5–6 tests are still PHPUnit | Default suite has **0** `extends PHPUnit\Framework\TestCase` classes, including Workflows. Broadcasting, Notifications, Queue, Database, and Workflows are Pest v4. The only leftover TestCase that is a test is deferred Testbench, below. |
 | `MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15 (`Expectation` vs `CompositeExpectation`) | Return type is `Mockery\ExpectationInterface` (PR 1). `CompositeExpectation` implements that interface.[^magic-alias] |
-| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 31 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
-| Root `replace` lists `voyager/system` | It does not. 31 `voyager/*` entries; System has no `composer.json`. |
+| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 32 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
+| Root `replace` lists `voyager/system` | It does not. 32 `voyager/*` entries including `voyager/workflows`; System has no `composer.json`. |
 | No record of the upstream Laravel revision | Most manifests set `extra.venusian.upstream-ref` to **`v12.67.0`**. |
-| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 32 directories, 1050 PHP files, 31 publishable packages. |
+| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 33 directories, 1081 PHP files, 32 publishable packages. |
 | `now()` fatals / Date alias does not exist | Global `now()` in `NutsAndBolts/Helpers/time.php` returns `Carbon::now()`. Namespaced `Voyager\NutsAndBolts\now()` and `System/helpers.php` `now()` call `Date::now()`. `NutsAndBolts/MagicAliases/Date.php` exists. |
 | `voyager/contracts` planned-but-unbuilt | Built. Foundation `Arrayable` / `Jsonable` live under `Voyager\Contracts\NutsAndBolts`. `Enumerable` remains `Voyager\NutsAndBolts\Contracts\Enumerable` in Collections. |
 
@@ -171,7 +172,11 @@ Invisible under the monorepo autoloader; bites on a standalone split.
 
 ## Deferred tests whose original blocker has moved
 
-`phpunit.xml` excludes 15 `deferred/` trees (60 PHP files). Still real:
+`phpunit.xml` excludes **14** `deferred/` paths. Measured deferred PHP
+files: **51** (41 `*Test.php`, plus fixtures). `tests/Pagination/deferred`
+is still listed in `phpunit.xml` but the directory is gone.
+`tests/Database/deferred` holds only a README and is not excluded (no
+`*Test.php` there). Still real:
 
 - **Orchestra\Testbench** — 14 deferred PHP files plus
   `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`. Root
@@ -192,12 +197,32 @@ Invisible under the monorepo autoloader; bites on a standalone split.
 
 ## PHPUnit leftover style debt
 
-Measured at `012f303` (2026-08-22) plus the deferred Pest conversion:
+Measured at `e4450c2` (2026-08-22) plus this housekeeping pass:
 
-- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. Database, Queue, Notifications, and Broadcasting were already Pest after `(0.8.T) - Laradeps`. Workflows added no tests.
-- **Deferred, converted here:** `tests/Queue/deferred/` (4 files) and `tests/Notifications/deferred/NotificationSendQueuedNotificationTest.php`. Still excluded by `phpunit.xml`.
-- **Still PHPUnit TestCase:** `tests/Testing/deferred/ConfigShowCommandTest.php` (`Orchestra\Testbench\TestCase`). Left alone — Testbench is not a dependency.
+- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. No `MockeryPHPUnitIntegration`. Workflows tests (`tests/Workflows/*.php`, 5 files) are Pest closures.
+- **Still PHPUnit TestCase (deferred):** `tests/Testing/deferred/ConfigShowCommandTest.php` (`Orchestra\Testbench\TestCase`). Left alone — Testbench is not a dependency.
 - **Fixtures, not tests:** `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`.
+- `tests/Console/deferred/ConsoleApplicationTest.php` and
+  `tests/System/deferred/FoundationInteractsWithDatabaseTest.php` mention
+  TestCase in strings / anonymous classes; they are already Pest.
+
+## Workflows gaps (verified against source)
+
+Still true at `e4450c2`:
+
+- No sync `BatchNode` / `BatchFlow`; only `AsyncBatchNode`,
+  `AsyncParallelBatchNode`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`.
+- `WorkflowsServiceProvider` is not in `DefaultProviders`.
+- `AsyncRunnable` is an empty marker (`extends RuntimeAware`) and cannot
+  declare `_runAsync(SharedBag $shared)` because `SharedBag` lives in
+  `Voyager\Workflows`, not Contracts.
+
+Fixed on this pass, not a remaining gap:
+`FiberRuntime::loop()` used to throw deadlock after a top-level
+`await(delay())` fulfilled the last timer. It now re-checks settlement
+before treating an empty schedule as deadlock. PHP 8.5
+`SplObjectStorage::{attach,contains,detach}` deprecations in this class
+were replaced with array access.
 
 ## Upward imports into `Voyager\System`
 
@@ -229,7 +254,7 @@ PHP `use` is lazy, and no helper in that file references the aliases.
 - [Port hazards](/architecture/port-hazards.md) — why typed ports fail quietly.
 - [Local development](/playbooks/local-development.md) — how to run Pest.
 
-[^src-tree]: Framework source tree at 8a8600f
+[^src-tree]: Framework source tree at e4450c2
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed
 [^magic-alias]: MagicAlias::shouldReceive return type
