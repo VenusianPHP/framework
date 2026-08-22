@@ -83,6 +83,7 @@
         "voyager/queue": "self.version",
         "voyager/redis": "self.version",
         "voyager/reflection": "self.version",
+        "voyager/sketches": "self.version",
         "voyager/testing": "self.version",
         "voyager/translation": "self.version",
         "voyager/validation": "self.version",

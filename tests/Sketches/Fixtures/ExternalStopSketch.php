@@ -1,0 +1,33 @@
+<?php
+
+namespace Tests\Sketches\Fixtures;
+
+use Voyager\Contracts\Sketches\SketchLoopResult;
+use Voyager\Sketches\Sketch;
+use Voyager\Sketches\SketchRunner;
+
+class ExternalStopSketch extends Sketch
+{
+    /** @var list<string> */
+    public array $calls = [];
+
+    public function __construct(protected SketchRunner $runner) {}
+
+    public function boot(): void
+    {
+        $this->calls[] = 'boot';
+    }
+
+    public function loop(): SketchLoopResult
+    {
+        $this->calls[] = 'loop';
+        $this->runner->stop();
+
+        return SketchLoopResult::CONTINUE;
+    }
+
+    public function shutdown(): void
+    {
+        $this->calls[] = 'shutdown';
+    }
+}

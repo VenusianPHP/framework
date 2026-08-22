@@ -3,7 +3,6 @@
 namespace Voyager\Workflows;
 
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
-use Voyager\Contracts\Vessel\Vessel;
 use Voyager\NutsAndBolts\ServiceProvider;
 
 class WorkflowsServiceProvider extends ServiceProvider implements DeferrableProvider
@@ -13,7 +12,7 @@ class WorkflowsServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function register(): void
     {
-        $this->app->singleton(AsyncRuntimeManager::class, function (Vessel $app) {
+        $this->app->singleton(AsyncRuntimeManager::class, function ($app) {
             return new AsyncRuntimeManager($app);
         });
     }

@@ -5,9 +5,7 @@ description: A Laravel-like PHP framework for windowed applications and hardware
 resource: https://github.com/VenusianPHP/framework
 tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
 stale_after: 2026-11-22
 sources:
   - id: readme
@@ -23,8 +21,8 @@ sources:
     resource: ../composer.json
     title: venusian/framework composer.json (version 0.8.0)
   - id: src-tree
-    resource: every PHP file under ../src/Voyager (33 component directories, 1081 PHP files)
-    title: Framework source tree at e4450c2d96ec2451305ce21fc13030c7a581a000
+    resource: every PHP file under ../src/Voyager
+    title: Framework source tree including voyager/sketches
   - id: tests-yml
     resource: ../.github/workflows/tests.yml
     title: GitHub Actions tests workflow
@@ -54,12 +52,11 @@ badge URLs.[^readme]
 package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
 `Voyager\`.[^root-composer]
 
-This is no longer a Support-only sketch. `src/Voyager/` holds **33**
-component directories and **1081** PHP files, including Vessel, System,
-Console, Database, Queue, Validation, Workflows, and Contracts.[^src-tree]
-The only provider still commented out in
-[`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) is
-`Voyager\Sketches\SketchesServiceProvider` (labelled wave 7).
+This is no longer a Support-only sketch. `src/Voyager/` holds **34**
+component directories, including Vessel, System, Console, Database, Queue,
+Validation, Workflows, Sketches, and Contracts.[^src-tree]
+`SketchesServiceProvider` is on
+[`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) (wave 7).
 `WorkflowsServiceProvider` exists but is **not** on that list.
 
 # What is in the tree
@@ -74,7 +71,7 @@ The only provider still commented out in
 | `Conditionable/` | `voyager/conditionable` | 2 |
 | `Config/` | `voyager/config` | 1 |
 | `Console/` | `voyager/console` | 78 |
-| `Contracts/` | `voyager/contracts` | 120 |
+| `Contracts/` | `voyager/contracts` | 127 |
 | `Database/` | `voyager/database` | 230 |
 | `Encryption/` | `voyager/encryption` | 3 |
 | `Events/` | `voyager/events` | 7 |
@@ -93,18 +90,19 @@ The only provider still commented out in
 | `Queue/` | `voyager/queue` | 95 |
 | `Redis/` | `voyager/redis` | 16 |
 | `Reflection/` | `voyager/reflection` | 3 |
-| `System/` | *(not a split package)* | 112 |
+| `Sketches/` | `voyager/sketches` | 9 |
+| `System/` | *(not a split package)* | 115 |
 | `Testing/` | `voyager/testing` | 34 |
 | `Translation/` | `voyager/translation` | 11 |
 | `Validation/` | `voyager/validation` | 45 |
 | `Vessel/` | `voyager/vessel` | 18 |
 | `Workflows/` | `voyager/workflows` | 23 |
 
-Counts from `find src/Voyager/<Dir> -name '*.php'` at
-`e4450c2d96ec2451305ce21fc13030c7a581a000` plus the housekeeping commits
-on this pass.[^src-tree]
+Counts from `find src/Voyager/<Dir> -name '*.php'` after landing
+`voyager/sketches`. 34 directories; Contracts **127**; Sketches **9**;
+System **115** (includes `Sketches/Kernel` and the two Computer generators).[^src-tree]
 
-The root `replace` block lists the **32** `voyager/*` names above and does
+The root `replace` block lists the **33** `voyager/*` names above and does
 **not** list `voyager/system`.[^root-composer] System is the application
 skeleton — see [package split](/architecture/package-split.md).
 

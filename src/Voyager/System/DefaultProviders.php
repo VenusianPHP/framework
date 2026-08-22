@@ -58,7 +58,7 @@ class DefaultProviders
             \Voyager\Validation\ValidationServiceProvider::class,
             \Voyager\Broadcasting\BroadcastServiceProvider::class,
             \Voyager\Notifications\NotificationServiceProvider::class,
-            // \Voyager\Sketches\SketchesServiceProvider::class, 
+            \Voyager\Sketches\SketchesServiceProvider::class,
         ];
     }
 

@@ -7,6 +7,7 @@ use Composer\Autoload\ClassLoader;
 use Voyager\System\Configuration\ApplicationBuilder;
 use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Console\Kernel as ConsoleKernelContract;
+use Voyager\Contracts\Sketches\Kernel as SketchKernelContract;
 use Voyager\Contracts\System\Application as ApplicationContract;
 use Voyager\Contracts\System\CachesConfiguration;
 use Voyager\Contracts\System\MaintenanceMode as MaintenanceModeContract;
@@ -1111,6 +1112,26 @@ class Application extends Vessel implements ApplicationContract, CachesConfigura
     public function handleCommand(InputInterface $input): int
     {
         $kernel = $this->make(ConsoleKernelContract::class);
+
+        $status = $kernel->handle(
+            $input,
+            new ConsoleOutput
+        );
+
+        $kernel->terminate($input, $status);
+
+        return $status;
+    }
+
+    /**
+     * Handle the incoming Runner (sketch) console input.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return int
+     */
+    public function handleSketch(InputInterface $input): int
+    {
+        $kernel = $this->make(SketchKernelContract::class);
 
         $status = $kernel->handle(
             $input,

@@ -1,6 +1,6 @@
 # Packages
 
-One concept per publishable `voyager/*` package. There are **32**, matching
+One concept per publishable `voyager/*` package. There are **33**, matching
 the root `composer.json` `replace` block. `Voyager\System` is the
 composition root and is **not** a split package — no concept file, no
 `composer.json`, not in `replace`. See
@@ -42,6 +42,7 @@ composition root and is **not** a split package — no concept file, no
 * [voyager/process](process.md) - process factory; no provider.
 * [voyager/queue](queue.md) - queue; Beanstalkd/SQS/DynamoDB cut.
 * [voyager/redis](redis.md) - Redis connections.
+* [voyager/sketches](sketches.md) - Arduino-shaped app runtime; binary is runner.
 * [voyager/testing](testing.md) - test fakes and concerns.
 * [voyager/translation](translation.md) - translator.
 * [voyager/validation](validation.md) - validator; Can / HTTP exception / precognition cut.

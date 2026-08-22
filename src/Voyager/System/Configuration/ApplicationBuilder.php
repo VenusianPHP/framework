@@ -51,6 +51,11 @@ class ApplicationBuilder
             \Voyager\System\Console\Kernel::class,
         );
 
+        $this->app->singleton(
+            \Voyager\Contracts\Sketches\Kernel::class,
+            \Voyager\System\Sketches\Kernel::class,
+        );
+
         return $this;
     }
 

@@ -2,6 +2,7 @@
 
 namespace Voyager\Workflows;
 
+use Throwable;
 use Voyager\Contracts\Workflows\AsyncRunnable;
 use Voyager\Contracts\Workflows\AsyncRuntime;
 use Voyager\Contracts\Workflows\RuntimeAware;
@@ -69,7 +70,7 @@ class AsyncFlow extends Flow implements AsyncRunnable
      * @param SharedBag $shared The shared data store
      * @param array<string, mixed>|null $params Optional runtime parameters
      * @return string|null The final action
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function _orchestrateAsync(SharedBag $shared, ?array $params = null): ?string
     {
@@ -108,7 +109,7 @@ class AsyncFlow extends Flow implements AsyncRunnable
      *
      * @param SharedBag $shared The shared data store
      * @return string|null The final action
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function _runAsync(SharedBag $shared): ?string
     {
@@ -125,7 +126,7 @@ class AsyncFlow extends Flow implements AsyncRunnable
      *
      * @param SharedBag $shared The shared data store
      * @return string|null The final action
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function runAsync(SharedBag $shared): ?string
     {

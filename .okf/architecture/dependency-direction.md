@@ -4,9 +4,7 @@ title: Dependency direction
 description: The layering rule governing which Venusian package may depend on which, including the contracts split and the measured upward edges into System.
 tags: [architecture, layering, dependencies, packaging, contracts, rules]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
 stale_after: 2026-11-22
 sources:
   - id: agents-md
@@ -45,9 +43,10 @@ The NutsAndBolts packages may depend on each other freely; they are one family.
 **Family contracts that stayed put.** `Voyager\NutsAndBolts\Contracts\Enumerable`
 still lives in `src/Voyager/Collections/Contracts/Enumerable.php`.
 
-**Framework-wide contracts.** `src/Voyager/Contracts/` exists (120 PHP files,
+**Framework-wide contracts.** `src/Voyager/Contracts/` exists (127 PHP files,
 namespace `Voyager\Contracts\…`, package `voyager/contracts`). That includes
-`Voyager\Contracts\NutsAndBolts\{Arrayable,Jsonable,CanBeEscapedWhenCastToString,…}`.
+`Voyager\Contracts\NutsAndBolts\{Arrayable,Jsonable,CanBeEscapedWhenCastToString,…}`
+and `Voyager\Contracts\Sketches`.
 The old "declared in replace, no directory" picture is false.
 
 `AGENTS.md` still *permits* NutsAndBolts to depend on `voyager/contracts`.
@@ -56,17 +55,17 @@ The old "declared in replace, no directory" picture is false.
 # The layers (current tree)
 
 ```
-System                     112 PHP files; DefaultProviders composition root;
+System                     composition root; DefaultProviders; sketches kernel;
                            no composer.json; not in replace
    ^
 Components                 Broadcasting, Bus, Cache, Concurrency, Config,
                            Console, Database, Encryption, Events, Filesystem,
                            Hashing, Http (client), JsonSchema, Log,
                            Notifications, Pagination, Pipeline, Process,
-                           Queue, Redis, Testing, Translation, Validation,
-                           Vessel, MagicAliases, Workflows
+                           Queue, Redis, Sketches, Testing, Translation,
+                           Validation, Vessel, MagicAliases, Workflows
    ^
-voyager/contracts          120 PHP files; Voyager\Contracts\*
+voyager/contracts          Voyager\Contracts\* (including Contracts/Sketches)
    ^
 NutsAndBolts family        NutsAndBolts, Collections, Conditionable,
                            Macroable, Reflection
@@ -75,8 +74,9 @@ NutsAndBolts family        NutsAndBolts, Collections, Conditionable,
 Vessel is the container (`Illuminate\Container`). System's `Application`
 extends that world and boots the provider list in
 [`DefaultProviders`](../../src/Voyager/System/DefaultProviders.php).[^default-providers]
-Pagination and Process have no provider (comments in that file). Sketches is
-the only remaining commented entry.
+Pagination and Process have no provider (comments in that file).
+`WorkflowsServiceProvider` exists but is **not** on that list.
+`SketchesServiceProvider` is uncommented (wave 7).
 
 # Measured upward edges
 

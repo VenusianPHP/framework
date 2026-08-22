@@ -5,9 +5,7 @@ description: Graph workflows — prep/exec/post nodes, action-routed flows, and 
 resource: ../../src/Voyager/Workflows
 tags: [php, package, voyager, workflows, async, graph]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
 stale_after: 2026-11-22
 sources:
   - id: package-source
@@ -142,10 +140,17 @@ The body already accepts a backed enum, a unit enum, or a string.
 * `AsyncRunnable` still cannot declare `_runAsync`, since its `SharedBag`
   parameter lives in this package rather than in Contracts.
 
+Sketches (0.8) no longer embeds a Flow copy. 0.7 ran sketches through a
+2-node PocketFlow (`BootSketchNode` → self-looping `TickSketchNode`) plus
+`Fabricate\Sketches\Flow\*`. That tree is gone. `voyager/sketches` does not
+require this package. A sketch *may* still call a workflow from `loop()`.
+See [voyager/sketches](sketches.md).
+
 # Related
 
 - [voyager/contracts](contracts.md)
 - [voyager/nuts-and-bolts](nuts-and-bolts.md)
+- [voyager/sketches](sketches.md)
 
 [^package-source]: Workflows package source (23 PHP files)
 [^package-manifest]: voyager/workflows composer.json

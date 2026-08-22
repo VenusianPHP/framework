@@ -1,6 +1,22 @@
 # Update Log
 
 ## 2026-08-22
+* **Add**: [voyager/sketches](packages/sketches.md) landed. Sketch is the
+  unit of a Venusian app: `php runner hello-world` boots, ticks `loop()`
+  until STOP, shuts down once in `finally`. `SketchRunner` is a direct
+  Arduino loop — no `Flow/` tree, no `BootSketchNode` / `TickSketchNode`.
+  Kernels and `handleSketch()` live in System. `voyager/sketches` does not
+  `use Voyager\System\*` and does not require `voyager/workflows`.
+  `SketchesServiceProvider` is uncommented on `DefaultProviders`. Computer
+  `make:sketch` / `make:middleware` write under `app/Runner/`. Known-gaps
+  claim "Sketches not landed" is retired. Root `replace` is **33** packages.
+  Contracts **127** (7 under `Contracts/Sketches`). `config/` is **11**
+  files including `sketches.php`. Concepts stay `status: draft`.
+* **Update**: [voyager/workflows](packages/workflows.md) notes that Sketches
+  no longer embeds a Flow copy. A sketch may still call a workflow from
+  `loop()`.
+
+## 2026-08-22
 * **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
   `e4450c2d96ec2451305ce21fc13030c7a581a000` ((0.8.T) - Workflows Component
   Tests) plus the commits on this pass.

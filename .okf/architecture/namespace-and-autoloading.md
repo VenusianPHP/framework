@@ -1,12 +1,10 @@
 ---
 type: Convention
 title: Namespace and autoloading scheme
-description: How Voyager\ and the overlapping Voyager\NutsAndBolts\ PSR-4 prefixes resolve 1081 PHP files across 33 component directories.
+description: How Voyager\ and the overlapping Voyager\NutsAndBolts\ PSR-4 prefixes resolve PHP files across 34 component directories.
 tags: [psr-4, autoloading, namespaces, composer]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
 stale_after: 2026-11-22
 sources:
   - id: root-composer
@@ -14,7 +12,7 @@ sources:
     title: venusian/framework composer.json autoload
   - id: src-tree
     resource: every PHP file under ../../src/Voyager
-    title: 33 directories, 1081 PHP files
+    title: 34 directories including Sketches
 ---
 
 # Overview
@@ -78,7 +76,8 @@ See [global helpers](/api/global-helpers.md).
 3. Adding a directory to Macroable / Collections / Conditionable / Reflection
    means checking the `Voyager\NutsAndBolts\` prefix list.
 4. Keep leaf filenames unique across those four directories.
-5. Do not invent a "26 declarations" map — the tree is 1081 PHP files.[^src-tree]
+5. Do not invent a "26 declarations" map — the tree is 34 component
+   directories including Sketches.[^src-tree]
 
 # Related
 
@@ -86,4 +85,4 @@ See [global helpers](/api/global-helpers.md).
 - [Global helpers](/api/global-helpers.md)
 
 [^root-composer]: venusian/framework composer.json autoload
-[^src-tree]: 33 directories, 1081 PHP files
+[^src-tree]: 34 directories including Sketches

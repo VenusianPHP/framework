@@ -4,9 +4,7 @@ title: Known gaps in Venusian v0.8.0
 description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
 stale_after: 2026-11-22
 sources:
   - id: src-tree
@@ -54,17 +52,18 @@ are not copied forward.
 
 | Old claim | Tree fact |
 |-----------|-----------|
-| `src/Voyager/Contracts/` does not exist | **120** PHP files (6 under `Contracts/Workflows`); `voyager/contracts` has its own `composer.json`[^src-tree] |
+| `src/Voyager/Contracts/` does not exist | **127** PHP files (7 under `Contracts/Sketches`, 6 under `Contracts/Workflows`); `voyager/contracts` has its own `composer.json`[^src-tree] |
 | Database / wave 6 has not landed | **230** PHP files; `Instrument\Model` and `Capsule\Manager` exist; `DatabaseServiceProvider` is in [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php)[^default-providers] |
-| `config/` is empty | **10** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue`, `workflows` |
+| `config/` is empty | **11** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue`, `sketches`, `workflows` |
 | No test suite / 184 Pest tests | PR 1 CI: **6257 passed**, 12 skipped, 18843 assertions on PHP 8.4 and 8.5[^pr1-ci] |
 | CI uses `checkout@v4` and only `intl` | `actions/checkout@v5`; extensions include `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`[^tests-yml] |
 | Waves 5–6 tests are still PHPUnit | Default suite has **0** `extends PHPUnit\Framework\TestCase` classes, including Workflows. Broadcasting, Notifications, Queue, Database, and Workflows are Pest v4. The only leftover TestCase that is a test is deferred Testbench, below. |
 | `MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15 (`Expectation` vs `CompositeExpectation`) | Return type is `Mockery\ExpectationInterface` (PR 1). `CompositeExpectation` implements that interface.[^magic-alias] |
-| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 32 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
-| Root `replace` lists `voyager/system` | It does not. 32 `voyager/*` entries including `voyager/workflows`; System has no `composer.json`. |
+| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 33 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
+| Root `replace` lists `voyager/system` | It does not. 33 `voyager/*` entries including `voyager/sketches` and `voyager/workflows`; System has no `composer.json`. |
 | No record of the upstream Laravel revision | Most manifests set `extra.venusian.upstream-ref` to **`v12.67.0`**. |
-| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 33 directories, 1081 PHP files, 32 publishable packages. |
+| `DefaultProviders` comments Sketches as wave 7; no `src/Voyager/Sketches/` | `voyager/sketches` landed. `SketchesServiceProvider` is uncommented. `SketchRunner` is a direct Arduino loop — no `Flow/` copy. |
+| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 34 directories, 33 publishable packages including `voyager/sketches`. |
 | `now()` fatals / Date alias does not exist | Global `now()` in `NutsAndBolts/Helpers/time.php` returns `Carbon::now()`. Namespaced `Voyager\NutsAndBolts\now()` and `System/helpers.php` `now()` call `Date::now()`. `NutsAndBolts/MagicAliases/Date.php` exists. |
 | `voyager/contracts` planned-but-unbuilt | Built. Foundation `Arrayable` / `Jsonable` live under `Voyager\Contracts\NutsAndBolts`. `Enumerable` remains `Voyager\NutsAndBolts\Contracts\Enumerable` in Collections. |
 
@@ -241,12 +240,6 @@ exceptions, Laravel-shaped:
 `src/Voyager/System/helpers.php` aliases `Voyager\Contracts\Auth\Factory` and
 `Voyager\Contracts\View\{Factory,View}`. Those directories do not exist.
 PHP `use` is lazy, and no helper in that file references the aliases.
-
-## Sketches not landed
-
-`DefaultProviders` still comments
-`\Voyager\Sketches\SketchesServiceProvider::class` as wave 7. There is no
-`src/Voyager/Sketches/`.
 
 # Related
 

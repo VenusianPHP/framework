@@ -56,6 +56,7 @@ use Voyager\System\Console\JobMiddlewareMakeCommand;
 use Voyager\System\Console\KeyGenerateCommand;
 use Voyager\System\Console\LangPublishCommand;
 use Voyager\System\Console\ListenerMakeCommand;
+use Voyager\System\Console\MiddlewareMakeCommand;
 use Voyager\System\Console\ModelMakeCommand;
 use Voyager\System\Console\NotificationMakeCommand;
 use Voyager\System\Console\ObserverMakeCommand;
@@ -66,6 +67,7 @@ use Voyager\System\Console\ProviderMakeCommand;
 use Voyager\System\Console\ReloadCommand;
 use Voyager\System\Console\RuleMakeCommand;
 use Voyager\System\Console\ScopeMakeCommand;
+use Voyager\System\Console\SketchMakeCommand;
 use Voyager\System\Console\StubPublishCommand;
 use Voyager\System\Console\TestMakeCommand;
 use Voyager\System\Console\TraitMakeCommand;
@@ -178,6 +180,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         // Publishes Translation's lang files, which land in wave 4.
         // 'LangPublish' => LangPublishCommand::class,
         'ListenerMake' => ListenerMakeCommand::class,
+        'MiddlewareMake' => MiddlewareMakeCommand::class,
         'ModelMake' => ModelMakeCommand::class,
         'NotificationMake' => NotificationMakeCommand::class,
         'NotificationTable' => NotificationTableCommand::class,
@@ -189,6 +192,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'RuleMake' => RuleMakeCommand::class,
         'ScopeMake' => ScopeMakeCommand::class,
         'SeederMake' => SeederMakeCommand::class,
+        'SketchMake' => SketchMakeCommand::class,
         'StubPublish' => StubPublishCommand::class,
         'TestMake' => TestMakeCommand::class,
         'TraitMake' => TraitMakeCommand::class,
@@ -515,6 +519,18 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      *
      * @return void
      */
+    protected function registerMiddlewareMakeCommand(): void
+    {
+        $this->app->singleton(MiddlewareMakeCommand::class, function ($app) {
+            return new MiddlewareMakeCommand($app['files']);
+        });
+    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
     protected function registerModelMakeCommand(): void
     {
         $this->app->singleton(ModelMakeCommand::class, function ($app) {
@@ -757,6 +773,18 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
     {
         $this->app->singleton(SeederMakeCommand::class, function ($app) {
             return new SeederMakeCommand($app['files']);
+        });
+    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerSketchMakeCommand(): void
+    {
+        $this->app->singleton(SketchMakeCommand::class, function ($app) {
+            return new SketchMakeCommand($app['files']);
         });
     }
 
