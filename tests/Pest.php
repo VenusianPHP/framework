@@ -48,6 +48,27 @@ dataset('collections', [
     'LazyCollection' => [\Voyager\NutsAndBolts\LazyCollection::class],
 ]);
 
+/**
+ * Every async runtime the Workflows package ships.
+ *
+ * Async node and flow behaviour must be identical across all of them, so the
+ * same assertions run once per runtime. The react runtime only joins in when
+ * its optional package is installed.
+ */
+dataset('async runtimes', array_filter([
+    'sync' => [\Voyager\Workflows\Runtimes\SyncRuntime::class],
+    'fiber' => [\Voyager\Workflows\Runtimes\FiberRuntime::class],
+    'react' => function_exists('React\Async\async') ? [\Voyager\Workflows\Runtimes\ReactRuntime::class] : null,
+]));
+
+/**
+ * The subset of runtimes that actually overlap work, for timing assertions.
+ */
+dataset('overlapping async runtimes', array_filter([
+    'fiber' => [\Voyager\Workflows\Runtimes\FiberRuntime::class],
+    'react' => function_exists('React\Async\async') ? [\Voyager\Workflows\Runtimes\ReactRuntime::class] : null,
+]));
+
 /*
 |--------------------------------------------------------------------------
 | Functions
