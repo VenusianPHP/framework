@@ -4,7 +4,7 @@ title: Local development
 description: How to install and run the Venusian 0.8.x working tree. Pest v4 is the suite; CI runs vendor/bin/pest on PHP 8.4 and 8.5.
 tags: [development, testing, pest, composer, onboarding]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -68,9 +68,9 @@ PR 1 (merge `8a8600f`) reported **6257 passed**, 12 skipped, 7 deprecated,
 `toAcceptIterables`, resets `Sleep` and UUID generation in `afterEach`, and
 defines `nativeStringable()`.
 
-Leftover PHPUnit `TestCase` classes in Database / Queue / Notifications /
-Broadcasting still run through this command. Other packages are Pest v4
-closures. See [known gaps](/known-gaps.md).
+Default-suite packages are Pest v4 closures, including Database, Queue,
+Notifications, and Broadcasting. Deferred directories stay excluded.
+See [known gaps](/known-gaps.md).
 
 # Smoke test
 

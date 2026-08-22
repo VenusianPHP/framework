@@ -5,7 +5,7 @@ description: A Laravel-like PHP framework for windowed applications and hardware
 resource: https://github.com/VenusianPHP/framework
 tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -129,9 +129,9 @@ Actions run `32527823474` reported **6257 passed**, 12 skipped, 7 deprecated,
 14 notices, 18843 assertions on **both** matrix cells.[^pr1-ci] Do not cite
 "184 tests" or "no test suite" as current.
 
-`phpunit.xml` excludes every `tests/**/deferred/` directory. Leftover
-PHPUnit `TestCase` classes in the default suite are concentrated in
-Database, Queue, Notifications, and Broadcasting; they run under Pest v4.
+`phpunit.xml` excludes every `tests/**/deferred/` directory. Default-suite
+tests are Pest v4 closures. The only leftover PHPUnit `TestCase` that is a
+real test is `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
 See [known gaps](/known-gaps.md).
 
 # Where the Laravel code came from

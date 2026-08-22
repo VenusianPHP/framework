@@ -5,7 +5,7 @@ description: Queue manager and workers. Beanstalkd, SQS, and DynamoDB are cut; d
 resource: ../../src/Voyager/Queue
 tags: [php, package, voyager, queue]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -27,8 +27,8 @@ to `sync`.
 
 Beanstalkd, SQS, and DynamoDB are absent. Database driver classes exist;
 their tests stay in `tests/Queue/deferred/` (README still says wave 6).
-17 active Queue tests are leftover PHPUnit `TestCase` classes and run under
-Pest. `CallQueuedClosure` imports `System\Bus\Dispatchable`.
+Active Queue tests and the four deferred files are Pest v4.
+`CallQueuedClosure` imports `System\Bus\Dispatchable`.
 
 # Related
 

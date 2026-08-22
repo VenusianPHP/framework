@@ -5,7 +5,7 @@ description: Query builder, schema, migrations, and Instrument (Eloquent rename)
 resource: ../../src/Voyager/Database
 tags: [php, package, voyager, database, instrument, query]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -28,9 +28,9 @@ Present: `Capsule\Manager`, `Instrument\Model`, query builder, schema,
 migrations. Requires `ext-pdo`. `DatabaseServiceProvider` and
 `MigrationServiceProvider` are in `DefaultProviders`.
 
-`tests/Database/` holds 119 `*Test.php` files. They are still PHPUnit
-`TestCase` classes and **run under Pest** in the default suite (no
-`tests/Database/deferred/`).
+`tests/Database/` holds 119 `*Test.php` files. They are Pest v4 closures
+in the default suite (no `tests/Database/deferred/` test files; that
+directory holds only a cut-tests README).
 
 # Related
 

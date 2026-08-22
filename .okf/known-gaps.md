@@ -4,7 +4,7 @@ title: Known gaps in Venusian v0.8.0
 description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -58,7 +58,7 @@ are not copied forward.
 | `config/` is empty | **9** files: `app`, `broadcasting`, `cache`, `concurrency`, `database`, `filesystems`, `hashing`, `logging`, `queue` |
 | No test suite / 184 Pest tests | PR 1 CI: **6257 passed**, 12 skipped, 18843 assertions on PHP 8.4 and 8.5[^pr1-ci] |
 | CI uses `checkout@v4` and only `intl` | `actions/checkout@v5`; extensions include `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`[^tests-yml] |
-| Waves 5–6 tests are still PHPUnit | After PR 1, leftover `extends PHPUnit\Framework\TestCase` classes in the default suite are **Database (119)**, **Queue (17)**, **Notifications (6)**, **Broadcasting (2)**. Other packages are Pest v4. Those leftovers **run under Pest**. |
+| Waves 5–6 tests are still PHPUnit | After `012f303` plus the Pest leftover conversion, the default suite has **0** `extends PHPUnit\Framework\TestCase` classes. Broadcasting, Notifications, Queue, and Database are Pest v4. Deferred leftovers that still wrap a TestCase are listed below. |
 | `MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15 (`Expectation` vs `CompositeExpectation`) | Return type is `Mockery\ExpectationInterface` (PR 1). `CompositeExpectation` implements that interface.[^magic-alias] |
 | Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 31 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
 | Root `replace` lists `voyager/system` | It does not. 31 `voyager/*` entries; System has no `composer.json`. |
@@ -192,9 +192,12 @@ Invisible under the monorepo autoloader; bites on a standalone split.
 
 ## PHPUnit leftover style debt
 
-144 runnable `*Test.php` files still wrap a PHPUnit `TestCase` (or
-`MockeryTestCase`) in Database / Queue / Notifications / Broadcasting.
-Pest v4 executes them. Conversion is style debt, not a red suite.
+Measured at `012f303` (2026-08-22) plus the deferred Pest conversion:
+
+- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. Database, Queue, Notifications, and Broadcasting were already Pest after `(0.8.T) - Laradeps`. Workflows added no tests.
+- **Deferred, converted here:** `tests/Queue/deferred/` (4 files) and `tests/Notifications/deferred/NotificationSendQueuedNotificationTest.php`. Still excluded by `phpunit.xml`.
+- **Still PHPUnit TestCase:** `tests/Testing/deferred/ConfigShowCommandTest.php` (`Orchestra\Testbench\TestCase`). Left alone — Testbench is not a dependency.
+- **Fixtures, not tests:** `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`.
 
 ## Upward imports into `Voyager\System`
 

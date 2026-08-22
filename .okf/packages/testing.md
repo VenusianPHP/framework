@@ -5,7 +5,7 @@ description: Test fakes and concerns (QueueFake, NotificationFake, PendingBatchF
 resource: ../../src/Voyager/Testing
 tags: [php, package, voyager, testing, fakes]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor, at: 2026-08-22T21:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -25,7 +25,8 @@ include `QueueFake`, `BatchFake`, `BatchRepositoryFake`, `PendingBatchFake`,
 `PendingChainFake`, `NotificationFake`. Several files import
 `Voyager\System\*` (upward edge).
 
-`tests/Testing/deferred/`: `ConfigShowCommandTest` needs Testbench;
+`tests/Testing/deferred/`: `ConfigShowCommandTest` still extends
+`Orchestra\Testbench\TestCase` and is left as PHPUnit on purpose;
 `InteractsWithDatabaseTest` and `TestDatabasesTest` remain parked after
 the MagicAlias Mockery fix and Database landing.
 
