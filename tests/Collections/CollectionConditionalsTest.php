@@ -210,6 +210,40 @@ test('whenNotEmptyDefault', function (string $collection) {
     $this->assertSame(['michael', 'tom', 'adam'], $data->toArray());
 })->with('collections');
 
+test('whenNotEmpty returns the callbacks value even when it is not a collection', function (string $collection) {
+    // Regression: package:discover chains ->whenNotEmpty(fn () => $this->newLine()),
+    // whose callback returns the command instance. A strict ": static" return type
+    // TypeError'd on that. whenNotEmpty must pass the callback's value straight through.
+    $data = new $collection(['michael', 'tom']);
+
+    $sentinel = new stdClass;
+
+    $result = $data->whenNotEmpty(fn () => $sentinel);
+
+    $this->assertSame($sentinel, $result);
+})->with('collections');
+
+test('whenNotEmpty with a void callback falls back to the collection', function (string $collection) {
+    $data = new $collection(['michael', 'tom']);
+
+    $result = $data->whenNotEmpty(function () {
+        // no return value
+    });
+
+    $this->assertInstanceOf($collection, $result);
+    $this->assertSame(['michael', 'tom'], $result->toArray());
+})->with('collections');
+
+test('whenEmpty returns the callbacks value even when it is not a collection', function (string $collection) {
+    $data = new $collection;
+
+    $sentinel = new stdClass;
+
+    $result = $data->whenEmpty(fn () => $sentinel);
+
+    $this->assertSame($sentinel, $result);
+})->with('collections');
+
 test('higherOrderWhenAndUnless', function (string $collection) {
     $data = new $collection(['michael', 'tom']);
 

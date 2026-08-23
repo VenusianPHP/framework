@@ -252,14 +252,14 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TWhenEmptyReturnType
      */
-    public function whenEmpty(callable $callback, ?callable $default = null): static;
+    public function whenEmpty(callable $callback, ?callable $default = null): mixed;
 
     /**
      * Apply the callback if the collection is not empty.
      *
      * @template TWhenNotEmptyReturnType
      */
-    public function whenNotEmpty(callable $callback, ?callable $default = null): static;
+    public function whenNotEmpty(callable $callback, ?callable $default = null): mixed;
 
     /**
      * Apply the callback if the given "value" is (or resolves to) falsy.
@@ -278,14 +278,14 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TUnlessEmptyReturnType
      */
-    public function unlessEmpty(callable $callback, ?callable $default = null): static;
+    public function unlessEmpty(callable $callback, ?callable $default = null): mixed;
 
     /**
      * Apply the callback unless the collection is not empty.
      *
      * @template TUnlessNotEmptyReturnType
      */
-    public function unlessNotEmpty(callable $callback, ?callable $default = null): static;
+    public function unlessNotEmpty(callable $callback, ?callable $default = null): mixed;
 
     /**
      * Filter items by the given key value pair.

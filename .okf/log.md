@@ -1,6 +1,22 @@
 # Update Log
 
 ## 2026-08-23
+* **Fix (0.8.2)**: `package:discover` crashed on `post-autoload-dump`
+  (`Collection::whenNotEmpty(): Return value must be of type Collection,
+  PackageDiscoverCommand returned`). Root cause: `EnumeratesValues`
+  `whenEmpty` / `whenNotEmpty` / `unlessEmpty` / `unlessNotEmpty` (and the
+  `Enumerable` contract) declared `: static`, but `Conditionable::when()`
+  returns `$callback($this) ?? $this` — i.e. `mixed`. `PackageDiscoverCommand`
+  passed `fn () => $this->newLine()`, whose arrow-fn return leaked the command
+  instance, so `when()` returned a non-`Collection` and the `: static` type
+  TypeError'd. Fix: relaxed those four return types to `: mixed` in both the
+  trait and the contract (matching `when()` and Laravel's `@return
+  $this|T`), and changed the `package:discover` callsite to a void closure.
+  Added regression coverage in `tests/Collections/CollectionConditionalsTest.php`
+  (callback returning a non-collection, and a void callback). Bumped
+  `composer.json` to **0.8.2**. NOTE: an earlier log entry claimed this was
+  fixed while the shipped 0.8.0/0.8.1 code still carried `: static` — the fix
+  had never actually landed in the tree.
 * **New**: Ported `make:node` from 0.7.x into 0.8.x —
   `Voyager\System\Console\NodeMakeCommand` (`make:node` / `make:node --async`)
   generating into `App\Workflows` against `Voyager\Workflows\Node` /
