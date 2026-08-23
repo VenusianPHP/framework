@@ -22,6 +22,7 @@ class RegisterMagicAliases
         MagicAlias::setMagicAliasApplication($app);
 
         AliasLoader::getInstance(array_merge(
+            AliasLoader::defaultAliases()->all(),
             $app->make('config')->get('app.aliases', []),
             $app->make(PackageManifest::class)->aliases()
         ))->register();

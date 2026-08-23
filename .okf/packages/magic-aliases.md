@@ -5,7 +5,7 @@ description: MagicAlias base class (Laravel facades). Concrete aliases live unde
 resource: ../../src/Voyager/MagicAliases
 tags: [php, package, voyager, facades, aliases]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T03:30:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -27,6 +27,11 @@ The publishable package is one class:
 `DB`, `Event`, `File`, `Hash`, `Http`, `Lang`, `Log`, `Notification`,
 `ParallelTesting`, `Pipeline`, `Process`, `Queue`, `Redis`, `Schema`,
 `Storage`, `Validator`).
+
+Shipped short names (`Config`, `DB`, `Computer`, …) are registered in
+`Voyager\System\AliasLoader::defaultAliases()` and merged in
+`RegisterMagicAliases`. That is Laravel's `Facade::defaultAliases()` —
+not `config/app.php`. App `config('app.aliases')` only adds or overrides.
 
 `shouldReceive()` and `expects()` return `Mockery\ExpectationInterface`
 (PR 1). That closed the Mockery 1.6.15 `CompositeExpectation` TypeError.

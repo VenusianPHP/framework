@@ -2,6 +2,34 @@
 
 namespace Voyager\System;
 
+use Voyager\NutsAndBolts\Collection;
+use Voyager\NutsAndBolts\MagicAliases\App;
+use Voyager\NutsAndBolts\MagicAliases\Broadcast;
+use Voyager\NutsAndBolts\MagicAliases\Bus;
+use Voyager\NutsAndBolts\MagicAliases\Cache;
+use Voyager\NutsAndBolts\MagicAliases\Computer;
+use Voyager\NutsAndBolts\MagicAliases\Concurrency;
+use Voyager\NutsAndBolts\MagicAliases\Config;
+use Voyager\NutsAndBolts\MagicAliases\Context;
+use Voyager\NutsAndBolts\MagicAliases\Crypt;
+use Voyager\NutsAndBolts\MagicAliases\Date;
+use Voyager\NutsAndBolts\MagicAliases\DB;
+use Voyager\NutsAndBolts\MagicAliases\Event;
+use Voyager\NutsAndBolts\MagicAliases\File;
+use Voyager\NutsAndBolts\MagicAliases\Hash;
+use Voyager\NutsAndBolts\MagicAliases\Http;
+use Voyager\NutsAndBolts\MagicAliases\Lang;
+use Voyager\NutsAndBolts\MagicAliases\Log;
+use Voyager\NutsAndBolts\MagicAliases\Notification;
+use Voyager\NutsAndBolts\MagicAliases\ParallelTesting;
+use Voyager\NutsAndBolts\MagicAliases\Pipeline;
+use Voyager\NutsAndBolts\MagicAliases\Process;
+use Voyager\NutsAndBolts\MagicAliases\Queue;
+use Voyager\NutsAndBolts\MagicAliases\Redis;
+use Voyager\NutsAndBolts\MagicAliases\Schema;
+use Voyager\NutsAndBolts\MagicAliases\Storage;
+use Voyager\NutsAndBolts\MagicAliases\Validator;
+
 class AliasLoader
 {
     /**
@@ -229,6 +257,43 @@ class AliasLoader
     public static function setMagicAliasNamespace(string $namespace): void
     {
         static::$magicAliasNamespace = rtrim($namespace, '\\').'\\';
+    }
+
+    /**
+     * The framework's shipped MagicAlias short names.
+     *
+     * Laravel keeps this map on Facade::defaultAliases(), not in config.
+     */
+    public static function defaultAliases(): Collection
+    {
+        return new Collection([
+            'App' => App::class,
+            'Broadcast' => Broadcast::class,
+            'Bus' => Bus::class,
+            'Cache' => Cache::class,
+            'Computer' => Computer::class,
+            'Concurrency' => Concurrency::class,
+            'Config' => Config::class,
+            'Context' => Context::class,
+            'Crypt' => Crypt::class,
+            'Date' => Date::class,
+            'DB' => DB::class,
+            'Event' => Event::class,
+            'File' => File::class,
+            'Hash' => Hash::class,
+            'Http' => Http::class,
+            'Lang' => Lang::class,
+            'Log' => Log::class,
+            'Notification' => Notification::class,
+            'ParallelTesting' => ParallelTesting::class,
+            'Pipeline' => Pipeline::class,
+            'Process' => Process::class,
+            'Queue' => Queue::class,
+            'Redis' => Redis::class,
+            'Schema' => Schema::class,
+            'Storage' => Storage::class,
+            'Validator' => Validator::class,
+        ]);
     }
 
     /**

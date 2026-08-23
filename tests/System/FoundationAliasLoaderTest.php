@@ -56,3 +56,37 @@ test('setAliases replaces the alias map', function () {
     expect(new \some_alias_foo)->toBeInstanceOf(FoundationAliasLoaderStub::class)
         ->and($result)->toBeTrue();
 });
+
+test('default aliases ship every framework magic alias outside config', function () {
+    $aliases = AliasLoader::defaultAliases()->all();
+
+    expect($aliases)->toHaveCount(26)
+        ->and($aliases)->toBe([
+            'App' => \Voyager\NutsAndBolts\MagicAliases\App::class,
+            'Broadcast' => \Voyager\NutsAndBolts\MagicAliases\Broadcast::class,
+            'Bus' => \Voyager\NutsAndBolts\MagicAliases\Bus::class,
+            'Cache' => \Voyager\NutsAndBolts\MagicAliases\Cache::class,
+            'Computer' => \Voyager\NutsAndBolts\MagicAliases\Computer::class,
+            'Concurrency' => \Voyager\NutsAndBolts\MagicAliases\Concurrency::class,
+            'Config' => \Voyager\NutsAndBolts\MagicAliases\Config::class,
+            'Context' => \Voyager\NutsAndBolts\MagicAliases\Context::class,
+            'Crypt' => \Voyager\NutsAndBolts\MagicAliases\Crypt::class,
+            'Date' => \Voyager\NutsAndBolts\MagicAliases\Date::class,
+            'DB' => \Voyager\NutsAndBolts\MagicAliases\DB::class,
+            'Event' => \Voyager\NutsAndBolts\MagicAliases\Event::class,
+            'File' => \Voyager\NutsAndBolts\MagicAliases\File::class,
+            'Hash' => \Voyager\NutsAndBolts\MagicAliases\Hash::class,
+            'Http' => \Voyager\NutsAndBolts\MagicAliases\Http::class,
+            'Lang' => \Voyager\NutsAndBolts\MagicAliases\Lang::class,
+            'Log' => \Voyager\NutsAndBolts\MagicAliases\Log::class,
+            'Notification' => \Voyager\NutsAndBolts\MagicAliases\Notification::class,
+            'ParallelTesting' => \Voyager\NutsAndBolts\MagicAliases\ParallelTesting::class,
+            'Pipeline' => \Voyager\NutsAndBolts\MagicAliases\Pipeline::class,
+            'Process' => \Voyager\NutsAndBolts\MagicAliases\Process::class,
+            'Queue' => \Voyager\NutsAndBolts\MagicAliases\Queue::class,
+            'Redis' => \Voyager\NutsAndBolts\MagicAliases\Redis::class,
+            'Schema' => \Voyager\NutsAndBolts\MagicAliases\Schema::class,
+            'Storage' => \Voyager\NutsAndBolts\MagicAliases\Storage::class,
+            'Validator' => \Voyager\NutsAndBolts\MagicAliases\Validator::class,
+        ]);
+});

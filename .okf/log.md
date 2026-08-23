@@ -1,39 +1,11 @@
 # Update Log
 
 ## 2026-08-23
-* **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
-  `3e93855e843921190adc69bcfd272ecb538d94b3` ((0.8.x) - Graph [Neo4j] DBs)
-  plus the commits on this pass.
-  **Verification key:** `agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3`.
-  Concepts stay `status: draft`.
-* **Correction**: Tree counts at that SHA, measured not invented:
-  **35** `src/Voyager/` directories, **1110** PHP files; **34** `voyager/*`
-  replace entries including `voyager/graph`; Contracts **127**; Graph **10**;
-  Sketches **9**; System **115**; `config/` **11**. Overview already had
-  these Graph-era counts; stamps were still on `4e2910d`.
-* **Types**: `GraphServiceProvider` `resolving('db')` takes
-  `DatabaseManager`. `Neo4jConnection` `$activeTransaction` is
-  `?UnmanagedTransactionInterface`; write-transaction closures take
-  `TransactionInterface`. Covariant returns on
-  `getDefaultQueryGrammar` / `getDefaultPostProcessor` / `run`. Connection
-  overrides (`select` / `statement` / …) and Instrument
-  `$connection` / `$primaryKey` / `$keyType` / `$incrementing` stay
-  untyped to match parent. Container closures in
-  `tests/Graph/GraphPackageTest.php` take `Contracts\Vessel\Vessel`.
-  `GraphServiceProvider` is still **not** on `DefaultProviders`.
-* **Pest**: Default-suite leftover PHPUnit `TestCase` is **0**. No
-  `MockeryPHPUnitIntegration`. `tests/Graph/GraphPackageTest.php` is 4
-  Pest closures. Deferred leftover remains
-  `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
-  Fixtures `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`
-  stay.
-* **Update**: Local `vendor/bin/pest` on PHP 8.4: **7543 passed**, 20
-  skipped, 7 deprecated, 14 notices, 23438 assertions. Graph:
-  **4 passed**, 13 assertions. Delta vs the Sketches pass (7539 / 23425)
-  is exactly the Graph suite. GitHub Actions run `32614669415` (first
-  push): PHP 8.4 **7551 passed**, 12 skipped, 23463 assertions; PHP 8.5
-  **7546 passed**, 12 skipped, 23463 assertions. Same 8 local-skip vs
-  CI-pass gap as the Sketches pass.
+* **Fix**: Shipped MagicAlias short names live on
+  `AliasLoader::defaultAliases()` (26 aliases) and are merged in
+  `RegisterMagicAliases`. Framework `config/app.php` no longer lists
+  Config/Date/Log. App `config('app.aliases')` is extras only, matching
+  Laravel `Facade::defaultAliases()` and 0.7 Fabricate.
 
 ## 2026-08-23
 * **Add**: [voyager/graph](packages/graph.md) landed as an opt-in Neo4j

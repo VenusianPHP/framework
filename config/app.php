@@ -36,20 +36,4 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Magic Aliases
-    |--------------------------------------------------------------------------
-    |
-    | Venusian's equivalent of Laravel's class aliases, resolved through
-    | Voyager\MagicAliases.
-    |
-    */
-
-    'aliases' => [
-        'Config' => Voyager\NutsAndBolts\MagicAliases\Config::class,
-        'Date'   => Voyager\NutsAndBolts\MagicAliases\Date::class,
-        'Log'    => Voyager\NutsAndBolts\MagicAliases\Log::class,
-    ],
-
 ];
