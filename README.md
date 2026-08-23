@@ -3,7 +3,7 @@
 [![Tests](https://github.com/VenusianPHP/framework/actions/workflows/tests.yml/badge.svg)](https://github.com/VenusianPHP/framework/actions/workflows/tests.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/venusian/framework.svg)](https://packagist.org/packages/venusian/framework)
 [![Total Downloads](https://img.shields.io/packagist/dt/venusian/framework.svg)](https://packagist.org/packages/venusian/framework)
-[![License](https://img.shields.io/packagist/l/venusian/framework.svg)](LICENSE.md)
+[![License](https://img.shields.io/packagist/l/venusian/framework.svg)](LICENSE)
 
 ## About Venusian
 
