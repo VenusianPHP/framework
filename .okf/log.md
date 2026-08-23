@@ -1,6 +1,13 @@
 # Update Log
 
 ## 2026-08-23
+* **Fix**: Shipped MagicAlias short names live on
+  `AliasLoader::defaultAliases()` (26 aliases) and are merged in
+  `RegisterMagicAliases`. Framework `config/app.php` no longer lists
+  Config/Date/Log. App `config('app.aliases')` is extras only, matching
+  Laravel `Facade::defaultAliases()` and 0.7 Fabricate.
+
+## 2026-08-23
 * **Add**: [voyager/graph](packages/graph.md) landed as an opt-in Neo4j
   companion to [voyager/database](packages/database.md). Straight port of
   0.7.x `fabricate/graph` (`Fabricate\`→`Voyager\`, `Polisher`→`Instrument`,
