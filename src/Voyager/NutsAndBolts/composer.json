@@ -1,5 +1,5 @@
 {
-    "name": "voyager/nuts-and-bolts",
+    "name": "venusian-voyager/nuts-and-bolts",
     "description": "The Voyager Support package.",
     "license": "MIT",
     "authors": [
@@ -24,12 +24,12 @@
         "symfony/var-dumper": "^8.0.0",
         "vlucas/phpdotenv": "^5.6.1",
         "voku/portable-ascii": "^2.0.2",
-        "voyager/collections": "^0.8.0",
-        "voyager/conditionable": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/macroable": "^0.8.0",
-        "voyager/magic-aliases": "^0.8.0",
-        "voyager/reflection": "^0.8.0"
+        "venusian-voyager/collections": "^0.8.0",
+        "venusian-voyager/conditionable": "^0.8.0",
+        "venusian-voyager/contracts": "^0.8.0",
+        "venusian-voyager/macroable": "^0.8.0",
+        "venusian-voyager/magic-aliases": "^0.8.0",
+        "venusian-voyager/reflection": "^0.8.0"
     },
     "suggest": {},
     "minimum-stability": "dev",

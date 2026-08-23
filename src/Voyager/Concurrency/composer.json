@@ -1,5 +1,5 @@
 {
-    "name": "voyager/concurrency",
+    "name": "venusian-voyager/concurrency",
     "description": "The Voyager Concurrency package.",
     "license": "MIT",
     "authors": [
@@ -14,10 +14,10 @@
     "require": {
         "php": "^8.4|^8.5",
         "laravel/serializable-closure": "^2.0",
-        "voyager/console": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0",
-        "voyager/process": "^0.8.0"
+        "venusian-voyager/console": "^0.8.0",
+        "venusian-voyager/contracts": "^0.8.0",
+        "venusian-voyager/nuts-and-bolts": "^0.8.0",
+        "venusian-voyager/process": "^0.8.0"
     },
     "suggest": {
         "spatie/fork": "Required to use the fork concurrency driver (^1.2)."

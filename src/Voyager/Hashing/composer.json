@@ -1,5 +1,5 @@
 {
-    "name": "voyager/hashing",
+    "name": "venusian-voyager/hashing",
     "description": "The Voyager Hashing package.",
     "license": "MIT",
     "authors": [
@@ -13,8 +13,8 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "voyager/contracts": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0"
+        "venusian-voyager/contracts": "^0.8.0",
+        "venusian-voyager/nuts-and-bolts": "^0.8.0"
     },
     "autoload": {
         "psr-4": {

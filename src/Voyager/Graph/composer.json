@@ -1,5 +1,5 @@
 {
-    "name": "voyager/graph",
+    "name": "venusian-voyager/graph",
     "description": "Neo4j graph driver and Instrument models for Venusian (companion to voyager/database).",
     "license": "MIT",
     "authors": [

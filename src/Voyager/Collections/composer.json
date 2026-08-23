@@ -1,5 +1,5 @@
 {
-  "name": "voyager/collections",
+  "name": "venusian-voyager/collections",
   "description": "The Voyager Collections package.",
   "license": "MIT",
   "authors": [
@@ -13,9 +13,9 @@
   ],
   "require": {
       "php": "^8.4|^8.5",
-      "voyager/macroable": "^0.8.0",
-      "voyager/contracts": "^0.8.0",
-      "voyager/conditionble": "^0.8.0"
+      "venusian-voyager/macroable": "^0.8.0",
+      "venusian-voyager/contracts": "^0.8.0",
+      "venusian-voyager/conditionble": "^0.8.0"
   },
   "minimum-stability": "dev",
   "autoload": {

@@ -1,5 +1,5 @@
 {
-    "name": "voyager/json-schema",
+    "name": "venusian-voyager/json-schema",
     "description": "The Voyager JsonSchema package.",
     "license": "MIT",
     "authors": [
@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "voyager/contracts": "^0.8.0"
+        "venusian-voyager/contracts": "^0.8.0"
     },
     "autoload": {
         "psr-4": {

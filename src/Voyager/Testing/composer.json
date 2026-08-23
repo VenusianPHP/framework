@@ -1,5 +1,5 @@
 {
-    "name": "voyager/testing",
+    "name": "venusian-voyager/testing",
     "description": "The Voyager Testing package.",
     "license": "MIT",
     "authors": [
@@ -13,10 +13,10 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "voyager/collections": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/macroable": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0"
+        "venusian-voyager/collections": "^0.8.0",
+        "venusian-voyager/contracts": "^0.8.0",
+        "venusian-voyager/macroable": "^0.8.0",
+        "venusian-voyager/nuts-and-bolts": "^0.8.0"
     },
     "suggest": {
         "phpunit/phpunit": "Required to use assertions and run tests (^11.0|^12.0).",

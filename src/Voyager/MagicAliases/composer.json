@@ -1,5 +1,5 @@
 {
-    "name": "voyager/magic-aliases",
+    "name": "venusian-voyager/magic-aliases",
     "description": "The Voyager MagicAliases package \u2014 the alias base class.",
     "license": "MIT",
     "authors": [
@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "voyager/contracts": "^0.8.0"
+        "venusian-voyager/contracts": "^0.8.0"
     },
     "suggest": {
         "mockery/mockery": "Required to use alias fakes (shouldReceive, spy, partialMock)."

@@ -1,5 +1,5 @@
 {
-    "name": "voyager/queue",
+    "name": "venusian-voyager/queue",
     "description": "The Voyager Queue package.",
     "license": "MIT",
     "authors": [
@@ -16,16 +16,16 @@
         "laravel/serializable-closure": "^2.0",
         "ramsey/uuid": "^4.7",
         "symfony/process": "^7.2",
-        "voyager/collections": "^0.8.0",
-        "voyager/console": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/filesystem": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0",
-        "voyager/pipeline": "^0.8.0",
-        "voyager/vessel": "^0.8.0"
+        "venusian-voyager/collections": "^0.8.0",
+        "venusian-voyager/console": "^0.8.0",
+        "venusian-voyager/contracts": "^0.8.0",
+        "venusian-voyager/filesystem": "^0.8.0",
+        "venusian-voyager/nuts-and-bolts": "^0.8.0",
+        "venusian-voyager/pipeline": "^0.8.0",
+        "venusian-voyager/vessel": "^0.8.0"
     },
     "suggest": {
-        "voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.8.0)."
+        "venusian-voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.8.0)."
     },
     "autoload": {
         "psr-4": {
