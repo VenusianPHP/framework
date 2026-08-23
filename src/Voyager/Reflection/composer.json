@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": "^8.4|^8.5",
-    "venusian-voyager/collection": "^0.8"
+    "venusian-voyager/collections": "^0.8"
   },
   "minimum-stability": "dev",
   "autoload": {

@@ -38,6 +38,13 @@ no `return null` (see [known gaps](/known-gaps.md)). That is the same
 "declared return type turns an implicit null into a fatal" case as the
 wave-5 `Batchable::batch()` row below.
 
+A live crash of the same family, 2026-08-23: `vendor:publish` by provider
+iterates `foreach ($this->tags ?: [null] as $tag)` and then constructs
+`VendorTagPublished($tag, $paths)`. Laravel's constructor is untyped.
+The port used `string $tag`. PHP 8.4 TypeError after the files already
+copied. Constructor is `?string`. Coverage in
+`tests/System/Console/VendorPublishCommandTest.php`.
+
 # The hazard
 
 Laravel's Support code is largely **untyped by design**: `Str::is($pattern, $value)`,

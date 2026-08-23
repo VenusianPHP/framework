@@ -15,7 +15,7 @@
       "php": "^8.4|^8.5",
       "venusian-voyager/macroable": "^0.8.0",
       "venusian-voyager/contracts": "^0.8.0",
-      "venusian-voyager/conditionble": "^0.8.0"
+      "venusian-voyager/conditionable": "^0.8.0"
   },
   "minimum-stability": "dev",
   "autoload": {

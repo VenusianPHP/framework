@@ -1,3 +1,11 @@
+## 2026-08-23
+* **Fix**: `vendor:publish` by provider (prompt or `--provider`) copied files
+  then TypeError'd in `VendorTagPublished::__construct()` because `$tag` is
+  `null` when no tag was selected. Laravel's constructor is untyped; the port
+  used `string $tag`. Constructor is now `?string`. Regression tests in
+  `tests/System/Console/VendorPublishCommandTest.php`. Same family as
+  [port hazards](architecture/port-hazards.md).
+
 # Update Log
 
 ## 2026-08-23

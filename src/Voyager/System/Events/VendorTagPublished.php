@@ -7,7 +7,7 @@ class VendorTagPublished
     /**
      * The vendor tag that was published.
      *
-     * @var string
+     * @var string|null
      */
     public $tag;
 
@@ -21,10 +21,10 @@ class VendorTagPublished
     /**
      * Create a new event instance.
      *
-     * @param  string  $tag
+     * @param  string|null  $tag
      * @param  array  $paths
      */
-    public function __construct(string $tag, array $paths)
+    public function __construct(?string $tag, array $paths)
     {
         $this->tag = $tag;
         $this->paths = $paths;
