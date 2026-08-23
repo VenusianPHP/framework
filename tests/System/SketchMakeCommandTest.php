@@ -1,11 +1,9 @@
 <?php
 
+use Voyager\Config\Repository as Config;
 use Voyager\Filesystem\Filesystem;
 use Voyager\System\Application;
 use Voyager\System\Console\SketchMakeCommand;
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -15,9 +13,9 @@ function destroyTempSketchApp(string $path): void
         return;
     }
 
-    $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST,
+    $files = new \RecursiveIteratorIterator(
+        new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
+        \RecursiveIteratorIterator::CHILD_FIRST,
     );
 
     foreach ($files as $file) {
@@ -43,6 +41,7 @@ test('make:sketch writes a class under app/Runner/Sketches extending the app bas
         $app = new Application($basePath);
         $app->instance('env', 'testing');
         $app->instance('files', new Filesystem);
+        $app->instance('config', new Config);
 
         $command = new SketchMakeCommand($app['files']);
         $command->setVenusian($app);
