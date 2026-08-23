@@ -1,6 +1,17 @@
 # Update Log
 
 ## 2026-08-23
+* **New**: Ported `make:node` from 0.7.x into 0.8.x —
+  `Voyager\System\Console\NodeMakeCommand` (`make:node` / `make:node --async`)
+  generating into `App\Workflows` against `Voyager\Workflows\Node` /
+  `AsyncNode`, with `node.stub` / `node.async.stub` (rewritten to the 0.8.x
+  `SharedBag` signatures: `post(SharedBag,...): ?string`, async `postAsync`
+  returns `mixed`). Registered as a **dev** command in `ComputerServiceProvider`
+  (`'NodeMake'`) so it does not require `WorkflowsServiceProvider` on
+  `DefaultProviders`. Added `tests/System/NodeMakeCommandTest.php` (sync +
+  `--async`). Documented in [voyager/workflows](packages/workflows.md).
+
+## 2026-08-23
 * **Fix**: Shipped MagicAlias short names live on
   `AliasLoader::defaultAliases()` (26 aliases) and are merged in
   `RegisterMagicAliases`. Framework `config/app.php` no longer lists

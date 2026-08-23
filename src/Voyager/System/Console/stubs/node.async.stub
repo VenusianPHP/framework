@@ -1,0 +1,33 @@
+<?php
+
+namespace {{ namespace }};
+
+use Voyager\Workflows\AsyncNode;
+use Voyager\Workflows\SharedBag;
+
+class {{ class }} extends AsyncNode
+{
+    /**
+     * Read workflow state and prepare input for execAsync().
+     */
+    public function prepAsync(SharedBag $shared): mixed
+    {
+        return null;
+    }
+
+    /**
+     * Perform the node's work through the configured async runtime.
+     */
+    public function execAsync(mixed $prepRes): mixed
+    {
+        return null;
+    }
+
+    /**
+     * Write results into shared state and return the next action.
+     */
+    public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
+    {
+        return null;
+    }
+}

@@ -58,6 +58,7 @@ use Voyager\System\Console\LangPublishCommand;
 use Voyager\System\Console\ListenerMakeCommand;
 use Voyager\System\Console\MiddlewareMakeCommand;
 use Voyager\System\Console\ModelMakeCommand;
+use Voyager\System\Console\NodeMakeCommand;
 use Voyager\System\Console\NotificationMakeCommand;
 use Voyager\System\Console\ObserverMakeCommand;
 use Voyager\System\Console\OptimizeClearCommand;
@@ -182,6 +183,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'ListenerMake' => ListenerMakeCommand::class,
         'MiddlewareMake' => MiddlewareMakeCommand::class,
         'ModelMake' => ModelMakeCommand::class,
+        'NodeMake' => NodeMakeCommand::class,
         'NotificationMake' => NotificationMakeCommand::class,
         'NotificationTable' => NotificationTableCommand::class,
         'ObserverMake' => ObserverMakeCommand::class,
@@ -535,6 +537,18 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
     {
         $this->app->singleton(ModelMakeCommand::class, function ($app) {
             return new ModelMakeCommand($app['files']);
+        });
+    }
+
+    /**
+     * Register the command.
+     *
+     * @return void
+     */
+    protected function registerNodeMakeCommand(): void
+    {
+        $this->app->singleton(NodeMakeCommand::class, function ($app) {
+            return new NodeMakeCommand($app['files']);
         });
     }
 

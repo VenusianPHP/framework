@@ -5,7 +5,7 @@ description: Graph workflows — prep/exec/post nodes, action-routed flows, and 
 resource: ../../src/Voyager/Workflows
 tags: [php, package, voyager, workflows, async, graph]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:cursor-opus-4.8, at: 2026-08-23T05:05:00Z }
 stale_after: 2026-11-22
 sources:
   - id: package-source
@@ -133,10 +133,24 @@ The body already accepts a backed enum, a unit enum, or a string.
   first execution. PHP 8.5 deprecated `SplObjectStorage::attach` /
   `contains` / `detach`; this runtime uses array access.
 
+# Generators
+
+`computer make:node <Name>` scaffolds a Workflow node into `App\Workflows`
+(`app/Workflows/`), extending `Voyager\Workflows\Node` with `prep` / `exec` /
+`post(SharedBag): ?string`. `make:node --async` extends
+`Voyager\Workflows\AsyncNode` with `prepAsync` / `execAsync` / `postAsync`
+instead; when run interactively without options it prompts for the async choice.
+The command is `Voyager\System\Console\NodeMakeCommand` (stubs `node.stub` /
+`node.async.stub`), registered as a **dev** command in `ComputerServiceProvider`
+— so it does **not** depend on `WorkflowsServiceProvider` being in
+`DefaultProviders`. Ported from 0.7.x `Fabricate\Core\Console\NodeMakeCommand`,
+whose stubs targeted the removed `Fabricate\Sketches\Flow` classes.
+
 # Known gaps
 
 * No sync `BatchNode` / `BatchFlow` yet; only the async batch variants exist.
-* `WorkflowsServiceProvider` is not in `DefaultProviders`.
+* `WorkflowsServiceProvider` is not in `DefaultProviders` (the `make:node`
+  generator does not need it; it lives on the always-registered Computer CLI).
 * `AsyncRunnable` still cannot declare `_runAsync`, since its `SharedBag`
   parameter lives in this package rather than in Contracts.
 
