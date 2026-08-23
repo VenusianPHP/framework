@@ -1,6 +1,17 @@
 # Update Log
 
 ## 2026-08-23
+* **Add**: [voyager/graph](packages/graph.md) landed as an opt-in Neo4j
+  companion to [voyager/database](packages/database.md). Straight port of
+  0.7.x `fabricate/graph` (`Fabricate\`→`Voyager\`, `Polisher`→`Instrument`,
+  `scrapyard_io`→`venusian`). `GraphServiceProvider` is **not** on
+  `DefaultProviders`. Root `replace` is **34** packages. `src/Voyager/` is
+  **35** directories. Root `require-dev` pins `laudis/neo4j-php-client
+  ^3.3.0`. Pest `tests/Graph`: **4 passed**, 13 assertions. Live MCP
+  write/read round-trip against local Neo4j succeeded. Concept stays
+  `status: draft`.
+
+## 2026-08-23
 * **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
   `4e2910dd3783ff661dea9def23d1059bbb91b400` ((0.8.x) - Sketches) plus
   the commits on this pass.

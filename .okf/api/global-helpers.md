@@ -14,13 +14,13 @@ sources:
     resource: ../../composer.json
     title: venusian/framework composer.json autoload.files
   - id: helper-files
-    resource: the nine files listed in autoload.files
+    resource: the ten files listed in autoload.files
     title: Helper source files
 ---
 
 # Overview
 
-Root `autoload.files` lists nine paths.[^root-composer] Several functions are
+Root `autoload.files` lists ten paths.[^root-composer] Several functions are
 declared more than once behind `function_exists` guards; the first loaded
 definition wins. Do not cite "27 global helpers" as current — System alone
 declares more than that.
@@ -38,6 +38,7 @@ declares more than that.
 | `NutsAndBolts/Helpers/time.php` | global | `now`, interval helpers (Carbon) |
 | `Reflection/Helpers/helpers.php` | — | empty (0 bytes) |
 | `System/helpers.php` | global | `app`, `config`, `dispatch`, `validator`, `broadcast`, … |
+| `Graph/Helpers/functions.php` | global | `cypher`, `cypher_one`, `cypher_run`, `neo4j_connection` |
 
 # Collections helpers (global)
 

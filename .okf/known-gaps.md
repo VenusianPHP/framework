@@ -26,7 +26,7 @@ sources:
     title: MagicAlias::shouldReceive return type
   - id: subpackage-manifests
     resource: ../src/Voyager/*/composer.json
-    title: Per-package composer manifests (33 files)
+    title: Per-package composer manifests (34 files)
   - id: default-providers
     resource: ../src/Voyager/System/DefaultProviders.php
     title: Default service providers
@@ -61,11 +61,11 @@ are not copied forward.
 | CI uses `checkout@v4` and only `intl` | `actions/checkout@v5`; extensions include `intl`, `pdo`, `pdo_sqlite`, `pdo_mysql`, `gmp`[^tests-yml] |
 | Waves 5–6 tests are still PHPUnit | Default suite has **0** `extends PHPUnit\Framework\TestCase` classes, including Workflows. Broadcasting, Notifications, Queue, Database, and Workflows are Pest v4. The only leftover TestCase that is a test is deferred Testbench, below. |
 | `MagicAlias::shouldReceive()` is incompatible with Mockery 1.6.15 (`Expectation` vs `CompositeExpectation`) | Return type is `Mockery\ExpectationInterface` (PR 1). `CompositeExpectation` implements that interface.[^magic-alias] |
-| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 33 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
-| Root `replace` lists `voyager/system` | It does not. 33 `voyager/*` entries including `voyager/sketches` and `voyager/workflows`; System has no `composer.json`. |
+| Sub-package manifests still require `fabricate/*` | **No** `fabricate/*` `require` in any of the 34 manifests. One comment in `MagicAlias.php` still mentions `fabricate/magic-aliases`.[^subpackage-manifests] |
+| Root `replace` lists `voyager/system` | It does not. 34 `voyager/*` entries including `voyager/graph`, `voyager/sketches`, and `voyager/workflows`; System has no `composer.json`. |
 | No record of the upstream Laravel revision | Most manifests set `extra.venusian.upstream-ref` to **`v12.67.0`**. |
 | `DefaultProviders` comments Sketches as wave 7; no `src/Voyager/Sketches/` | `voyager/sketches` landed. `SketchesServiceProvider` is uncommented. `SketchRunner` is a direct Arduino loop — no `Flow/` copy. |
-| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 34 directories, 33 publishable packages including `voyager/sketches`. |
+| CLI / sketch-only Support foundation; 26 declarations; 5 publishable packages | See [overview](/overview.md). 35 directories, 34 publishable packages including `voyager/graph` and `voyager/sketches`. |
 | `now()` fatals / Date alias does not exist | Global `now()` in `NutsAndBolts/Helpers/time.php` returns `Carbon::now()`. Namespaced `Voyager\NutsAndBolts\now()` and `System/helpers.php` `now()` call `Date::now()`. `NutsAndBolts/MagicAliases/Date.php` exists. |
 | `voyager/contracts` planned-but-unbuilt | Built. Foundation `Arrayable` / `Jsonable` live under `Voyager\Contracts\NutsAndBolts`. `Enumerable` remains `Voyager\NutsAndBolts\Contracts\Enumerable` in Collections. |
 

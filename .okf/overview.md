@@ -54,13 +54,14 @@ badge URLs.[^readme]
 package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
 `Voyager\`.[^root-composer]
 
-This is no longer a Support-only sketch. `src/Voyager/` holds **34**
-component directories and **1100** PHP files, including Vessel, System,
-Console, Database, Queue, Validation, Workflows, Sketches, and
+This is no longer a Support-only sketch. `src/Voyager/` holds **35**
+component directories and **1110** PHP files, including Vessel, System,
+Console, Database, Graph, Queue, Validation, Workflows, Sketches, and
 Contracts.[^src-tree]
 `SketchesServiceProvider` is on
 [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) (wave 7).
-`WorkflowsServiceProvider` exists but is **not** on that list.
+`WorkflowsServiceProvider` and `GraphServiceProvider` exist but are **not**
+on that list.
 
 # What is in the tree
 
@@ -79,6 +80,7 @@ Contracts.[^src-tree]
 | `Encryption/` | `voyager/encryption` | 3 |
 | `Events/` | `voyager/events` | 7 |
 | `Filesystem/` | `voyager/filesystem` | 8 |
+| `Graph/` | `voyager/graph` | 10 |
 | `Hashing/` | `voyager/hashing` | 6 |
 | `Http/` | `voyager/http` | 18 |
 | `JsonSchema/` | `voyager/json-schema` | 12 |
@@ -102,10 +104,10 @@ Contracts.[^src-tree]
 | `Workflows/` | `voyager/workflows` | 23 |
 
 Counts from `find src/Voyager/<Dir> -name '*.php'` after landing
-`voyager/sketches`. 34 directories; Contracts **127**; Sketches **9**;
+`voyager/graph`. 35 directories; Contracts **127**; Graph **10**; Sketches **9**;
 System **115** (includes `Sketches/Kernel` and the two Computer generators).[^src-tree]
 
-The root `replace` block lists the **33** `voyager/*` names above and does
+The root `replace` block lists the **34** `voyager/*` names above and does
 **not** list `voyager/system`.[^root-composer] System is the application
 skeleton — see [package split](/architecture/package-split.md).
 
@@ -122,7 +124,8 @@ One concept per publishable package lives under [packages](/packages/).
   than a stale short list.[^root-composer]
 - Dev: `pestphp/pest ^4`, `mockery/mockery ^1.6`, `fakerphp/faker ^1.24`,
   `opis/json-schema ^2.4.1`, `react/async ^4.0` (optional Workflows
-  runtime; not a production require).[^root-composer]
+  runtime; not a production require), `laudis/neo4j-php-client ^3.3.0`
+  (optional Graph Bolt client; not a production require).[^root-composer]
 
 # Tests and CI
 

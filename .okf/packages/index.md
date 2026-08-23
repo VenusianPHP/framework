@@ -1,6 +1,6 @@
 # Packages
 
-One concept per publishable `voyager/*` package. There are **33**, matching
+One concept per publishable `voyager/*` package. There are **34**, matching
 the root `composer.json` `replace` block. `Voyager\System` is the
 composition root and is **not** a split package — no concept file, no
 `composer.json`, not in `replace`. See
@@ -32,6 +32,7 @@ composition root and is **not** a split package — no concept file, no
 * [voyager/encryption](encryption.md) - encrypter.
 * [voyager/events](events.md) - event dispatcher.
 * [voyager/filesystem](filesystem.md) - Flysystem manager.
+* [voyager/graph](graph.md) - optional Neo4j companion to database (not in DefaultProviders).
 * [voyager/hashing](hashing.md) - hash manager.
 * [voyager/http](http.md) - HTTP client only.
 * [voyager/json-schema](json-schema.md) - JSON Schema types.

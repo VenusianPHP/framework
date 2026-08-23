@@ -69,6 +69,7 @@
         "voyager/encryption": "self.version",
         "voyager/events": "self.version",
         "voyager/filesystem": "self.version",
+        "voyager/graph": "self.version",
         "voyager/hashing": "self.version",
         "voyager/http": "self.version",
         "voyager/json-schema": "self.version",
@@ -93,6 +94,7 @@
     "suggest": {},
     "require-dev": {
         "fakerphp/faker": "^1.24",
+        "laudis/neo4j-php-client": "^3.3.0",
         "mockery/mockery": "^1.6",
         "opis/json-schema": "^2.4.1",
         "pestphp/pest": "^4",
@@ -108,7 +110,8 @@
             "src/Voyager/NutsAndBolts/Helpers/functions.php",
             "src/Voyager/NutsAndBolts/Helpers/time.php",
             "src/Voyager/Reflection/Helpers/helpers.php",
-            "src/Voyager/System/helpers.php"
+            "src/Voyager/System/helpers.php",
+            "src/Voyager/Graph/Helpers/functions.php"
         ],
         "psr-4": {
             "Voyager\\": "src/Voyager",

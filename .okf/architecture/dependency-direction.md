@@ -62,7 +62,7 @@ System                     composition root; DefaultProviders; sketches kernel;
    ^
 Components                 Broadcasting, Bus, Cache, Concurrency, Config,
                            Console, Database, Encryption, Events, Filesystem,
-                           Hashing, Http (client), JsonSchema, Log,
+                           Graph, Hashing, Http (client), JsonSchema, Log,
                            Notifications, Pagination, Pipeline, Process,
                            Queue, Redis, Sketches, Testing, Translation,
                            Validation, Vessel, MagicAliases, Workflows
@@ -77,7 +77,8 @@ Vessel is the container (`Illuminate\Container`). System's `Application`
 extends that world and boots the provider list in
 [`DefaultProviders`](../../src/Voyager/System/DefaultProviders.php).[^default-providers]
 Pagination and Process have no provider (comments in that file).
-`WorkflowsServiceProvider` exists but is **not** on that list.
+`WorkflowsServiceProvider` and `GraphServiceProvider` exist but are **not**
+on that list.
 `SketchesServiceProvider` is uncommented (wave 7).
 
 # Measured upward edges

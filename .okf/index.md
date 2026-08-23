@@ -21,7 +21,7 @@ generic (non-web) Laravel surface has been ported into this monorepo under the
 
 # Packages
 
-* [Packages](packages/) - one concept per publishable `voyager/*` package (33). `Voyager\System` is the composition root and is not a split package.
+* [Packages](packages/) - one concept per publishable `voyager/*` package (34). `Voyager\System` is the composition root and is not a split package.
 
 # API
 
