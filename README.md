@@ -1,13 +1,13 @@
 # Venusian Framework
 
-[![Tests](https://github.com/Venusian/framework/actions/workflows/tests.yml/badge.svg)](https://github.com/Venusian/framework/actions/workflows/tests.yml)
+[![Tests](https://github.com/VenusianPHP/framework/actions/workflows/tests.yml/badge.svg)](https://github.com/VenusianPHP/framework/actions/workflows/tests.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/venusian/framework.svg)](https://packagist.org/packages/venusian/framework)
 [![Total Downloads](https://img.shields.io/packagist/dt/venusian/framework.svg)](https://packagist.org/packages/venusian/framework)
 [![License](https://img.shields.io/packagist/l/venusian/framework.svg)](LICENSE.md)
 
 ## About Venusian
 
-> **Note:** This repository contains the core code of the Venusian framework. If you want to build an application using Venusian, visit the main [Venusian skeleton repository](https://github.com/Venusian/venusian).
+> **Note:** This repository contains the core code of the Venusian framework. If you want to build an application using Venusian, visit the main [Venusian skeleton repository](https://github.com/VenusianPHP/venusian).
 
 Venusian is a PHP application framework for building applications utilizing Windowed GUIs, Human Inputs, and Integrated Circuits, using a Laravel-like expressive syntax and familiar components.
 
@@ -39,7 +39,7 @@ In order to ensure that the Venusian community is welcoming to all, please revie
 
 ## Security Vulnerabilities
 
-Please review [our security policy](https://github.com/Venusian/framework/security/policy) on how to report security vulnerabilities.
+Please review [our security policy](https://github.com/VenusianPHP/framework/security/policy) on how to report security vulnerabilities.
 
 ## License
 
