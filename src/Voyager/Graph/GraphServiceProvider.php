@@ -2,6 +2,7 @@
 
 namespace Voyager\Graph;
 
+use Voyager\Database\DatabaseManager;
 use Voyager\Graph\Console\GraphModelMakeCommand;
 use Voyager\Graph\Database\Connectors\Neo4jConnector;
 use Voyager\Graph\Database\Neo4jConnection;
@@ -19,7 +20,7 @@ class GraphServiceProvider extends ServiceProvider
     {
         $this->app->bind('db.connector.neo4j', fn () => new Neo4jConnector);
 
-        $this->app->resolving('db', function ($db) {
+        $this->app->resolving('db', function (DatabaseManager $db) {
             $db->extend('neo4j', function (array $config, string $name) {
                 $config['name'] = $name;
 

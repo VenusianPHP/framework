@@ -4,9 +4,9 @@ title: Port hazards — type hints added to ported Laravel code
 description: Adding strict PHP type hints to Laravel code written for untyped parameters silently narrows behaviour; the failure is a wrong answer, not an error.
 tags: [porting, type-hints, php, laravel, bugs, review]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: audit
@@ -219,6 +219,29 @@ bug and one non-bug: `Str::is()`'s `string $value` parameter did reject a
 $pattern)` variable shadow in `is()`/`isMatch()` is not a defect — it is
 copied verbatim from Laravel's own source, which passes its own equivalent
 test, so it was left alone.
+
+# Graph companion (landing `3e93855`)
+
+`Neo4jConnection` overrides `Connection::select` / `statement` /
+`affectingStatement` / `insert` / `update` / `delete` / `run` and
+`ManagesTransactions::{transaction,rollBack}`. Those **parameters stay
+untyped** — parent and `ConnectionInterface` are untyped, and narrowing
+them would be the same fatal as `AsyncRuntimeManager::driver()`.
+Covariant returns are safe: `getDefaultQueryGrammar(): Neo4jGrammar`,
+`getDefaultPostProcessor(): Neo4jProcessor`, `run(…): mixed`,
+`query(): Neo4jQueryBuilder`.
+
+`Voyager\Graph\Instrument\Model` `$connection` / `$primaryKey` /
+`$keyType` / `$incrementing` stay untyped to match parent
+`Instrument\Model`. `$connection` is `@var UnitEnum|string|null`; the
+parent setters (`setConnection`, `setKeyName`, `setKeyType`,
+`setIncrementing`) assign untyped values. `getConnection(): Neo4jConnection`
+is a legal covariant return.
+
+`GraphServiceProvider` types `resolving('db', function (DatabaseManager $db))`
+— `db` is bound to `DatabaseManager`, which is the type that has
+`extend()`. Container closures that take the app stay
+`Voyager\Contracts\Vessel\Vessel`.
 
 # Rules for future ports
 

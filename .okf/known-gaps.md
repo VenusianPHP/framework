@@ -4,14 +4,14 @@ title: Known gaps in Venusian v0.8.0
 description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: src-tree
     resource: every PHP file under ../src/Voyager
-    title: Framework source tree at 4e2910d
+    title: Framework source tree at 3e93855
   - id: tests-tree
     resource: ../tests and ../phpunit.xml
     title: Test tree, Pest.php, and deferred exclusions
@@ -39,9 +39,9 @@ sources:
 # Overview
 
 Claims below were checked against `src/`, `tests/`, `composer.json`, and
-`.github/workflows/tests.yml` at `4e2910dd3783ff661dea9def23d1059bbb91b400`
-(0.8.x HEAD: Sketches) plus the housekeeping commits on this pass, not
-against older bundle text.[^src-tree]
+`.github/workflows/tests.yml` at `3e93855e843921190adc69bcfd272ecb538d94b3`
+(0.8.x HEAD: Graph [Neo4j] DBs) plus the housekeeping commits on this
+pass, not against older bundle text.[^src-tree]
 
 The 2026-08-19 Support-foundation defects (`Stringable` resolution, `Str`
 iterable hints, `LazyCollection::make(Closure)`, `Str::singular()`, `now()`,
@@ -198,9 +198,9 @@ is still listed in `phpunit.xml` but the directory is gone.
 
 ## PHPUnit leftover style debt
 
-Measured at `4e2910d` plus this housekeeping pass:
+Measured at `3e93855` plus this housekeeping pass:
 
-- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. No `MockeryPHPUnitIntegration`. Workflows tests (`tests/Workflows/*.php`, 5 files) and Sketches tests (`tests/Sketches/*.php`, 3 files) plus `tests/System/SketchMakeCommandTest.php` are Pest closures.
+- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. No `MockeryPHPUnitIntegration`. Workflows tests (`tests/Workflows/*.php`, 5 files), Sketches tests (`tests/Sketches/*.php`, 3 files), `tests/System/SketchMakeCommandTest.php`, and Graph tests (`tests/Graph/GraphPackageTest.php`, 4 Pest closures) are Pest.
 - **Still PHPUnit TestCase (deferred):** `tests/Testing/deferred/ConfigShowCommandTest.php` (`Orchestra\Testbench\TestCase`). Left alone — Testbench is not a dependency.
 - **Fixtures, not tests:** `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`.
 - `tests/Console/deferred/ConsoleApplicationTest.php` and
@@ -209,7 +209,7 @@ Measured at `4e2910d` plus this housekeeping pass:
 
 ## Workflows gaps (verified against source)
 
-Still true at `4e2910d`:
+Still true at `3e93855`:
 
 - No sync `BatchNode` / `BatchFlow`; only `AsyncBatchNode`,
   `AsyncParallelBatchNode`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`.
@@ -224,6 +224,19 @@ Fixed on this pass, not a remaining gap:
 before treating an empty schedule as deadlock. PHP 8.5
 `SplObjectStorage::{attach,contains,detach}` deprecations in this class
 were replaced with array access.
+
+## Graph companion (verified against source)
+
+Still true at `3e93855`:
+
+- `GraphServiceProvider` is **not** in `DefaultProviders`. Opt-in.
+- Default suite does not open a live Bolt socket.
+  `tests/Graph/GraphPackageTest.php` is 4 Pest closures (class exists,
+  provider not default, extension registration, connector URI).
+- `Neo4jConnection` `select` / `statement` / `run` parameters stay
+  untyped to match parent `Connection`. Instrument `$connection` /
+  `$primaryKey` / `$keyType` / `$incrementing` stay untyped to match
+  parent `Instrument\Model`.
 
 ## Upward imports into `Voyager\System`
 
@@ -249,7 +262,7 @@ PHP `use` is lazy, and no helper in that file references the aliases.
 - [Port hazards](/architecture/port-hazards.md) — why typed ports fail quietly.
 - [Local development](/playbooks/local-development.md) — how to run Pest.
 
-[^src-tree]: Framework source tree at 4e2910d
+[^src-tree]: Framework source tree at 3e93855
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed
 [^magic-alias]: MagicAlias::shouldReceive return type

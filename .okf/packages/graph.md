@@ -5,7 +5,9 @@ description: Optional Neo4j companion to voyager/database — Bolt driver, Instr
 resource: ../../src/Voyager/Graph
 tags: [php, package, voyager, graph, neo4j, instrument, cypher]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T02:56:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: package-source
@@ -50,15 +52,30 @@ Straight port of 0.7.x `fabricate/graph` with `Fabricate\`→`Voyager\`,
   manager with driver `neo4j` (returns `Neo4jConnection`), registers
   `make:graph-model`, publishes `config/neo4j.php` under tag
   `voyager-graph-config`. Uses `$this->app` (0.8 `ServiceProvider`).
+  `resolving('db', …)` is typed `DatabaseManager` (the bound `db`
+  manager). No container closure here takes the app; if one did it would
+  be `Voyager\Contracts\Vessel\Vessel`, never `Voyager\Vessel\Vessel`.
 * `Database\Neo4jConnection` — extends `Voyager\Database\Connection`;
   ctor passes `null` PDO. Cypher `select` / `statement` /
   `affectingStatement`, transactions, Node/Relationship row flattening.
+  `select` / `statement` / `affectingStatement` / `insert` / `update` /
+  `delete` / `transaction` / `rollBack` / `run` **parameters stay
+  untyped** to match parent `Connection` / `ManagesTransactions` /
+  `ConnectionInterface`. `getDefaultQueryGrammar(): Neo4jGrammar` and
+  `getDefaultPostProcessor(): Neo4jProcessor` are covariant returns;
+  `run(…): mixed`. `$activeTransaction` is
+  `?UnmanagedTransactionInterface`; write-transaction closures take
+  `TransactionInterface`.
 * `Database\Connectors\Neo4jConnector` — bolt/neo4j URI + auth builder.
 * `Database\Query\Neo4jQueryBuilder`, `Grammars\Neo4jGrammar`
-  (`?` → `$pN` named params), `Processors\Neo4jProcessor`.
+  (`?` → `$pN` named params), `Processors\Neo4jProcessor`. `$from` stays
+  untyped (parent `Builder::$from` is `Expression|string`).
 * `Instrument\Model` — extends `Voyager\Database\Instrument\Model`;
   `$connection = 'neo4j'`, string key, non-incrementing;
   `getConnection()` enforces `Neo4jConnection`; `getLabel()`.
+  `$connection` / `$primaryKey` / `$keyType` / `$incrementing` **stay
+  untyped** to match parent: `$connection` is `UnitEnum|string|null`,
+  and the parent setters assign untyped values.
 * `Console\GraphModelMakeCommand` — `#[AsCommand('make:graph-model')]`;
   stub uses `Voyager\Graph\Instrument\Model`.
 * Helpers: `cypher()`, `cypher_one()`, `cypher_run()`,

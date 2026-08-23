@@ -21,7 +21,7 @@ class Neo4jGrammar extends Grammar
         $named = [];
         $index = 0;
 
-        $converted = preg_replace_callback('/\?/', function () use (&$bindings, &$named, &$index) {
+        $converted = preg_replace_callback('/\?/', function (array $_matches) use (&$bindings, &$named, &$index): string {
             $key = 'p'.$index;
             $named[$key] = $bindings[$index] ?? null;
             $index++;

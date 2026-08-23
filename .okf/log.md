@@ -1,6 +1,34 @@
 # Update Log
 
 ## 2026-08-23
+* **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
+  `3e93855e843921190adc69bcfd272ecb538d94b3` ((0.8.x) - Graph [Neo4j] DBs)
+  plus the commits on this pass.
+  **Verification key:** `agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3`.
+  Concepts stay `status: draft`.
+* **Correction**: Tree counts at that SHA, measured not invented:
+  **35** `src/Voyager/` directories, **1110** PHP files; **34** `voyager/*`
+  replace entries including `voyager/graph`; Contracts **127**; Graph **10**;
+  Sketches **9**; System **115**; `config/` **11**. Overview already had
+  these Graph-era counts; stamps were still on `4e2910d`.
+* **Types**: `GraphServiceProvider` `resolving('db')` takes
+  `DatabaseManager`. `Neo4jConnection` `$activeTransaction` is
+  `?UnmanagedTransactionInterface`; write-transaction closures take
+  `TransactionInterface`. Covariant returns on
+  `getDefaultQueryGrammar` / `getDefaultPostProcessor` / `run`. Connection
+  overrides (`select` / `statement` / …) and Instrument
+  `$connection` / `$primaryKey` / `$keyType` / `$incrementing` stay
+  untyped to match parent. Container closures in
+  `tests/Graph/GraphPackageTest.php` take `Contracts\Vessel\Vessel`.
+  `GraphServiceProvider` is still **not** on `DefaultProviders`.
+* **Pest**: Default-suite leftover PHPUnit `TestCase` is **0**. No
+  `MockeryPHPUnitIntegration`. `tests/Graph/GraphPackageTest.php` is 4
+  Pest closures. Deferred leftover remains
+  `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
+  Fixtures `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`
+  stay.
+
+## 2026-08-23
 * **Add**: [voyager/graph](packages/graph.md) landed as an opt-in Neo4j
   companion to [voyager/database](packages/database.md). Straight port of
   0.7.x `fabricate/graph` (`Fabricate\`→`Voyager\`, `Polisher`→`Instrument`,

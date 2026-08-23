@@ -17,7 +17,7 @@ abstract class Model extends InstrumentModel
     /**
      * Default connection name when config provides a neo4j connection.
      *
-     * @var string|null
+     * @var \UnitEnum|string|null
      */
     protected $connection = 'neo4j';
 

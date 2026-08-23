@@ -4,7 +4,9 @@ title: Namespace and autoloading scheme
 description: How Voyager\ and the overlapping Voyager\NutsAndBolts\ PSR-4 prefixes resolve PHP files across 35 component directories.
 tags: [psr-4, autoloading, namespaces, composer]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: root-composer

@@ -5,9 +5,9 @@ description: Functions injected by the root composer autoload.files entries — 
 resource: ../../composer.json
 tags: [php, helpers, functions, global-namespace, api]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
-verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-21
 sources:
   - id: root-composer

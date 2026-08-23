@@ -5,9 +5,9 @@ description: A Laravel-like PHP framework for windowed applications and hardware
 resource: https://github.com/VenusianPHP/framework
 tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: readme
@@ -103,9 +103,10 @@ on that list.
 | `Vessel/` | `voyager/vessel` | 18 |
 | `Workflows/` | `voyager/workflows` | 23 |
 
-Counts from `find src/Voyager/<Dir> -name '*.php'` after landing
-`voyager/graph`. 35 directories; Contracts **127**; Graph **10**; Sketches **9**;
-System **115** (includes `Sketches/Kernel` and the two Computer generators).[^src-tree]
+Counts from `find src/Voyager/<Dir> -name '*.php'` at `3e93855`. 35
+directories; **1110** PHP files; Contracts **127**; Graph **10**; Sketches
+**9**; System **115** (includes `Sketches/Kernel` and the two Computer
+generators).[^src-tree]
 
 The root `replace` block lists the **34** `voyager/*` names above and does
 **not** list `voyager/system`.[^root-composer] System is the application
@@ -135,10 +136,11 @@ One concept per publishable package lives under [packages](/packages/).
 PR 1 (`ci/stable-tests`, merged as `8a8600f`) made that workflow green.
 Do not cite "184 tests" or "no test suite" as current.
 
-Local `vendor/bin/pest` at this pass (`4e2910d` plus housekeeping) on
-PHP 8.4: **7539 passed**, 20 skipped, 7 deprecated, 14 notices, 23425
-assertions. Sketches tests (3 files) plus `SketchMakeCommandTest` are
-Pest v4. Workflow is unchanged; `react/async` is already `require-dev`.
+Local `vendor/bin/pest` at this pass (`3e93855` plus housekeeping) on
+PHP 8.4 is recorded in [log.md](/log.md) after the suite runs. Graph
+tests (`tests/Graph/GraphPackageTest.php`) are **4** Pest v4 closures.
+Sketches tests (3 files) plus `SketchMakeCommandTest` are Pest v4.
+`react/async` and `laudis/neo4j-php-client` are `require-dev` only.
 
 `phpunit.xml` excludes 14 `tests/**/deferred/` paths. Default-suite
 tests are Pest v4 closures, including `tests/Workflows/` (5 files)
@@ -162,6 +164,6 @@ and [local development](/playbooks/local-development.md).
 [^readme]: Venusian Framework README
 [^agents-md]: Agent guidelines — venusian/framework
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^src-tree]: Framework source tree at 4e2910d
+[^src-tree]: Framework source tree at 3e93855
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5

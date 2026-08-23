@@ -1,5 +1,6 @@
 <?php
 
+use Voyager\Contracts\Vessel\Vessel;
 use Voyager\Database\Connectors\ConnectionFactory;
 use Voyager\Database\DatabaseManager;
 use Voyager\Database\Instrument\Model as SqlInstrumentModel;
@@ -29,11 +30,11 @@ test('graph service provider is optional and not a default provider', function (
 test('graph service provider registers neo4j database extension', function () {
     $app = new Application(sys_get_temp_dir());
 
-    $app->singleton('db.factory', fn ($app) => new ConnectionFactory($app));
-    $app->singleton('db', fn ($app) => new DatabaseManager($app, $app['db.factory']));
+    $app->singleton('db.factory', fn (Vessel $app) => new ConnectionFactory($app));
+    $app->singleton('db', fn (Vessel $app) => new DatabaseManager($app, $app['db.factory']));
     $app->instance('config', new class
     {
-        public function get($key, $default = null)
+        public function get(string $key, mixed $default = null): mixed
         {
             return $default;
         }

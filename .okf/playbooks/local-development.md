@@ -4,9 +4,9 @@ title: Local development
 description: How to install and run the Venusian 0.8.x working tree. Pest v4 is the suite; CI runs vendor/bin/pest on PHP 8.4 and 8.5.
 tags: [development, testing, pest, composer, onboarding]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: root-composer
@@ -57,9 +57,11 @@ vendor/bin/pest
 That is the command CI runs on PHP 8.4 and 8.5 after `actions/checkout@v5`
 and `composer update`.[^tests-yml]
 
-Local `vendor/bin/pest` at this pass: **7528 passed** on PHP 8.4,
-**7525 passed** on PHP 8.5, 20 skipped, 23395 assertions. Do not cite
-184 tests or the PR 1 total as current.
+Local `vendor/bin/pest` counts for this Graph pass are recorded in
+[log.md](/log.md) after the suite runs. Do not cite 184 tests or the
+PR 1 total as current. `laudis/neo4j-php-client` is `require-dev` so
+the Graph connector class-loads in the default suite; live Neo4j is
+not required.
 
 `phpunit.xml` defines one suite (`Framework`) over `./tests` with
 `suffix="Test.php"`, `failOnWarning` and `failOnRisky`. 14
@@ -72,7 +74,8 @@ defines `nativeStringable()`, and ships the Workflows datasets
 says the framework has no container; Vessel and System are in the tree.
 
 Default-suite packages are Pest v4 closures, including Database, Queue,
-Notifications, Broadcasting, and Workflows (5 files). Deferred directories
+Notifications, Broadcasting, Workflows (5 files), Sketches (3 files),
+and Graph (`GraphPackageTest.php`, 4 closures). Deferred directories
 stay excluded. See [known gaps](/known-gaps.md). `react/async` is
 `require-dev` only; sync and fiber Workflows tests pass without it.
 

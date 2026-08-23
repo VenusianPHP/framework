@@ -4,9 +4,9 @@ title: Maintaining this knowledge bundle
 description: The repository's own rules for reading, extending, and verifying the .okf bundle, as set out in AGENTS.md and OKF 0.2.
 tags: [okf, documentation, conventions, agents]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
-verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
+generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
 sources:
   - id: agents-md
@@ -93,14 +93,15 @@ verified:
 
 Use `human:` only for a person. Use `agent:` or `process:` for machine checks.
 
-The 2026-08-23 Framework Auditor pass used:
+The 2026-08-23 Graph Framework Auditor pass used:
 
 ```
-verification_key: agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400
+verification_key: agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3
 ```
 
-That SHA is `0.8.x` HEAD `(0.8.x) - Sketches`. Earlier keys:
-`e4450c2d96ec2451305ce21fc13030c7a581a000` (Workflows Component Tests)
+That SHA is `0.8.x` HEAD `(0.8.x) - Graph [Neo4j] DBs`. Earlier keys:
+`4e2910dd3783ff661dea9def23d1059bbb91b400` (Sketches),
+`e4450c2d96ec2451305ce21fc13030c7a581a000` (Workflows Component Tests),
 and `8a8600fda67358ec3b38b579f9f13e5107bdc758` (after PR 1).
 
 # Related

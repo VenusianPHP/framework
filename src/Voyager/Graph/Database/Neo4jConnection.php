@@ -9,6 +9,8 @@ use Voyager\Graph\Database\Query\Grammars\Neo4jGrammar;
 use Voyager\Graph\Database\Query\Neo4jQueryBuilder;
 use Voyager\Graph\Database\Query\Processors\Neo4jProcessor;
 use Laudis\Neo4j\Contracts\ClientInterface;
+use Laudis\Neo4j\Contracts\TransactionInterface;
+use Laudis\Neo4j\Contracts\UnmanagedTransactionInterface;
 use Laudis\Neo4j\Types\Node;
 use Laudis\Neo4j\Types\Relationship;
 use Throwable;
@@ -17,7 +19,7 @@ class Neo4jConnection extends Connection
 {
     protected ClientInterface $neo4jClient;
 
-    protected mixed $activeTransaction = null;
+    protected ?UnmanagedTransactionInterface $activeTransaction = null;
 
     /**
      * @param  array<string, mixed>  $config
@@ -36,7 +38,7 @@ class Neo4jConnection extends Connection
 
     public function select($query, $bindings = [], $useReadPdo = true): array
     {
-        return $this->run($query, $bindings, function ($query, $bindings) {
+        return $this->run($query, $bindings, function (string $query, array $bindings): array {
             if ($this->pretending()) {
                 return [];
             }
@@ -46,7 +48,7 @@ class Neo4jConnection extends Connection
             if (! is_null($this->activeTransaction)) {
                 $result = $this->activeTransaction->run($convertedQuery, $convertedBindings);
             } else {
-                $result = $this->neo4jClient->writeTransaction(function ($tx) use ($convertedQuery, $convertedBindings) {
+                $result = $this->neo4jClient->writeTransaction(function (TransactionInterface $tx) use ($convertedQuery, $convertedBindings) {
                     return $tx->run($convertedQuery, $convertedBindings);
                 });
             }
@@ -81,7 +83,7 @@ class Neo4jConnection extends Connection
 
     public function statement($query, $bindings = []): bool
     {
-        return $this->run($query, $bindings, function ($query, $bindings) {
+        return $this->run($query, $bindings, function (string $query, array $bindings): bool {
             if ($this->pretending()) {
                 return true;
             }
@@ -100,7 +102,7 @@ class Neo4jConnection extends Connection
 
     public function affectingStatement($query, $bindings = []): int
     {
-        return $this->run($query, $bindings, function ($query, $bindings) {
+        return $this->run($query, $bindings, function (string $query, array $bindings): int {
             if ($this->pretending()) {
                 return 0;
             }
@@ -110,7 +112,7 @@ class Neo4jConnection extends Connection
             if (! is_null($this->activeTransaction)) {
                 $result = $this->activeTransaction->run($convertedQuery, $convertedBindings);
             } else {
-                $result = $this->neo4jClient->writeTransaction(function ($tx) use ($convertedQuery, $convertedBindings) {
+                $result = $this->neo4jClient->writeTransaction(function (TransactionInterface $tx) use ($convertedQuery, $convertedBindings) {
                     return $tx->run($convertedQuery, $convertedBindings);
                 });
             }
@@ -205,12 +207,12 @@ class Neo4jConnection extends Connection
         $this->fireConnectionEvent('rollingBack');
     }
 
-    protected function getDefaultQueryGrammar()
+    protected function getDefaultQueryGrammar(): Neo4jGrammar
     {
         return new Neo4jGrammar($this);
     }
 
-    protected function getDefaultPostProcessor()
+    protected function getDefaultPostProcessor(): Neo4jProcessor
     {
         return new Neo4jProcessor;
     }
@@ -227,7 +229,7 @@ class Neo4jConnection extends Connection
         return 'neo4j';
     }
 
-    protected function run($query, $bindings, Closure $callback)
+    protected function run($query, $bindings, Closure $callback): mixed
     {
         return $callback($query, $bindings);
     }
