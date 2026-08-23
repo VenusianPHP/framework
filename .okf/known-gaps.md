@@ -4,12 +4,14 @@ title: Known gaps in Venusian v0.8.0
 description: Remaining defects, deliberate port cuts, and claims retired against 0.8.x HEAD after PR 1 (8a8600f).
 tags: [defects, technical-debt, php, porting]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 stale_after: 2026-11-22
 sources:
   - id: src-tree
     resource: every PHP file under ../src/Voyager
-    title: Framework source tree at e4450c2
+    title: Framework source tree at 4e2910d
   - id: tests-tree
     resource: ../tests and ../phpunit.xml
     title: Test tree, Pest.php, and deferred exclusions
@@ -24,7 +26,7 @@ sources:
     title: MagicAlias::shouldReceive return type
   - id: subpackage-manifests
     resource: ../src/Voyager/*/composer.json
-    title: Per-package composer manifests (32 files)
+    title: Per-package composer manifests (33 files)
   - id: default-providers
     resource: ../src/Voyager/System/DefaultProviders.php
     title: Default service providers
@@ -37,9 +39,9 @@ sources:
 # Overview
 
 Claims below were checked against `src/`, `tests/`, `composer.json`, and
-`.github/workflows/tests.yml` at `e4450c2d96ec2451305ce21fc13030c7a581a000`
-(0.8.x HEAD: Workflows Component Tests) plus the housekeeping commits on
-this pass, not against older bundle text.[^src-tree]
+`.github/workflows/tests.yml` at `4e2910dd3783ff661dea9def23d1059bbb91b400`
+(0.8.x HEAD: Sketches) plus the housekeeping commits on this pass, not
+against older bundle text.[^src-tree]
 
 The 2026-08-19 Support-foundation defects (`Stringable` resolution, `Str`
 iterable hints, `LazyCollection::make(Closure)`, `Str::singular()`, `now()`,
@@ -196,9 +198,9 @@ is still listed in `phpunit.xml` but the directory is gone.
 
 ## PHPUnit leftover style debt
 
-Measured at `e4450c2` (2026-08-22) plus this housekeeping pass:
+Measured at `4e2910d` plus this housekeeping pass:
 
-- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. No `MockeryPHPUnitIntegration`. Workflows tests (`tests/Workflows/*.php`, 5 files) are Pest closures.
+- **Default suite: 0** leftover `extends TestCase` / `extends PHPUnit\Framework\TestCase` classes. No `MockeryPHPUnitIntegration`. Workflows tests (`tests/Workflows/*.php`, 5 files) and Sketches tests (`tests/Sketches/*.php`, 3 files) plus `tests/System/SketchMakeCommandTest.php` are Pest closures.
 - **Still PHPUnit TestCase (deferred):** `tests/Testing/deferred/ConfigShowCommandTest.php` (`Orchestra\Testbench\TestCase`). Left alone — Testbench is not a dependency.
 - **Fixtures, not tests:** `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`.
 - `tests/Console/deferred/ConsoleApplicationTest.php` and
@@ -207,7 +209,7 @@ Measured at `e4450c2` (2026-08-22) plus this housekeeping pass:
 
 ## Workflows gaps (verified against source)
 
-Still true at `e4450c2`:
+Still true at `4e2910d`:
 
 - No sync `BatchNode` / `BatchFlow`; only `AsyncBatchNode`,
   `AsyncParallelBatchNode`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`.
@@ -247,7 +249,7 @@ PHP `use` is lazy, and no helper in that file references the aliases.
 - [Port hazards](/architecture/port-hazards.md) — why typed ports fail quietly.
 - [Local development](/playbooks/local-development.md) — how to run Pest.
 
-[^src-tree]: Framework source tree at e4450c2
+[^src-tree]: Framework source tree at 4e2910d
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed
 [^magic-alias]: MagicAlias::shouldReceive return type

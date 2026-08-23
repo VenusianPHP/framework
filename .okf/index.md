@@ -1,8 +1,8 @@
 ---
 okf_version: '0.2'
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
-verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 ---
 
 # Venusian Framework

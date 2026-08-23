@@ -4,7 +4,9 @@ title: Monorepo with composer replace
 description: Venusian develops 33 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
 tags: [monorepo, composer, packaging]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 stale_after: 2026-11-22
 sources:
   - id: root-composer
