@@ -5,7 +5,9 @@ description: Arduino-shaped sketch runtime — boot once, tick loop() until STOP
 resource: ../../src/Voyager/Sketches
 tags: [php, package, voyager, sketches, runner]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 stale_after: 2026-11-22
 sources:
   - id: package-source
@@ -87,8 +89,10 @@ Kernels and `Application::handleSketch()` live in System. `voyager/sketches`
 does not `use Voyager\System\*`. `make:sketch` and `make:middleware` (app
 `Runner/Middleware`) are Computer **dev** commands.
 
-`SketchesServiceProvider` is deferred, wave 7 on `DefaultProviders`. It binds
-the registry and runner only — not the kernel.
+`SketchesServiceProvider` is deferred and **uncommented** on
+`DefaultProviders` (wave 7 landed). It binds the registry and runner
+only — not the kernel. Register closures are typed
+`Voyager\Contracts\Vessel\Vessel`, not the concrete `Voyager\Vessel\Vessel`.
 
 # Tests
 

@@ -5,7 +5,9 @@ description: A Laravel-like PHP framework for windowed applications and hardware
 resource: https://github.com/VenusianPHP/framework
 tags: [php, framework, voyager, venusian, windowed, hardware, monorepo]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 stale_after: 2026-11-22
 sources:
   - id: readme
@@ -53,8 +55,9 @@ package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
 `Voyager\`.[^root-composer]
 
 This is no longer a Support-only sketch. `src/Voyager/` holds **34**
-component directories, including Vessel, System, Console, Database, Queue,
-Validation, Workflows, Sketches, and Contracts.[^src-tree]
+component directories and **1100** PHP files, including Vessel, System,
+Console, Database, Queue, Validation, Workflows, Sketches, and
+Contracts.[^src-tree]
 `SketchesServiceProvider` is on
 [`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) (wave 7).
 `WorkflowsServiceProvider` exists but is **not** on that list.
@@ -129,12 +132,10 @@ One concept per publishable package lives under [packages](/packages/).
 PR 1 (`ci/stable-tests`, merged as `8a8600f`) made that workflow green.
 Do not cite "184 tests" or "no test suite" as current.
 
-Local `vendor/bin/pest` at this pass (`e4450c2` plus housekeeping):
-**7528 passed** on PHP 8.4 and **7525 passed** on PHP 8.5, 20 skipped,
-23395 assertions on both. 8.5 reports 10 deprecated vs 7 on 8.4
-(SplObjectStorage aliases elsewhere; Workflows FiberRuntime now uses
-array access). Workflow is unchanged; `react/async` is already
-`require-dev`.
+Local `vendor/bin/pest` at this pass (`4e2910d` plus housekeeping) on
+PHP 8.4: **7539 passed**, 20 skipped, 7 deprecated, 14 notices, 23425
+assertions. Sketches tests (3 files) plus `SketchMakeCommandTest` are
+Pest v4. Workflow is unchanged; `react/async` is already `require-dev`.
 
 `phpunit.xml` excludes 14 `tests/**/deferred/` paths. Default-suite
 tests are Pest v4 closures, including `tests/Workflows/` (5 files)
@@ -158,6 +159,6 @@ and [local development](/playbooks/local-development.md).
 [^readme]: Venusian Framework README
 [^agents-md]: Agent guidelines — venusian/framework
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^src-tree]: Framework source tree at e4450c2
+[^src-tree]: Framework source tree at 4e2910d
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5

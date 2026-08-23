@@ -5,7 +5,9 @@ description: Framework-wide interfaces (Venusian's illuminate/contracts). Includ
 resource: ../../src/Voyager/Contracts
 tags: [php, package, voyager, contracts, interfaces]
 status: draft
-generated: { by: agent:cursor-grok-4.6, at: 2026-08-23T00:00:00Z }
+generated: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verified: { by: agent:framework-auditor, at: 2026-08-23T00:03:43Z }
+verification_key: 'agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400'
 stale_after: 2026-11-22
 sources:
   - id: package-source

@@ -1,5 +1,29 @@
 # Update Log
 
+## 2026-08-23
+* **Verification**: Framework Auditor housekeeping against `0.8.x` HEAD
+  `4e2910dd3783ff661dea9def23d1059bbb91b400` ((0.8.x) - Sketches) plus
+  the commits on this pass.
+  **Verification key:** `agent:framework-auditor@4e2910dd3783ff661dea9def23d1059bbb91b400`.
+  Concepts stay `status: draft`.
+* **Correction**: Tree counts at that SHA, measured not invented:
+  **34** `src/Voyager/` directories, **1100** PHP files; **33** `voyager/*`
+  replace entries including `voyager/sketches`; Contracts **127** (7 under
+  `Contracts/Sketches`); Sketches **9**; System **115**; `config/` **11**
+  including `sketches.php`. `packages/index.md` still said Contracts 120.
+* **Correction**: `SketchesServiceProvider` is uncommented on
+  `DefaultProviders`. The known-gaps "Sketches not landed" / wave-7-comment
+  claim was already retired on the landing commit.
+* **Fix**: CI run `32606313934` failed one test:
+  `Tests\System\SketchMakeCommandTest` —
+  `BindingResolutionException: Target class [config] does not exist`
+  at `Vessel.php:1131`. The landing test never bound `config`. Bound a
+  `Voyager\Config\Repository` like `HandleExceptionsTest`. Not a Vessel
+  type-hint TypeError; closures stay `Contracts\Vessel\Vessel`.
+* **Update**: Local `vendor/bin/pest` on PHP 8.4: **7539 passed**, 20
+  skipped, 7 deprecated, 14 notices, 23425 assertions. Sketches +
+  SketchMake: **11 passed**, 30 assertions.
+
 ## 2026-08-22
 * **Add**: [voyager/sketches](packages/sketches.md) landed. Sketch is the
   unit of a Venusian app: `php runner hello-world` boots, ticks `loop()`
