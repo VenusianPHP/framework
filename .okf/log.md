@@ -27,6 +27,13 @@
   `tests/Testing/deferred/ConfigShowCommandTest.php` (Testbench).
   Fixtures `tests/System/Stubs/{CloudQueueCase,TestCaseWithTrait}.php`
   stay.
+* **Update**: Local `vendor/bin/pest` on PHP 8.4: **7543 passed**, 20
+  skipped, 7 deprecated, 14 notices, 23438 assertions. Graph:
+  **4 passed**, 13 assertions. Delta vs the Sketches pass (7539 / 23425)
+  is exactly the Graph suite. GitHub Actions run `32614669415` (first
+  push): PHP 8.4 **7551 passed**, 12 skipped, 23463 assertions; PHP 8.5
+  **7546 passed**, 12 skipped, 23463 assertions. Same 8 local-skip vs
+  CI-pass gap as the Sketches pass.
 
 ## 2026-08-23
 * **Add**: [voyager/graph](packages/graph.md) landed as an opt-in Neo4j

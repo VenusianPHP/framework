@@ -137,10 +137,11 @@ PR 1 (`ci/stable-tests`, merged as `8a8600f`) made that workflow green.
 Do not cite "184 tests" or "no test suite" as current.
 
 Local `vendor/bin/pest` at this pass (`3e93855` plus housekeeping) on
-PHP 8.4 is recorded in [log.md](/log.md) after the suite runs. Graph
-tests (`tests/Graph/GraphPackageTest.php`) are **4** Pest v4 closures.
-Sketches tests (3 files) plus `SketchMakeCommandTest` are Pest v4.
-`react/async` and `laudis/neo4j-php-client` are `require-dev` only.
+PHP 8.4: **7543 passed**, 20 skipped, 7 deprecated, 14 notices, 23438
+assertions. Graph tests (`tests/Graph/GraphPackageTest.php`) are **4**
+Pest v4 closures (13 assertions). Sketches tests (3 files) plus
+`SketchMakeCommandTest` are Pest v4. `react/async` and
+`laudis/neo4j-php-client` are `require-dev` only.
 
 `phpunit.xml` excludes 14 `tests/**/deferred/` paths. Default-suite
 tests are Pest v4 closures, including `tests/Workflows/` (5 files)

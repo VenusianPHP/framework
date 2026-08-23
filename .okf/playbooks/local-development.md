@@ -57,11 +57,11 @@ vendor/bin/pest
 That is the command CI runs on PHP 8.4 and 8.5 after `actions/checkout@v5`
 and `composer update`.[^tests-yml]
 
-Local `vendor/bin/pest` counts for this Graph pass are recorded in
-[log.md](/log.md) after the suite runs. Do not cite 184 tests or the
-PR 1 total as current. `laudis/neo4j-php-client` is `require-dev` so
-the Graph connector class-loads in the default suite; live Neo4j is
-not required.
+Local `vendor/bin/pest` at this pass: **7543 passed** on PHP 8.4, 20
+skipped, 7 deprecated, 14 notices, 23438 assertions. Do not cite 184
+tests or the PR 1 total as current. `laudis/neo4j-php-client` is
+`require-dev` so the Graph connector class-loads in the default suite;
+live Neo4j is not required.
 
 `phpunit.xml` defines one suite (`Framework`) over `./tests` with
 `suffix="Test.php"`, `failOnWarning` and `failOnRisky`. 14
