@@ -1,4 +1,12 @@
 ## 2026-08-23
+
+## 2026-08-31
+* **Creation**: [voyager/io-pools](/packages/io-pools.md) — Tickable/EventSink/HttpDriver
+  contracts (`Voyager\Contracts\IOPools`), Event/EventQueue/TickRoster/HttpPool/
+  PendingCall/HttpResult/MultiCurlDriver (`Voyager\IOPools`). Migrated whole from
+  venusian/surface with its tests (6 here; Surface keeps 9 integration tests). Added to
+  the root replace map. Surface now subclasses `Event` for its window vocabulary and
+  requires the component — its second hard dependency after nuts-and-bolts.
 * **Fix**: `vendor:publish` by provider (prompt or `--provider`) copied files
   then TypeError'd in `VendorTagPublished::__construct()` because `$tag` is
   `null` when no tag was selected. Laravel's constructor is untyped; the port

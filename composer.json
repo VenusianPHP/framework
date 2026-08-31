@@ -7,7 +7,7 @@
         "scrapyard-io"
     ],
     "license": "MIT",
-    "version": "0.8.4",
+    "version": "0.8.5",
     "authors": [
         {
             "name": "Angel Gonzalez",
@@ -72,6 +72,7 @@
         "venusian-voyager/graph": "self.version",
         "venusian-voyager/hashing": "self.version",
         "venusian-voyager/http": "self.version",
+        "venusian-voyager/io-pools": "self.version",
         "venusian-voyager/json-schema": "self.version",
         "venusian-voyager/log": "self.version",
         "venusian-voyager/macroable": "self.version",
