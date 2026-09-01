@@ -1,5 +1,20 @@
 ## 2026-08-23
 
+## 2026-08-31 (inFlight)
+* **io-pools**: `HttpPool::inFlight(string $name): ?PendingCall` — the door an API
+  client needs to coalesce identical requests instead of eating the duplicate-name
+  throw. Suite 10/10.
+
+## 2026-08-31 (progress lane, stall timeout)
+* **io-pools**: `HttpDriver` grows `progress(): array<name, {now, total}>`;
+  `MultiCurlDriver` feeds it from CURLOPT_XFERINFOFUNCTION. `HttpPool::tick()` pushes
+  `Event(family 'task.progress', name "progress.<name>")` and fires the new
+  `PendingCall::onProgress(now, total)` hook — only when the byte count moved, so
+  `has('<name>')` still means finished. The 30s CURLOPT_TIMEOUT total cap is gone
+  (a healthy 58MB media download outlived it); a transfer now dies only when it
+  stalls under 1KB/s for 30s (LOW_SPEED_LIMIT/TIME). Suite 8/8. Driven by the
+  HelloAsync APOD video slice; proven live on both machines with a 57.7MB NASA mp4.
+
 ## 2026-08-31
 * **Creation**: [voyager/io-pools](/packages/io-pools.md) — Tickable/EventSink/HttpDriver
   contracts (`Voyager\Contracts\IOPools`), Event/EventQueue/TickRoster/HttpPool/

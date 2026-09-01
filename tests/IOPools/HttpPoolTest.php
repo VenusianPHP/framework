@@ -21,8 +21,66 @@ function fakeDriver(): HttpDriver
             $this->ready = [];
             return $drained;
         }
+        public array $moving = [];
+        public function progress(): array
+        {
+            return $this->moving;
+        }
     };
 }
+
+test('progress rides its own event lane and hook, and only when the bytes move', function () {
+    $driver = fakeDriver();
+    $queue = new EventQueue();
+    $pool = new HttpPool($driver, $queue);
+
+    $seen = [];
+    $pool->call('clip', 'get', 'https://x/clip.mp4')
+        ->onProgress(function (int $now, int $total) use (&$seen) { $seen[] = [$now, $total]; });
+
+    $driver->moving = ['clip' => ['now' => 1024, 'total' => 4096]];
+    $pool->tick();
+
+    $events = $queue->drain();
+    expect($events->has('progress.clip'))->toBeTrue()
+        ->and($events->get('progress.clip')->family)->toBe('task.progress')
+        ->and($events->get('progress.clip')->payload)->toBe(['name' => 'clip', 'bytes_now' => 1024, 'bytes_total' => 4096])
+        ->and($seen)->toBe([[1024, 4096]]);
+
+    // Same bytes again: nothing new to say.
+    $pool->tick();
+    expect($queue->drain()->has('progress.clip'))->toBeFalse()
+        ->and($seen)->toBe([[1024, 4096]]);
+
+    // More bytes: the lane speaks again.
+    $driver->moving = ['clip' => ['now' => 2048, 'total' => 4096]];
+    $pool->tick();
+    expect($queue->drain()->get('progress.clip')->payload['bytes_now'])->toBe(2048)
+        ->and($seen)->toBe([[1024, 4096], [2048, 4096]]);
+});
+
+test('completion clears the progress bookkeeping with the name', function () {
+    $driver = fakeDriver();
+    $queue = new EventQueue();
+    $pool = new HttpPool($driver, $queue);
+
+    $pool->call('clip', 'get', 'https://x/clip.mp4');
+    $driver->moving = ['clip' => ['now' => 4096, 'total' => 4096]];
+    $pool->tick();
+    $queue->drain();
+
+    $driver->moving = [];
+    $driver->ready[] = new HttpResult('clip', true, 200, [], 'bytes');
+    $pool->tick();
+
+    expect($queue->drain()->has('clip'))->toBeTrue();
+
+    // The name is free again and a new call starts progress from scratch.
+    $pool->call('clip', 'get', 'https://x/clip.mp4');
+    $driver->moving = ['clip' => ['now' => 4096, 'total' => 4096]];
+    $pool->tick();
+    expect($queue->drain()->has('progress.clip'))->toBeTrue();
+});
 
 test('dispatches with an uppercased method and delivers a raw-named task event', function () {
     $driver = fakeDriver();
@@ -72,4 +130,19 @@ test('refuses a duplicate in-flight name and frees it after settling', function 
     expect($call->settled())->toBeTrue()
         ->and($call->result()->status)->toBe(200)
         ->and($pool->call('w', 'get', 'https://x'))->not->toBeNull();
+});
+
+test('inFlight answers the pending call by name until it settles', function () {
+    $driver = fakeDriver();
+    $pool = new HttpPool($driver, new EventQueue());
+
+    $call = $pool->call('meta', 'get', 'https://x/meta');
+
+    expect($pool->inFlight('meta'))->toBe($call)
+        ->and($pool->inFlight('ghost'))->toBeNull();
+
+    $driver->ready[] = new HttpResult('meta', true, 200, [], '{}');
+    $pool->tick();
+
+    expect($pool->inFlight('meta'))->toBeNull();
 });

@@ -23,4 +23,11 @@ interface HttpDriver
      * @return list<HttpResult>
      */
     public function harvest(): array;
+
+    /**
+     * Bytes moved so far for every call still in flight. Transports that
+     * cannot know answer an empty array.
+     * @return array<string, array{now: int, total: int}>
+     */
+    public function progress(): array;
 }
