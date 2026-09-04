@@ -4,7 +4,7 @@ title: Laravel lineage
 description: Venusian ports Laravel's generic non-web surface under Voyager\, from laravel/framework@v12.67.0, because the product is windowed apps and hardware ICs — not a second Laravel HTTP stack.
 tags: [lineage, laravel, illuminate, licensing, upstream, port]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
+generated: { by: agent:cursor-grok-4.6, at: 2026-09-02T23:59:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-22T21:46:31Z }
 verification_key: 'agent:framework-auditor@e4450c2d96ec2451305ce21fc13030c7a581a000'
 stale_after: 2026-11-22
@@ -61,7 +61,7 @@ the manifest writes it.
 | `Voyager\NutsAndBolts\Collection`, `LazyCollection` | `Illuminate\Support\Collection` / Collections package |
 | `Voyager\NutsAndBolts\DataObjects\{Arr,Str,Stringable,Number,Env,Pluralizer,Carbon}` | `Illuminate\Support\*` |
 | `Voyager\NutsAndBolts\Concerns\{Macroable,Conditionable,…}` | `Illuminate\Support\Traits\*` |
-| `Voyager\Reflection\Reflector` | `Illuminate\Support\Reflector` |
+| `Voyager\NutsAndBolts\Reflector` | `Illuminate\Support\Reflector` |
 | `Voyager\Vessel\Vessel` | `Illuminate\Container\Container` |
 | `Voyager\Database\Instrument\Model` | `Illuminate\Database\Eloquent\Model` |
 | `Voyager\System\Application` | `Illuminate\Foundation\Application` |

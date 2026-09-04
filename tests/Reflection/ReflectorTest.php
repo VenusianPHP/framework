@@ -1,7 +1,7 @@
 <?php
 
 use Voyager\NutsAndBolts\Concerns\ReflectsClosures;
-use Voyager\Reflection\Reflector;
+use Voyager\NutsAndBolts\Reflector;
 
 test('isCallable accepts closures and rejects broken arrays', function () {
     expect(Reflector::isCallable(fn () => true))->toBeTrue()

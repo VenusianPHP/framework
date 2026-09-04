@@ -4,7 +4,7 @@ title: Namespace and autoloading scheme
 description: How Voyager\ and the overlapping Voyager\NutsAndBolts\ PSR-4 prefixes resolve PHP files across 35 component directories.
 tags: [psr-4, autoloading, namespaces, composer]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
+generated: { by: agent:cursor-grok-4.6, at: 2026-09-02T23:59:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
 verification_key: 'agent:framework-auditor@3e93855e843921190adc69bcfd272ecb538d94b3'
 stale_after: 2026-11-22
@@ -44,8 +44,13 @@ Composer tries the longest prefix first, then falls back. A name collision
 across Macroable / Collections / Conditionable / Reflection resolves silently
 to list order.
 
-`Voyager\Reflection\Reflector` is the family member **not** under
-`Voyager\NutsAndBolts\`.
+Reflection is a NutsAndBolts-family package: `Reflector` is
+`Voyager\NutsAndBolts\Reflector` living at
+`src/Voyager/Reflection/Reflector.php`. Do not declare
+`namespace Voyager\Reflection` in that file — the root `Voyager\` prefix
+would then load the same path as `Voyager\Reflection\Reflector` while
+`Voyager\NutsAndBolts\` loads it again, and PHP fatals on redeclare
+(silent 255 from `php computer`).
 
 # Files autoload
 

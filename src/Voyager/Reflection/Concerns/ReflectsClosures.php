@@ -9,7 +9,7 @@ use ReflectionUnionType;
 use ReflectionException;
 use ReflectionIntersectionType;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\Reflection\Reflector;
+use Voyager\NutsAndBolts\Reflector;
 
 trait ReflectsClosures
 {

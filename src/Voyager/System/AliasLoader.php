@@ -2,6 +2,7 @@
 
 namespace Voyager\System;
 
+use Voyager\IOPools\MagicAliases\IOPool;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\MagicAliases\App;
 use Voyager\NutsAndBolts\MagicAliases\Broadcast;
@@ -282,6 +283,7 @@ class AliasLoader
             'File' => File::class,
             'Hash' => Hash::class,
             'Http' => Http::class,
+            'IOPool' => IOPool::class,
             'Lang' => Lang::class,
             'Log' => Log::class,
             'Notification' => Notification::class,

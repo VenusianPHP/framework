@@ -5,7 +5,7 @@ description: Reflector, a static helper for interrogating callables, parameter t
 resource: ../../src/Voyager/Reflection
 tags: [php, reflection, package, voyager]
 status: draft
-generated: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
+generated: { by: agent:cursor-grok-4.6, at: 2026-09-02T23:59:00Z }
 verified: { by: agent:framework-auditor, at: 2026-08-21T22:10:00Z }
 verification_key: 'agent:framework-auditor@8a8600fda67358ec3b38b579f9f13e5107bdc758'
 stale_after: 2026-11-21
@@ -20,10 +20,11 @@ sources:
 
 # Overview
 
-3 PHP files. `Reflector` is namespaced `Voyager\Reflection` (the family
-exception). `ReflectsClosures` is a **trait** at
-`Voyager\NutsAndBolts\Concerns\ReflectsClosures`. `Helpers/helpers.php` is
-empty and still listed in `autoload.files`.
+3 PHP files, all under `Voyager\NutsAndBolts\` — Reflection is a
+NutsAndBolts-family package, not a `Voyager\Reflection\` prefix.
+`Reflector` is `Voyager\NutsAndBolts\Reflector`. `ReflectsClosures` is a
+**trait** at `Voyager\NutsAndBolts\Concerns\ReflectsClosures`.
+`Helpers/helpers.php` is empty and still listed in `autoload.files`.
 
 # Declared dependencies
 

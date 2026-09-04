@@ -59,6 +59,7 @@ class DefaultProviders
             \Voyager\Broadcasting\BroadcastServiceProvider::class,
             \Voyager\Notifications\NotificationServiceProvider::class,
             \Voyager\Sketches\SketchesServiceProvider::class,
+            \Voyager\IOPools\IOPoolsServiceProvider::class,
         ];
     }
 

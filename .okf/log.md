@@ -1,3 +1,12 @@
+## 2026-09-02
+* **Fix**: `Reflector` stays `Voyager\NutsAndBolts\Reflector` (Reflection is a
+  NutsAndBolts-family package). Callers still imported
+  `Voyager\Reflection\Reflector`, so Composer loaded
+  `src/Voyager/Reflection/Reflector.php` twice — once via `Voyager\`, once via
+  `Voyager\NutsAndBolts\` — and `php computer` exited 255 with no output.
+  Imports updated; the `Voyager\Reflection` "family exception" claim is
+  retired.
+
 ## 2026-08-23
 
 ## 2026-08-31 (inFlight)

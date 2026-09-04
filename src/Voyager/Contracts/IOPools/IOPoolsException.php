@@ -2,8 +2,8 @@
 
 namespace Voyager\Contracts\IOPools;
 
-use RuntimeException;
+use Voyager\Contracts\System\VenusianFrameworkException;
 
-class IOPoolsException extends RuntimeException
+class IOPoolsException extends VenusianFrameworkException
 {
 }

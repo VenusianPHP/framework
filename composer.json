@@ -7,7 +7,7 @@
         "scrapyard-io"
     ],
     "license": "MIT",
-    "version": "0.8.6",
+    "version": "0.8.7",
     "authors": [
         {
             "name": "Angel Gonzalez",
@@ -15,6 +15,7 @@
         }
     ],
     "require": {
+        "ext-curl": "*",
         "php": "^8.4|^8.5",
         "brick/math": "^0.13|^0.14|^0.15|^0.16|^0.17|^0.18",
         "doctrine/inflector": "^2.0",

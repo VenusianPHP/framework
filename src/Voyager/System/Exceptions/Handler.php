@@ -24,7 +24,7 @@ use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\MagicAliases\Auth;
 use Voyager\NutsAndBolts\Lottery;
-use Voyager\Reflection\Reflector;
+use Voyager\NutsAndBolts\Reflector;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use Voyager\NutsAndBolts\Concerns\ReflectsClosures;
 use Voyager\NutsAndBolts\ViewErrorBag;

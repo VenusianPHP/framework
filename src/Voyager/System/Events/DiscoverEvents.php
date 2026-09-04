@@ -4,7 +4,7 @@ namespace Voyager\System\Events;
 
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\Reflection\Reflector;
+use Voyager\NutsAndBolts\Reflector;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use ReflectionClass;
 use ReflectionException;
