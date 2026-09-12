@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Voyager\Database\Migrations\Migration;
+use Voyager\Database\Schema\Blueprint;
+use Voyager\NutsAndBolts\MagicAliases\Schema;
 
 return new class extends Migration
 {
