@@ -60,7 +60,7 @@ test('setAliases replaces the alias map', function () {
 test('default aliases ship every framework magic alias outside config', function () {
     $aliases = AliasLoader::defaultAliases()->all();
 
-    expect($aliases)->toHaveCount(26)
+    expect($aliases)->toHaveCount(27)
         ->and($aliases)->toBe([
             'App' => \Voyager\NutsAndBolts\MagicAliases\App::class,
             'Broadcast' => \Voyager\NutsAndBolts\MagicAliases\Broadcast::class,
@@ -77,6 +77,7 @@ test('default aliases ship every framework magic alias outside config', function
             'File' => \Voyager\NutsAndBolts\MagicAliases\File::class,
             'Hash' => \Voyager\NutsAndBolts\MagicAliases\Hash::class,
             'Http' => \Voyager\NutsAndBolts\MagicAliases\Http::class,
+            'IOPool' => \Voyager\IOPools\MagicAliases\IOPool::class,
             'Lang' => \Voyager\NutsAndBolts\MagicAliases\Lang::class,
             'Log' => \Voyager\NutsAndBolts\MagicAliases\Log::class,
             'Notification' => \Voyager\NutsAndBolts\MagicAliases\Notification::class,
