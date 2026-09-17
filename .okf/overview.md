@@ -54,12 +54,13 @@ badge URLs.[^readme]
 package `venusian/framework` **0.8.0**, PHP `^8.4|^8.5`, namespace
 `Voyager\`.[^root-composer]
 
-This is no longer a Support-only sketch. `src/Voyager/` holds **35**
-component directories and **1110** PHP files, including Vessel, System,
-Console, Database, Graph, Queue, Validation, Workflows, Sketches, and
-Contracts.[^src-tree]
+This is no longer a Support-only sketch. `src/Voyager/` holds **36**
+component directories and **1139** PHP files, including Vessel, System,
+Console, Database, Graph, IOPools, Queue, Validation, Workflows, Sketches,
+and Contracts.[^src-tree]
 `SketchesServiceProvider` is on
-[`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) (wave 7).
+[`DefaultProviders`](../src/Voyager/System/DefaultProviders.php) (wave 7),
+and so is `IOPoolsServiceProvider`, with the `IOPool` alias.
 `WorkflowsServiceProvider` and `GraphServiceProvider` exist but are **not**
 on that list.
 
@@ -75,7 +76,7 @@ on that list.
 | `Conditionable/` | `voyager/conditionable` | 2 |
 | `Config/` | `voyager/config` | 1 |
 | `Console/` | `voyager/console` | 78 |
-| `Contracts/` | `voyager/contracts` | 127 |
+| `Contracts/` | `voyager/contracts` | 139 |
 | `Database/` | `voyager/database` | 230 |
 | `Encryption/` | `voyager/encryption` | 3 |
 | `Events/` | `voyager/events` | 7 |
@@ -83,6 +84,7 @@ on that list.
 | `Graph/` | `voyager/graph` | 10 |
 | `Hashing/` | `voyager/hashing` | 6 |
 | `Http/` | `voyager/http` | 18 |
+| `IOPools/` | `voyager/io-pools` | 14 |
 | `JsonSchema/` | `voyager/json-schema` | 12 |
 | `Log/` | `voyager/log` | 11 |
 | `Macroable/` | `voyager/macroable` | 1 |
@@ -92,23 +94,23 @@ on that list.
 | `Pagination/` | `voyager/pagination` | 7 |
 | `Pipeline/` | `voyager/pipeline` | 3 |
 | `Process/` | `voyager/process` | 14 |
-| `Queue/` | `voyager/queue` | 95 |
+| `Queue/` | `voyager/queue` | 97 |
 | `Redis/` | `voyager/redis` | 16 |
 | `Reflection/` | `voyager/reflection` | 3 |
 | `Sketches/` | `voyager/sketches` | 9 |
-| `System/` | *(not a split package)* | 115 |
+| `System/` | *(not a split package)* | 116 |
 | `Testing/` | `voyager/testing` | 34 |
 | `Translation/` | `voyager/translation` | 11 |
 | `Validation/` | `voyager/validation` | 45 |
 | `Vessel/` | `voyager/vessel` | 18 |
 | `Workflows/` | `voyager/workflows` | 23 |
 
-Counts from `find src/Voyager/<Dir> -name '*.php'` at `3e93855`. 35
-directories; **1110** PHP files; Contracts **127**; Graph **10**; Sketches
-**9**; System **115** (includes `Sketches/Kernel` and the two Computer
-generators).[^src-tree]
+Counts from `find src/Voyager/<Dir> -name '*.php'` at `0e9099e`. 36
+directories; **1139** PHP files; Contracts **139**; Graph **10**; IOPools
+**14**; Sketches **9**; System **116** (includes `Sketches/Kernel` and the
+two Computer generators).[^src-tree]
 
-The root `replace` block lists the **34** `voyager/*` names above and does
+The root `replace` block lists the **35** `voyager/*` names above and does
 **not** list `voyager/system`.[^root-composer] System is the application
 skeleton — see [package split](/architecture/package-split.md).
 
@@ -165,6 +167,6 @@ and [local development](/playbooks/local-development.md).
 [^readme]: Venusian Framework README
 [^agents-md]: Agent guidelines — venusian/framework
 [^root-composer]: venusian/framework composer.json (version 0.8.0)
-[^src-tree]: Framework source tree at 3e93855
+[^src-tree]: Framework source tree at 0e9099e
 [^tests-yml]: GitHub Actions tests workflow
 [^pr1-ci]: PR 1 tests workflow — 6257 passed on PHP 8.4 and 8.5

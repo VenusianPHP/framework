@@ -12,7 +12,7 @@ stale_after: 2026-11-22
 sources:
   - id: package-source
     resource: ../../src/Voyager/Contracts
-    title: Contracts package source (127 PHP files)
+    title: Contracts package source (139 PHP files)
   - id: package-manifest
     resource: ../../src/Voyager/Contracts/composer.json
     title: voyager/contracts composer.json
@@ -20,17 +20,20 @@ sources:
 
 # Overview
 
-**127** PHP files under `src/Voyager/Contracts/`. Package name
+**139** PHP files under `src/Voyager/Contracts/`. Package name
 `voyager/contracts`. Autoload `Voyager\Contracts\`. Requires PHP
 `^8.4|^8.5`, `psr/container`, `psr/simple-cache`. No `extra.venusian` block.
 
 Subdirectories: Broadcasting, Bus, Cache, Concurrency, Config, Console,
-Database, Debug, Encryption, Events, Filesystem, Hashing, JsonSchema, Log,
-Notifications, NutsAndBolts, Pagination, Pipeline, Process, Queue, Redis,
-Sketches (7 files: `Sketch`, `SketchLoopResult`, `SketchExitStatus`,
-`SketchException`, `SketchRegistry`, `Kernel`, `Attributes/Sketch`),
-System, Translation, Validation, Vessel, Workflows (6 files:
-`AsyncRuntime`, `Awaitable`, `AsyncRunnable`, `RuntimeAware`,
+Database, Debug, Encryption, Events, Filesystem, Hashing, IOPools (12
+files: `QueuedIO`, `Completion`, `Occurrence`, `Sendable`, `Tickable`,
+`IOResourceDriver`, `HttpResourceDriver`, `AsyncResourceDriver`,
+`PoolPump`, `PoolOperator`, `PoolService`, `IOPoolsException`),
+JsonSchema, Log, Notifications, NutsAndBolts, Pagination, Pipeline,
+Process, Queue, Redis, Sketches (7 files: `Sketch`, `SketchLoopResult`,
+`SketchExitStatus`, `SketchException`, `SketchRegistry`, `Kernel`,
+`Attributes/Sketch`), System, Translation, Validation, Vessel, Workflows
+(6 files: `AsyncRuntime`, `Awaitable`, `AsyncRunnable`, `RuntimeAware`,
 `WorkflowRuntimeException`, `WorkflowLogicException`).
 
 There is **no** `Contracts/Auth` or `Contracts/View`. `System/helpers.php`
@@ -43,8 +46,9 @@ still aliases those names; nothing in that file uses the aliases.
 # Related
 
 - [Dependency direction](/architecture/dependency-direction.md)
+- [voyager/io-pools](io-pools.md)
 - [voyager/sketches](sketches.md)
 - [Known gaps](/known-gaps.md)
 
-[^package-source]: Contracts package source (127 PHP files)
+[^package-source]: Contracts package source (139 PHP files)
 [^package-manifest]: voyager/contracts composer.json

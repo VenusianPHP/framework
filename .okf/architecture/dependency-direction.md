@@ -45,7 +45,7 @@ The NutsAndBolts packages may depend on each other freely; they are one family.
 **Family contracts that stayed put.** `Voyager\NutsAndBolts\Contracts\Enumerable`
 still lives in `src/Voyager/Collections/Contracts/Enumerable.php`.
 
-**Framework-wide contracts.** `src/Voyager/Contracts/` exists (127 PHP files,
+**Framework-wide contracts.** `src/Voyager/Contracts/` exists (139 PHP files,
 namespace `Voyager\Contracts\…`, package `voyager/contracts`). That includes
 `Voyager\Contracts\NutsAndBolts\{Arrayable,Jsonable,CanBeEscapedWhenCastToString,…}`
 and `Voyager\Contracts\Sketches`.

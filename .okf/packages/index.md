@@ -1,6 +1,6 @@
 # Packages
 
-One concept per publishable `voyager/*` package. There are **34**, matching
+One concept per publishable `voyager/*` package. There are **35**, matching
 the root `composer.json` `replace` block. `Voyager\System` is the
 composition root and is **not** a split package — no concept file, no
 `composer.json`, not in `replace`. See
@@ -16,7 +16,7 @@ composition root and is **not** a split package — no concept file, no
 
 # Contracts, container, aliases
 
-* [voyager/contracts](contracts.md) - framework-wide interfaces (127 PHP files; the directory exists).
+* [voyager/contracts](contracts.md) - framework-wide interfaces (139 PHP files; the directory exists).
 * [voyager/vessel](vessel.md) - service container.
 * [voyager/magic-aliases](magic-aliases.md) - MagicAlias base class.
 

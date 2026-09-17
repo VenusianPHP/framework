@@ -1,3 +1,19 @@
+## 2026-09-13
+* **Update**: [voyager/io-pools](/packages/io-pools.md) — rewritten for the
+  dock. `HttpPool` / `EventQueue` / `TickRoster` / `PendingCall` are gone:
+  `IOPoolDock` holds named resources and one mail bag; `http`
+  (`MultiCurlResourceDriver` → `Presumption`) and `async`
+  (`RedisResourceDriver`) resources boot from `config/io-pools.php`; mail
+  species are `Completion` / `Occurrence` / `Sendable`.
+* **Update**: [Overview](/overview.md), [Packages](/packages/index.md) —
+  `IOPools/` added; 36 directories, 1139 PHP files, 35 `replace` entries at
+  `0e9099e`. Counts follow through [voyager/contracts](/packages/contracts.md)
+  (139, IOPools subdirectory listed), [package split](/architecture/package-split.md),
+  [namespace and autoloading](/architecture/namespace-and-autoloading.md),
+  [dependency direction](/architecture/dependency-direction.md), and both
+  indexes. Rows stamped `3e93855` in [known gaps](/known-gaps.md) stay as
+  measured.
+
 ## 2026-09-02
 * **Fix**: `Reflector` stays `Voyager\NutsAndBolts\Reflector` (Reflection is a
   NutsAndBolts-family package). Callers still imported

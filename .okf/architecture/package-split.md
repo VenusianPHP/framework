@@ -1,7 +1,7 @@
 ---
 type: Architecture Decision
 title: Monorepo with composer replace
-description: Venusian develops 34 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
+description: Venusian develops 35 voyager/* packages in one tree and lists them in the root replace block. Voyager\System is the skeleton and is not a split package.
 tags: [monorepo, composer, packaging]
 status: draft
 generated: { by: agent:framework-auditor, at: 2026-08-23T03:08:15Z }
@@ -14,7 +14,7 @@ sources:
     title: venusian/framework composer.json (version 0.8.0)
   - id: subpackage-manifests
     resource: ../../src/Voyager/*/composer.json
-    title: Per-package composer manifests (34 files)
+    title: Per-package composer manifests (35 files)
   - id: gitattributes
     resource: ../../.gitattributes
     title: Repository export-ignore rules
@@ -34,17 +34,18 @@ once it is split out.
 
 # Replace block
 
-Root `composer.json` lists **34** packages, each `"self.version"`:[^root-composer]
+Root `composer.json` lists **35** packages, each `"self.version"`:[^root-composer]
 
 `voyager/broadcasting`, `bus`, `cache`, `collections`, `concurrency`,
 `conditionable`, `config`, `console`, `contracts`, `database`, `encryption`,
-`events`, `filesystem`, `graph`, `hashing`, `http`, `json-schema`, `log`,
-`macroable`, `magic-aliases`, `notifications`, `nuts-and-bolts`, `pagination`,
-`pipeline`, `process`, `queue`, `redis`, `reflection`, `sketches`, `testing`,
-`translation`, `validation`, `vessel`, `workflows`.
+`events`, `filesystem`, `graph`, `hashing`, `http`, `io-pools`,
+`json-schema`, `log`, `macroable`, `magic-aliases`, `notifications`,
+`nuts-and-bolts`, `pagination`, `pipeline`, `process`, `queue`, `redis`,
+`reflection`, `sketches`, `testing`, `translation`, `validation`, `vessel`,
+`workflows`.
 
-Each of those 34 directories has a `composer.json`.[^subpackage-manifests]
-`src/Voyager/Contracts/` exists (127 PHP files, 7 under `Contracts/Sketches`)
+Each of those 35 directories has a `composer.json`.[^subpackage-manifests]
+`src/Voyager/Contracts/` exists (139 PHP files, 7 under `Contracts/Sketches`)
 — it is not an empty `replace` stub.
 
 # System is not a split package
