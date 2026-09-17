@@ -158,3 +158,41 @@ test('progress speaks through the hook only when the byte count moves, and never
     expect($seen)->toBe([[1024, 4096], [2048, 4096]])
         ->and($this->dock->drain()->isEmpty())->toBeTrue();
 });
+
+test('an envelope that throws falls back to the raw result and still settles the presumption', function () {
+    $presumption = $this->driver->fetch('forecast', 'https://example.test', envelope: function (HttpResult $r): CompletionContract {
+        throw new RuntimeException('bad envelope');
+    });
+
+    $this->driver->ready = [$result = httpResult('forecast')];
+    $this->dock->pump();
+
+    expect($this->dock->drain()->all())->toBe([$result])
+        ->and($presumption->settled())->toBeTrue()
+        ->and($presumption->result())->toBe($result);
+});
+
+test('an envelope that returns something other than mail falls back to the raw result', function () {
+    $presumption = $this->driver->fetch('forecast', 'https://example.test', envelope: fn (HttpResult $r): string => 'not mail');
+
+    $this->driver->ready = [$result = httpResult('forecast')];
+    $this->dock->pump();
+
+    expect($this->dock->drain()->all())->toBe([$result])
+        ->and($presumption->settled())->toBeTrue();
+});
+
+test('a failing envelope does not drop the other completions of the tick', function () {
+    $first = $this->driver->fetch('one', 'https://example.test/1', envelope: function (HttpResult $r): CompletionContract {
+        throw new RuntimeException('bad envelope');
+    });
+    $second = $this->driver->fetch('two', 'https://example.test/2');
+
+    $this->driver->ready = [$one = httpResult('one'), $two = httpResult('two')];
+    $this->dock->pump();
+
+    expect($this->dock->drain()->all())->toBe([$one, $two])
+        ->and($first->settled())->toBeTrue()
+        ->and($second->settled())->toBeTrue()
+        ->and($second->result())->toBe($two);
+});

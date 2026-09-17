@@ -548,3 +548,6 @@
   nor `DatabaseLock` had any coverage against real `Voyager\Database` query
   building. Suite: 6442 → 6459 passed (+17), 0 failing/risky/warnings before
   and after.
+
+## 2026-09-17
+* **Update**: [io-pools](packages/io-pools.md) — `pump()` ticks every resource and rethrows the first failure after; a failing MultiCurl envelope falls back to the raw result, never orphaning a presumption.

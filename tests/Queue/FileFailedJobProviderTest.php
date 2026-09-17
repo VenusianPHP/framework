@@ -16,7 +16,7 @@ function logFailedJob($connection = 'connection', $queue = 'queue')
 }
 
 beforeEach(function () {
-    $this->path = @tempnam('tmp', 'file_failed_job_provider_test');
+    $this->path = tempnam(sys_get_temp_dir(), 'file_failed_job_provider_test');
     $this->provider = new FileFailedJobProvider($this->path);
 });
 

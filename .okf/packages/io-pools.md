@@ -39,6 +39,13 @@ the loop (a sketch; Surface's `LiveApplication`). A resource that waits has
 broken the contract. `IOResourceDriver extends Tickable` — every resource
 lives by it.[^contracts]
 
+`pump()` ticks every resource in registration order. One that throws does
+not spare the rest; the first failure is rethrown after all have ticked.
+
+A MultiCurl envelope that throws or returns non-mail falls back to the raw
+`HttpResult`: the presumption always settles, every completion of the tick
+is pushed.
+
 # The dock
 
 `IOPoolDock`, bound `io-pool`, alias `IOPool`; the provider is on

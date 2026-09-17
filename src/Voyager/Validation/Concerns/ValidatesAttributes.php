@@ -765,9 +765,11 @@ trait ValidatesAttributes
             return false;
         }
 
+        $path = $value->getRealPath();
+
         $dimensions = method_exists($value, 'dimensions')
             ? $value->dimensions()
-            : @getimagesize($value->getRealPath());
+            : ($path !== false && @filesize($path) > 0 ? @getimagesize($path) : false);
 
         if (! $dimensions) {
             return false;

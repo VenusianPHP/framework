@@ -83,3 +83,53 @@ test('mail species carry their contracts for interface-keyed listeners', functio
         ->and($result)->not->toBeInstanceOf(OccurrenceContract::class)
         ->and(happened())->toBeInstanceOf(QueuedIO::class);
 });
+
+function counting(): \Voyager\Contracts\IOPools\IOResourceDriver
+{
+    return new class implements \Voyager\Contracts\IOPools\IOResourceDriver
+    {
+        public int $ticks = 0;
+
+        public function tick(): void
+        {
+            $this->ticks++;
+        }
+    };
+}
+
+function throwing(string $message): \Voyager\Contracts\IOPools\IOResourceDriver
+{
+    return new class($message) implements \Voyager\Contracts\IOPools\IOResourceDriver
+    {
+        public int $ticks = 0;
+
+        public function __construct(private string $message) {}
+
+        public function tick(): void
+        {
+            $this->ticks++;
+
+            throw new RuntimeException($this->message);
+        }
+    };
+}
+
+test('pump ticks every resource even when one throws, then rethrows that failure', function () {
+    $dock = dock();
+    $dock->resource('first', $first = counting());
+    $dock->resource('broken', $broken = throwing('broken'));
+    $dock->resource('last', $last = counting());
+
+    expect(fn () => $dock->pump())->toThrow(RuntimeException::class, 'broken')
+        ->and([$first->ticks, $broken->ticks, $last->ticks])->toBe([1, 1, 1]);
+});
+
+test('pump rethrows the first of several failures after ticking them all', function () {
+    $dock = dock();
+    $dock->resource('a', $a = throwing('first'));
+    $dock->resource('b', $b = throwing('second'));
+    $dock->resource('c', $c = counting());
+
+    expect(fn () => $dock->pump())->toThrow(RuntimeException::class, 'first')
+        ->and([$a->ticks, $b->ticks, $c->ticks])->toBe([1, 1, 1]);
+});
