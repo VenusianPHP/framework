@@ -2,7 +2,7 @@
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Events\QueryExecuted;
-use Voyager\Events\Dispatcher;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
 
 beforeEach(function () {
     $db = new DB;

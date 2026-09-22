@@ -4,13 +4,12 @@ namespace Voyager\Database\Console;
 
 use Voyager\Console\Command;
 use Voyager\Console\Prohibitable;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Connection;
 use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Database\Events\MigrationsPruned;
 use Voyager\Database\Events\SchemaDumped;
 use Voyager\Filesystem\Filesystem;
-use Voyager\NutsAndBolts\MagicAliases\Config;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'schema:dump')]
@@ -39,7 +38,7 @@ class DumpCommand extends Command
      * Execute the console command.
      *
      * @param  \Voyager\Database\ConnectionResolverInterface  $connections
-     * @param  \Voyager\Contracts\Events\Dispatcher  $dispatcher
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $dispatcher
      * @return void
      */
     public function handle(ConnectionResolverInterface $connections, Dispatcher $dispatcher)
@@ -79,7 +78,7 @@ class DumpCommand extends Command
      */
     protected function schemaState(Connection $connection)
     {
-        $migrations = Config::get('database.migrations', 'migrations');
+        $migrations = config('database.migrations', 'migrations');
 
         $migrationTable = is_array($migrations) ? ($migrations['table'] ?? 'migrations') : $migrations;
 

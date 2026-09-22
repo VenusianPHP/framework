@@ -3,7 +3,7 @@
 namespace Voyager\NutsAndBolts\Exceptions;
 
 use Throwable;
-use Voyager\Contracts\System\VenusianFrameworkException;
+use Voyager\Contracts\Core\VenusianFrameworkException;
 
 class MultipleItemsFoundException extends VenusianFrameworkException
 {

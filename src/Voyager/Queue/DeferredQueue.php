@@ -2,20 +2,19 @@
 
 namespace Voyager\Queue;
 
+use Voyager\Contracts\IOPools\Loop;
+use Voyager\Vessel\ControlPanel;
+
+/**
+ * Runs the job on the loop's next turn, in this process. The push returns at once;
+ * the job runs after the caller's turn ends, so a handler that queues never stalls its own frame.
+ */
 class DeferredQueue extends SyncQueue
 {
-    /**
-     * Push a new job onto the queue.
-     *
-     * @param  string  $job
-     * @param  mixed  $data
-     * @param  string|null  $queue
-     * @return mixed
-     *
-     * @throws \Throwable
-     */
-    public function push($job, $data = '', $queue = null)
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
-        return \Voyager\NutsAndBolts\defer(fn () => parent::push($job, $data, $queue));
+        return ($this->container ?? ControlPanel::getInstance())
+            ->make(Loop::class)
+            ->defer(fn () => parent::push($job, $data, $queue));
     }
 }

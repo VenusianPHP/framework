@@ -1,19 +1,19 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Console\Command;
 use Voyager\Console\OutputStyle;
 use Voyager\Console\View\Components\Factory;
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Core\RenderedInstance;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Database\Console\Seeds\SeedCommand;
 use Voyager\Database\Console\Seeds\WithoutModelEvents;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Seeder;
-use Voyager\Events\NullDispatcher;
-use Voyager\Testing\Assert;
+use Voyager\Signals\NullDispatcher;
+use PHPUnit\Framework\Assert;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -38,7 +38,7 @@ test('handle', function () {
     $resolver->shouldReceive('getDefaultConnection')->once();
     $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
 
-    $container = m::mock(Vessel::class);
+    $container = m::mock(RenderedInstance::class);
     $container->shouldReceive('call');
     $container->shouldReceive('environment')->once()->andReturn('testing');
     $container->shouldReceive('runningUnitTests')->andReturn('true');
@@ -79,7 +79,7 @@ test('without model events', function () {
     $resolver->shouldReceive('getDefaultConnection')->once();
     $resolver->shouldReceive('setDefaultConnection')->once()->with('sqlite');
 
-    $container = m::mock(Vessel::class);
+    $container = m::mock(RenderedInstance::class);
     $container->shouldReceive('call');
     $container->shouldReceive('environment')->once()->andReturn('testing');
     $container->shouldReceive('runningUnitTests')->andReturn('true');
@@ -112,7 +112,7 @@ test('prohibitable', function () {
 
     $resolver = m::mock(ConnectionResolverInterface::class);
 
-    $container = m::mock(Vessel::class);
+    $container = m::mock(RenderedInstance::class);
     $container->shouldReceive('call');
     $container->shouldReceive('runningUnitTests')->andReturn('true');
     $container->shouldReceive('make')->with(OutputStyle::class, m::any())->andReturn(

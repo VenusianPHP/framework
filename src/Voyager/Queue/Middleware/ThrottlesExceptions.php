@@ -3,7 +3,7 @@
 namespace Voyager\Queue\Middleware;
 
 use Voyager\Cache\RateLimiter;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Throwable;
 
 class ThrottlesExceptions
@@ -106,7 +106,7 @@ class ThrottlesExceptions
      */
     public function handle($job, $next)
     {
-        $this->limiter = Vessel::getInstance()->make(RateLimiter::class);
+        $this->limiter = ControlPanel::getInstance()->make(RateLimiter::class);
 
         if ($this->limiter->tooManyAttempts($jobKey = $this->getKey($job), $this->maxAttempts)) {
             return $job->release($this->getTimeUntilNextRetry($jobKey));

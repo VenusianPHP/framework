@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Queue\Fixtures;
+namespace Venusian\Tests\Queue\Fixtures;
 
 use Voyager\Bus\Batchable;
 

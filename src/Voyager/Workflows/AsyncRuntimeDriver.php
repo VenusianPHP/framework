@@ -4,7 +4,6 @@ namespace Voyager\Workflows;
 
 enum AsyncRuntimeDriver: string
 {
-    case SYNC = 'sync';
-    case FIBER = 'fiber';
-    case REACT = 'react';
+    case LOOP = 'loop';            // the application's event loop: shares turns with everything else
+    case ISOLATED = 'isolated';    // a private loop: nothing else can interleave
 }

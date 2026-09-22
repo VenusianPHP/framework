@@ -14,11 +14,13 @@ class HashServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     public function register(): void
     {
-        $this->app->singleton('hash', function ($app) {
+        $this->mergeConfigFrom(__DIR__.'/config/hashing.php', 'hashing');
+
+        $this->app->registerSingleton('hash', function ($app) {
             return new HashManager($app);
         });
 
-        $this->app->singleton('hash.driver', function ($app) {
+        $this->app->registerSingleton('hash.driver', function ($app) {
             return $app['hash']->driver();
         });
     }

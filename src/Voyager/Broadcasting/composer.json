@@ -14,12 +14,12 @@
     "require": {
         "php": "^8.4|^8.5",
         "psr/log": "^3.0",
-        "voyager/bus": "^0.8.0",
-        "voyager/collections": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0",
-        "voyager/queue": "^0.8.0",
-        "voyager/vessel": "^0.8.0"
+        "venusian-voyager/bus": "^0.9.0",
+        "venusian-voyager/collections": "^0.9.0",
+        "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/nuts-and-bolts": "^0.9.0",
+        "venusian-voyager/queue": "^0.9.0",
+        "venusian-voyager/vessel": "^0.9.0"
     },
     "suggest": {
         "ext-hash": "Required to use the Pusher broadcast driver.",
@@ -32,13 +32,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.8.x-dev"
-        },
-        "venusian": {
-            "upstream": "laravel/framework",
-            "upstream-ref": "v12.67.0",
-            "upstream-path": "src/Illuminate/Broadcasting",
-            "ported-at": "2026-08-20"
+            "dev-main": "0.9.x-dev"
         }
     },
     "config": {

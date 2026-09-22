@@ -1,6 +1,6 @@
 <?php
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel as Vessel;
 use Voyager\Contracts\Redis\Factory;
 use Voyager\Queue\LuaScripts;
 use Voyager\Queue\Queue;
@@ -27,7 +27,7 @@ test('push properly pushes job onto redis', function () {
 
     $id = $queue->push('foo', ['data']);
     expect($id)->toBe('foo');
-    $container->shouldHaveReceived('bound')->with('events')->twice();
+    $container->shouldHaveReceived('isBound')->with('signals')->twice();
 
     Carbon::setTestNow();
     Str::createUuidsNormally();
@@ -55,7 +55,7 @@ test('push properly pushes job onto redis with custom payload hook', function ()
 
     $id = $queue->push('foo', ['data']);
     expect($id)->toBe('foo');
-    $container->shouldHaveReceived('bound')->with('events')->twice();
+    $container->shouldHaveReceived('isBound')->with('signals')->twice();
 
     Queue::createPayloadUsing(null);
 
@@ -89,7 +89,7 @@ test('push properly pushes job onto redis with two custom payload hook', functio
 
     $id = $queue->push('foo', ['data']);
     expect($id)->toBe('foo');
-    $container->shouldHaveReceived('bound')->with('events')->twice();
+    $container->shouldHaveReceived('isBound')->with('signals')->twice();
 
     Queue::createPayloadUsing(null);
 
@@ -123,7 +123,7 @@ test('delayed push properly pushes job onto redis', function () {
 
     $id = $queue->later(1, 'foo', ['data']);
     expect($id)->toBe('foo');
-    $container->shouldHaveReceived('bound')->with('events')->twice();
+    $container->shouldHaveReceived('isBound')->with('signals')->twice();
 
     Carbon::setTestNow();
     Str::createUuidsNormally();
@@ -153,7 +153,7 @@ test('delayed push with date time properly pushes job onto redis', function () {
     );
 
     $queue->later($date->addSeconds(5), 'foo', ['data']);
-    $container->shouldHaveReceived('bound')->with('events')->twice();
+    $container->shouldHaveReceived('isBound')->with('signals')->twice();
 
     Carbon::setTestNow();
     Str::createUuidsNormally();

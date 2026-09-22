@@ -4,7 +4,7 @@ namespace Voyager\Database;
 
 use Voyager\Console\Command;
 use Voyager\Console\View\Components\TwoColumnDetail;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\Database\Console\Seeds\WithoutModelEvents;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use InvalidArgumentException;
@@ -14,7 +14,7 @@ abstract class Seeder
     /**
      * The container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
     protected $container;
 
@@ -143,10 +143,10 @@ abstract class Seeder
     /**
      * Set the IoC container instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $container
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $container
      * @return $this
      */
-    public function setContainer(Vessel $container)
+    public function setContainer(TheServiceContainer $container)
     {
         $this->container = $container;
 

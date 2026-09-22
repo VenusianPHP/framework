@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Bus\Fixtures;
+namespace Venusian\Tests\Bus\Fixtures;
 
-use Voyager\System\Bus\PendingDispatch;
+use Voyager\Core\Bus\PendingDispatch;
 
 class PendingDispatchWithoutDestructor extends PendingDispatch
 {

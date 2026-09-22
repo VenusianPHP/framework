@@ -5,7 +5,7 @@ namespace Voyager\Database\Console\Migrations;
 use Voyager\Console\Command;
 use Voyager\Console\ConfirmableTrait;
 use Voyager\Console\Prohibitable;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Events\DatabaseRefreshed;
 use Voyager\Database\Migrations\Migrator;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -94,7 +94,7 @@ class FreshCommand extends Command
             '--step' => $this->option('step'),
         ]));
 
-        if ($this->venusian->bound(Dispatcher::class)) {
+        if ($this->venusian->isBound(Dispatcher::class)) {
             $this->venusian[Dispatcher::class]->dispatch(
                 new DatabaseRefreshed($database, $this->needsSeeding())
             );

@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use BadMethodCallException;
 use Carbon\Carbon;
 use Faker\Generator;
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\System\Application;
+use Voyager\Vessel\ControlPanel;
+use Voyager\Contracts\Core\FrameworkCore;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Attributes\UseFactory;
 use Voyager\Database\Instrument\Casts\Attribute;
@@ -18,7 +18,7 @@ use Voyager\Database\Instrument\Factories\Sequence;
 use Voyager\Database\Instrument\Model as Instrument;
 use Voyager\Database\Instrument\SoftDeletes;
 use Voyager\NutsAndBolts\DataObjects\Str;
-use Tests\Database\Fixtures\Models\Money\Price;
+use Venusian\Tests\Database\Fixtures\Models\Money\Price;
 use Mockery as m;
 use ReflectionClass;
 
@@ -82,11 +82,11 @@ function dbFactorySchema()
 }
 
 beforeEach(function () {
-    $container = Vessel::getInstance();
-    $container->singleton(Generator::class, function ($app, $parameters) {
+    $container = ControlPanel::getInstance();
+    $container->registerSingleton(Generator::class, function ($app, $parameters) {
         return \Faker\Factory::create('en_US');
     });
-    $container->instance(Application::class, $app = m::mock(Application::class));
+    $container->registerInstance(FrameworkCore::class, $app = m::mock(FrameworkCore::class));
     $app->shouldReceive('getNamespace')->andReturn('App\\');
 
     $db = new DB;
@@ -106,7 +106,7 @@ beforeEach(function () {
 afterEach(function () {
     dbFactorySchema()->drop('users');
 
-    Vessel::setInstance(null);
+    ControlPanel::setInstance(null);
 });
 
 test('basic model can be created', function () {
@@ -667,10 +667,10 @@ test('resolve nested model factories', function () {
 });
 
 test('resolve nested model name from factory', function () {
-    Vessel::getInstance()->instance(Application::class, $app = m::mock(Application::class));
-    $app->shouldReceive('getNamespace')->andReturn('Tests\\Database\\Fixtures\\');
+    ControlPanel::getInstance()->registerInstance(FrameworkCore::class, $app = m::mock(FrameworkCore::class));
+    $app->shouldReceive('getNamespace')->andReturn('Venusian\\Tests\\Database\\Fixtures\\');
 
-    Factory::useNamespace('Tests\\Database\\Fixtures\\Factories\\');
+    Factory::useNamespace('Venusian\\Tests\\Database\\Fixtures\\Factories\\');
 
     $factory = Price::factory();
 
@@ -678,7 +678,7 @@ test('resolve nested model name from factory', function () {
 });
 
 test('resolve non app nested model factories', function () {
-    Vessel::getInstance()->instance(Application::class, $app = m::mock(Application::class));
+    ControlPanel::getInstance()->registerInstance(FrameworkCore::class, $app = m::mock(FrameworkCore::class));
     $app->shouldReceive('getNamespace')->andReturn('Foo\\');
 
     Factory::useNamespace('Factories\\');

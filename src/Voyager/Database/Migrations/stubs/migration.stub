@@ -2,7 +2,6 @@
 
 use Voyager\Database\Migrations\Migration;
 use Voyager\Database\Schema\Blueprint;
-use Voyager\NutsAndBolts\MagicAliases\Schema;
 
 return new class extends Migration
 {

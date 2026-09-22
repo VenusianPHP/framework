@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Vessel\Fixtures;
+namespace Venusian\Tests\Vessel\Fixtures;
 
 use Voyager\Vessel\Attributes\Give;
 

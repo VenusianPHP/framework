@@ -12,7 +12,9 @@ class WorkflowsServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function register(): void
     {
-        $this->app->singleton(AsyncRuntimeManager::class, function ($app) {
+        $this->mergeConfigFrom(__DIR__.'/config/workflows.php', 'workflows');
+
+        $this->app->registerSingleton(AsyncRuntimeManager::class, function ($app) {
             return new AsyncRuntimeManager($app);
         });
     }

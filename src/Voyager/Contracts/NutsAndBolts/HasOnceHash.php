@@ -9,5 +9,5 @@ interface HasOnceHash
      *
      * @return string
      */
-    public function onceHash();
+    public function onceHash(): string;
 }

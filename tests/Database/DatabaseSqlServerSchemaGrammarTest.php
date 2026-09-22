@@ -6,7 +6,7 @@ use Voyager\Database\Schema\Blueprint;
 use Voyager\Database\Schema\ForeignIdColumnDefinition;
 use Voyager\Database\Schema\Grammars\SqlServerGrammar;
 use Voyager\Database\Schema\SqlServerBuilder;
-use Tests\Database\Fixtures\Enums\Foo;
+use Venusian\Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 
 function sqlServerGrammarConnection(

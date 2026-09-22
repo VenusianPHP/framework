@@ -9,7 +9,7 @@ use Voyager\Workflows\Concerns\ResolvesAsyncRuntime;
 /**
  * The asynchronous counterpart to the prep -> exec -> post lifecycle.
  *
- * Every lifecycle method may return either a plain value or an Awaitable; the
+ * Every lifecycle method may return either a plain value or a Promise; the
  * runtime normalises whichever it gets. That is what lets the same node run
  * unchanged on every runtime.
  */
@@ -24,7 +24,7 @@ trait AsyncWorkflowLogic
      * Prepare data before async execution.
      *
      * @param SharedBag $shared The shared data store
-     * @return mixed Data to pass to execAsync(), or an Awaitable of it
+     * @return mixed Data to pass to execAsync(), or a Promise of it
      */
     public function prepAsync(SharedBag $shared): mixed
     {
@@ -35,7 +35,7 @@ trait AsyncWorkflowLogic
      * Execute the main async logic of this node.
      *
      * @param mixed $prepRes The resolved result from prepAsync()
-     * @return mixed The result of execution, or an Awaitable of it
+     * @return mixed The result of execution, or a Promise of it
      */
     public function execAsync(mixed $prepRes): mixed
     {
@@ -48,7 +48,7 @@ trait AsyncWorkflowLogic
      * @param SharedBag $shared The shared data store
      * @param mixed $prepRes The resolved result from prepAsync()
      * @param mixed $execRes The resolved result from execAsync()
-     * @return mixed The action name to transition to, or an Awaitable of it
+     * @return mixed The action name to transition to, or a Promise of it
      */
     public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
     {
@@ -60,7 +60,7 @@ trait AsyncWorkflowLogic
      *
      * @param mixed $prepRes The resolved result from prepAsync()
      * @param Throwable $e The exception thrown by the final attempt
-     * @return mixed The fallback result, or an Awaitable of it
+     * @return mixed The fallback result, or a Promise of it
      * @throws Throwable
      */
     public function execFallbackAsync(mixed $prepRes, Throwable $e): mixed

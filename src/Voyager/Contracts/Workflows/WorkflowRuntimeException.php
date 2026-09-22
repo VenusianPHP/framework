@@ -3,7 +3,7 @@
 namespace Voyager\Contracts\Workflows;
 
 
-use Voyager\Contracts\System\VenusianFrameworkException;
+use Voyager\Contracts\Core\VenusianFrameworkException;
 
 class WorkflowRuntimeException extends VenusianFrameworkException
 {

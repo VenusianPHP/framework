@@ -1,7 +1,8 @@
 <?php
 
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Queue\Queue as QueueContract;
+use Voyager\Vessel\ControlPanel as Vessel;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Queue\FailoverQueue;
 use Voyager\Queue\QueueManager;
 use Mockery as m;
@@ -17,11 +18,11 @@ test('push fails over on exception', function () {
     ]);
 
     $queue->shouldReceive('connection')->once()->with('redis')->andReturn(
-        $redis = m::mock('stdClass'),
+        $redis = m::mock(QueueContract::class),
     );
 
     $queue->shouldReceive('connection')->once()->with('sync')->andReturn(
-        $sync = m::mock('stdClass'),
+        $sync = m::mock(QueueContract::class),
     );
 
     $events->shouldReceive('dispatch')->once();

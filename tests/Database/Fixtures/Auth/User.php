@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\Fixtures\Auth;
+namespace Venusian\Tests\Database\Fixtures\Auth;
 
 use Voyager\Database\Instrument\Model;
 

@@ -2,7 +2,7 @@
 
 use Voyager\Bus\BatchRepository;
 use Voyager\Bus\DatabaseBatchRepository;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance as Application;
 use Voyager\Queue\Console\PruneBatchesCommand;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -10,7 +10,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 test('allow pruning all unfinished batches', function () {
     $container = new Application;
-    $container->instance(BatchRepository::class, $repo = m::spy(DatabaseBatchRepository::class));
+    $container->registerInstance(BatchRepository::class, $repo = m::spy(DatabaseBatchRepository::class));
 
     $command = new PruneBatchesCommand;
     $command->setVenusian($container);
@@ -22,7 +22,7 @@ test('allow pruning all unfinished batches', function () {
 
 test('allow pruning all cancelled batches', function () {
     $container = new Application;
-    $container->instance(BatchRepository::class, $repo = m::spy(DatabaseBatchRepository::class));
+    $container->registerInstance(BatchRepository::class, $repo = m::spy(DatabaseBatchRepository::class));
 
     $command = new PruneBatchesCommand;
     $command->setVenusian($container);

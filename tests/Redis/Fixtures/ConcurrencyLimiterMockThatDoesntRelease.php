@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Redis\Fixtures;
+namespace Venusian\Tests\Redis\Fixtures;
 
 use Voyager\Redis\Limiters\ConcurrencyLimiter;
 

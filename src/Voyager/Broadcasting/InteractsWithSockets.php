@@ -2,35 +2,27 @@
 
 namespace Voyager\Broadcasting;
 
-use Voyager\NutsAndBolts\MagicAliases\Broadcast;
-
 trait InteractsWithSockets
 {
     /**
-     * The socket ID for the user that raised the event.
-     *
-     * @var string|null
+     * The socket ID for the connection that raised the event.
      */
-    public $socket;
+    public ?string $socket = null;
 
     /**
-     * Exclude the current user from receiving the broadcast.
-     *
-     * @return $this
+     * Exclude one connection; a device knows its own socket id from its Pusher/Reverb client.
      */
-    public function dontBroadcastToCurrentUser()
+    public function dontBroadcastToCurrentUser(string $socket): static
     {
-        $this->socket = Broadcast::socket();
+        $this->socket = $socket;
 
         return $this;
     }
 
     /**
      * Broadcast the event to everyone.
-     *
-     * @return $this
      */
-    public function broadcastToEveryone()
+    public function broadcastToEveryone(): static
     {
         $this->socket = null;
 

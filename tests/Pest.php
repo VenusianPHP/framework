@@ -1,100 +1,59 @@
 <?php
 
+use Venusian\Tests\TestCase;
+use Voyager\IOPools\EventLoop;
+use Voyager\Workflows\Runtimes\LoopRuntime;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
 |--------------------------------------------------------------------------
 |
-| The framework has no application container yet, so these are plain unit
-| tests against the Support foundation. Bind a base TestCase here once the
-| System layer exists.
+| The closure you provide to your test functions is always bound to a specific PHPUnit test
+| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
+| need to change it using the "pest()" function to bind different classes or traits.
 |
 */
+
+pest()->extend(TestCase::class)->in('Feature');
+
+uses()->group('deferred')->in('Database/deferred');
 
 /*
 |--------------------------------------------------------------------------
 | Expectations
 |--------------------------------------------------------------------------
+|
+| When you're writing tests, you often need to check that values meet certain conditions. The
+| "expect()" function gives you access to a set of "expectations" methods that you can use
+| to assert different things. Of course, you may extend the Expectation API at any time.
+|
 */
 
-/**
- * Assert that a callable both returns the expected value for a plain array of
- * needles and for the same needles wrapped in a Collection.
- *
- * Guards the port hazard where an `array|string` hint silently coerced a
- * Collection to its JSON form instead of iterating it.
- */
-expect()->extend('toAcceptIterables', function (callable $call, mixed $expected) {
-    expect($call($this->value))->toBe($expected)
-        ->and($call(collect($this->value)))->toBe($expected);
-
-    return $this;
+expect()->extend('toBeOne', function () {
+    return $this->toBe(1);
 });
 
-/*
-|--------------------------------------------------------------------------
-| Datasets
-|--------------------------------------------------------------------------
-*/
-
-/**
- * Upstream's SupportCollectionTest runs almost every case twice: once over
- * the eager Collection, once over the lazy LazyCollection. This dataset
- * preserves that — every ported test that is valid for both classes is
- * declared with ->with('collections') so it still runs twice.
- */
-dataset('collections', [
-    'Collection' => [\Voyager\NutsAndBolts\Collection::class],
-    'LazyCollection' => [\Voyager\NutsAndBolts\LazyCollection::class],
+dataset('async runtimes', [
+    'loop'     => [fn () => new LoopRuntime(new EventLoop)],
+    'isolated' => [fn () => LoopRuntime::isolated()],
 ]);
-
-/**
- * Every async runtime the Workflows package ships.
- *
- * Async node and flow behaviour must be identical across all of them, so the
- * same assertions run once per runtime. The react runtime only joins in when
- * its optional package is installed.
- */
-dataset('async runtimes', array_filter([
-    'sync' => [\Voyager\Workflows\Runtimes\SyncRuntime::class],
-    'fiber' => [\Voyager\Workflows\Runtimes\FiberRuntime::class],
-    'react' => function_exists('React\Async\async') ? [\Voyager\Workflows\Runtimes\ReactRuntime::class] : null,
-]));
-
-/**
- * The subset of runtimes that actually overlap work, for timing assertions.
- */
-dataset('overlapping async runtimes', array_filter([
-    'fiber' => [\Voyager\Workflows\Runtimes\FiberRuntime::class],
-    'react' => function_exists('React\Async\async') ? [\Voyager\Workflows\Runtimes\ReactRuntime::class] : null,
-]));
+dataset('overlapping async runtimes', [
+    'loop' => [fn () => new LoopRuntime(new EventLoop)],
+]);
 
 /*
 |--------------------------------------------------------------------------
 | Functions
 |--------------------------------------------------------------------------
+|
+| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
+| project that you don't want to repeat in every file. Here you can also expose helpers as
+| global functions to help you to reduce the number of lines of code in your test files.
+|
 */
 
-afterEach(function () {
-    \Voyager\NutsAndBolts\Sleep::fake(false);
-    \Voyager\NutsAndBolts\DataObjects\Str::createUuidsNormally();
-});
-
-/**
- * An object implementing PHP's native \Stringable and nothing else.
- *
- * Distinct from Voyager's Stringable, which is a much richer class. Several
- * Collection paths must treat any native \Stringable alike.
- */
-function nativeStringable(string $value): \Stringable
+function something()
 {
-    return new class($value) implements \Stringable
-    {
-        public function __construct(private string $value) {}
-
-        public function __toString(): string
-        {
-            return $this->value;
-        }
-    };
+    // ..
 }

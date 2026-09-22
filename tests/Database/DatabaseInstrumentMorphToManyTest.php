@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Model;

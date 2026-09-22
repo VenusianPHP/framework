@@ -1,8 +1,8 @@
 <?php
 
-use Tests\Bus\Fixtures\ConnectionEnum;
-use Tests\Bus\Fixtures\FakeJob;
-use Tests\Bus\Fixtures\QueueEnum;
+use Venusian\Tests\Bus\Fixtures\ConnectionEnum;
+use Venusian\Tests\Bus\Fixtures\FakeJob;
+use Venusian\Tests\Bus\Fixtures\QueueEnum;
 
 test('on connection', function (mixed $connection, ?string $expected) {
     $job = new FakeJob();

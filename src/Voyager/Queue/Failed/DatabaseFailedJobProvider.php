@@ -4,7 +4,7 @@ namespace Voyager\Queue\Failed;
 
 use DateTimeInterface;
 use Voyager\Database\ConnectionResolverInterface;
-use Voyager\NutsAndBolts\MagicAliases\Date;
+use Voyager\NutsAndBolts\DataObjects\Carbon as Date;
 
 class DatabaseFailedJobProvider implements CountableFailedJobProvider, FailedJobProviderInterface, PrunableFailedJobProvider
 {

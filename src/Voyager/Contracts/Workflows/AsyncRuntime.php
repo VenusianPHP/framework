@@ -3,51 +3,22 @@
 namespace Voyager\Contracts\Workflows;
 
 use Closure;
+use Voyager\Contracts\IOPools\Promise;
 
-/**
- * The execution strategy behind asynchronous nodes and flows.
- *
- * Every asynchronous behaviour in the Workflows package is expressed through
- * these five operations, so a runtime may be swapped without touching node or
- * flow code.
- */
 interface AsyncRuntime
 {
-    /**
-     * Begin the given work and return an awaitable for its result.
-     */
-    public function async(Closure $work): Awaitable;
+    /** Start $work now; the promise settles with its return (a returned promise is unwrapped). */
+    public function async(Closure $work): Promise;
 
-    /**
-     * Lift a plain value into an awaitable belonging to this runtime.
-     *
-     * Values that are already awaitables are returned unchanged.
-     */
-    public function resolve(mixed $value): Awaitable;
+    /** A promise already holding $value, or $value itself when it is one. */
+    public function resolve(mixed $value): Promise;
 
-    /**
-     * Resolve an awaitable to its value, blocking the current context.
-     *
-     * Values that are not awaitables are returned unchanged, which is what
-     * allows node lifecycle methods to return either.
-     *
-     * @throws \Throwable The rejection reason, if the awaitable failed.
-     */
+    /** Block (main stack) or suspend (loop fiber) until $value settles; plain values pass through. */
     public function await(mixed $value): mixed;
 
-    /**
-     * Resolve many awaitables or closures, preserving keys.
-     *
-     * Every entry settles before the result is inspected. If any rejected, the
-     * first rejection reason (in key order) is thrown.
-     *
-     * @param iterable<array-key, Awaitable|Closure> $awaitables
-     * @param int|null $concurrency Maximum entries in flight, or null for no limit.
-     */
-    public function all(iterable $awaitables, ?int $concurrency = null): Awaitable;
+    /** Run every closure, at most $concurrency at once; results keyed like the input; first failure rethrown after all settle. */
+    public function all(iterable $work, ?int $concurrency = null): Promise;
 
-    /**
-     * Wait the given number of seconds without blocking sibling work.
-     */
-    public function delay(float $seconds): Awaitable;
+    /** A promise that resolves after $seconds. */
+    public function delay(float $seconds): Promise;
 }

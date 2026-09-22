@@ -3,8 +3,8 @@
 namespace Voyager\NutsAndBolts;
 
 use Closure;
-use Voyager\Contracts\NutsAndBolts\HasOnceHash;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
+use Voyager\Contracts\NutsAndBolts\HasOnceHash;
 
 class Onceable
 {
@@ -13,12 +13,12 @@ class Onceable
      *
      * @param  string  $hash
      * @param  object|null  $object
-     * @param  callable  $callable
+     * @param callable $callable
      */
     public function __construct(
-        public string $hash,
-        public ?object $object,
-        public $callable,
+        public string   $hash,
+        public ?object  $object,
+        public Closure $callable,
     ) {
         //
     }
@@ -26,16 +26,19 @@ class Onceable
     /**
      * Tries to create a new onceable instance from the given trace.
      *
-     * @param  array<int, array<string, mixed>>  $trace
+     * @param array<int, array<string, mixed>> $trace
+     * @param callable $callable
      * @return static|null
      */
-    public static function tryFromTrace(array $trace, callable $callable)
+    public static function tryFromTrace(array $trace, callable $callable): null|static
     {
         if (! is_null($hash = static::hashFromTrace($trace, $callable))) {
             $object = static::objectFromTrace($trace);
 
             return new static($hash, $object, $callable);
         }
+
+        return null;
     }
 
     /**
@@ -44,7 +47,7 @@ class Onceable
      * @param  array<int, array<string, mixed>>  $trace
      * @return object|null
      */
-    protected static function objectFromTrace(array $trace)
+    protected static function objectFromTrace(array $trace): ?object
     {
         return $trace[1]['object'] ?? null;
     }
@@ -53,9 +56,8 @@ class Onceable
      * Computes the hash of the onceable from the given trace.
      *
      * @param  array<int, array<string, mixed>>  $trace
-     * @return string|null
      */
-    protected static function hashFromTrace(array $trace, callable $callable)
+    protected static function hashFromTrace(array $trace, callable $callable): ?string
     {
         if (str_contains($trace[0]['file'] ?? '', 'eval()\'d code')) {
             return null;
@@ -89,4 +91,5 @@ class Onceable
             serialize($uses),
         ));
     }
+
 }

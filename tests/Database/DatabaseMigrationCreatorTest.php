@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__.'/stubs/MigrationCreatorFakeMigration.php';
+
 use Voyager\Database\Migrations\MigrationCreator;
 use Voyager\Filesystem\Filesystem;
 use Mockery as m;

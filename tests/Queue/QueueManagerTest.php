@@ -1,6 +1,7 @@
 <?php
 
-use Voyager\Contracts\Encryption\Encrypter;
+use Voyager\Contracts\Queue\Queue as QueueContract;
+use Voyager\Encryption\Encrypter;
 use Voyager\Queue\QueueManager;
 use Mockery as m;
 
@@ -15,7 +16,7 @@ test('default connection can be resolved', function () {
 
     $manager = new QueueManager($app);
     $connector = m::mock(stdClass::class);
-    $queue = m::mock(stdClass::class);
+    $queue = m::mock(QueueContract::class);
     $queue->shouldReceive('setConnectionName')->once()->with('sync')->andReturnSelf();
     $connector->shouldReceive('connect')->once()->with(['driver' => 'sync'])->andReturn($queue);
     $manager->addConnector('sync', function () use ($connector) {
@@ -37,7 +38,7 @@ test('other connection can be resolved', function () {
 
     $manager = new QueueManager($app);
     $connector = m::mock(stdClass::class);
-    $queue = m::mock(stdClass::class);
+    $queue = m::mock(QueueContract::class);
     $queue->shouldReceive('setConnectionName')->once()->with('foo')->andReturnSelf();
     $connector->shouldReceive('connect')->once()->with(['driver' => 'bar'])->andReturn($queue);
     $manager->addConnector('bar', function () use ($connector) {
@@ -58,7 +59,7 @@ test('null connection can be resolved', function () {
 
     $manager = new QueueManager($app);
     $connector = m::mock(stdClass::class);
-    $queue = m::mock(stdClass::class);
+    $queue = m::mock(QueueContract::class);
     $queue->shouldReceive('setConnectionName')->once()->with('null')->andReturnSelf();
     $connector->shouldReceive('connect')->once()->with(['driver' => 'null'])->andReturn($queue);
     $manager->addConnector('null', function () use ($connector) {

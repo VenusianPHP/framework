@@ -5,32 +5,27 @@ use Voyager\Concurrency\ProcessDriver;
 use Voyager\Concurrency\SyncDriver;
 use Voyager\Config\Repository;
 use Voyager\Process\Factory as ProcessFactory;
-use Voyager\Vessel\Vessel;
+use Voyager\Core\RenderedInstance as Vessel;
 
 /**
  * Build the smallest container the manager needs.
  *
  * The manager only ever asks the application for its configuration, for a
- * process factory, and whether it is running in the console, so a plain
- * Vessel carrying those three answers stands in for a booted application.
+ * process factory, so a plain Vessel carrying those two answers stands in
+ * for a booted application.
  */
-function concurrencyManagerApp(array $config = [], bool $runningInConsole = true)
+function concurrencyManagerApp(array $config = [])
 {
-    $vessel = new class($runningInConsole) extends Vessel
+    $vessel = new class extends Vessel
     {
-        public function __construct(protected bool $console)
+        public function __construct()
         {
             //
         }
-
-        public function runningInConsole()
-        {
-            return $this->console;
-        }
     };
 
-    $vessel->instance('config', new Repository($config));
-    $vessel->instance(ProcessFactory::class, new ProcessFactory);
+    $vessel->registerInstance('config', new Repository($config));
+    $vessel->registerInstance(ProcessFactory::class, new ProcessFactory);
 
     Vessel::setInstance($vessel);
 
@@ -99,12 +94,6 @@ test('unknown drivers are rejected', function () {
 
     $manager->driver('swoole');
 })->throws(InvalidArgumentException::class, 'Instance driver [swoole] is not supported.');
-
-test('the fork driver may not be used outside the console', function () {
-    $manager = new ConcurrencyManager(concurrencyManagerApp(runningInConsole: false));
-
-    $manager->driver('fork');
-})->throws(RuntimeException::class, 'Due to PHP limitations, the fork driver may not be used within web requests.');
 
 test('the fork driver requires the spatie fork package', function () {
     $manager = new ConcurrencyManager(concurrencyManagerApp());

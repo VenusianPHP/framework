@@ -1,6 +1,6 @@
 <?php
 
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\Database\Connectors\ConnectionFactory;
 use Voyager\Database\DatabaseManager;
 use Voyager\Database\Instrument\Model as SqlInstrumentModel;
@@ -9,8 +9,8 @@ use Voyager\Graph\Database\Neo4jConnection;
 use Voyager\Graph\GraphServiceProvider;
 use Voyager\Graph\Instrument\Model as GraphModel;
 use Voyager\NutsAndBolts\ServiceProvider;
-use Voyager\System\Application;
-use Voyager\System\DefaultProviders;
+use Voyager\Core\RenderedInstance;
+use Voyager\Core\DefaultProviders;
 
 test('graph package exposes neo4j connector and graph instrument model', function () {
     expect(class_exists(Neo4jConnector::class))->toBeTrue()
@@ -28,11 +28,11 @@ test('graph service provider is optional and not a default provider', function (
 });
 
 test('graph service provider registers neo4j database extension', function () {
-    $app = new Application(sys_get_temp_dir());
+    $app = new RenderedInstance(sys_get_temp_dir());
 
-    $app->singleton('db.factory', fn (Vessel $app) => new ConnectionFactory($app));
-    $app->singleton('db', fn (Vessel $app) => new DatabaseManager($app, $app['db.factory']));
-    $app->instance('config', new class
+    $app->registerSingleton('db.factory', fn (TheServiceContainer $app) => new ConnectionFactory($app));
+    $app->registerSingleton('db', fn (TheServiceContainer $app) => new DatabaseManager($app, $app['db.factory']));
+    $app->registerInstance('config', new class
     {
         public function get(string $key, mixed $default = null): mixed
         {
@@ -68,7 +68,7 @@ test('graph service provider registers neo4j database extension', function () {
     $extensions->setAccessible(true);
 
     expect($extensions->getValue($db))->toHaveKey('neo4j')
-        ->and($app->bound('db.connector.neo4j'))->toBeTrue()
+        ->and($app->isBound('db.connector.neo4j'))->toBeTrue()
         ->and($app->make('db.connector.neo4j'))->toBeInstanceOf(Neo4jConnector::class);
 });
 

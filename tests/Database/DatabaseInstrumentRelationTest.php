@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Exception;
 use Voyager\Database\Instrument\Builder;
@@ -48,7 +48,7 @@ test('touch method updates related timestamps', function () {
 });
 
 test('can disable parent touching for all models', function () {
-    /** @var \Tests\Database\InstrumentNoTouchingModelStub $related */
+    /** @var \Venusian\Tests\Database\InstrumentNoTouchingModelStub $related */
     $related = m::mock(InstrumentNoTouchingModelStub::class)->makePartial();
     $related->shouldReceive('getUpdatedAtColumn')->never();
     $related->shouldReceive('freshTimestampString')->never();

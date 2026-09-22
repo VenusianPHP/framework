@@ -8,7 +8,7 @@ use Voyager\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorCon
 use Voyager\Contracts\NutsAndBolts\Arrayable;
 use Voyager\Contracts\NutsAndBolts\Jsonable;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use IteratorAggregate;
 use JsonSerializable;
 
@@ -92,9 +92,9 @@ class LengthAwarePaginator extends AbstractPaginator implements Arrayable, Array
      */
     protected static function translate($key, $fallback)
     {
-        $app = Vessel::getInstance();
+        $app = ControlPanel::getInstance();
 
-        if (! function_exists('__') || ! $app || ! $app->bound('translator')) {
+        if (! function_exists('__') || ! $app || ! $app->isBound('translator')) {
             return $fallback;
         }
 

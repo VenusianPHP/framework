@@ -4,7 +4,7 @@ namespace Voyager\Database\Console\Migrations;
 
 use Voyager\Console\ConfirmableTrait;
 use Voyager\Contracts\Console\Isolatable;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Events\SchemaLoaded;
 use Voyager\Database\Migrations\Migrator;
 use Voyager\Database\SQLiteDatabaseDoesNotExistException;
@@ -55,7 +55,7 @@ class MigrateCommand extends BaseCommand implements Isolatable
     /**
      * The event dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
     protected $dispatcher;
 
@@ -63,7 +63,7 @@ class MigrateCommand extends BaseCommand implements Isolatable
      * Create a new migration command instance.
      *
      * @param  \Voyager\Database\Migrations\Migrator  $migrator
-     * @param  \Voyager\Contracts\Events\Dispatcher  $dispatcher
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $dispatcher
      */
     public function __construct(Migrator $migrator, Dispatcher $dispatcher)
     {

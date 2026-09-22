@@ -2,6 +2,9 @@
 
 namespace Voyager\Contracts\Queue;
 
+use DateInterval;
+use DateTimeInterface;
+
 /**
  * @method int pendingSize(string|null $queue = null)
  * @method int delayedSize(string|null $queue = null)
@@ -13,92 +16,92 @@ interface Queue
     /**
      * Get the size of the queue.
      *
-     * @param  string|null  $queue
+     * @param string|null $queue
      * @return int
      */
-    public function size($queue = null);
+    public function size(?string $queue = null): int;
 
     /**
      * Push a new job onto the queue.
      *
-     * @param  string|object  $job
-     * @param  mixed  $data
-     * @param  string|null  $queue
+     * @param object|string $job
+     * @param mixed|string $data
+     * @param string|null $queue
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null);
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed;
 
     /**
      * Push a new job onto the queue.
      *
-     * @param  string  $queue
-     * @param  string|object  $job
-     * @param  mixed  $data
+     * @param string $queue
+     * @param object|string $job
+     * @param mixed|string $data
      * @return mixed
      */
-    public function pushOn($queue, $job, $data = '');
+    public function pushOn(string $queue, object|string $job, mixed $data = ''): mixed;
 
     /**
      * Push a raw payload onto the queue.
      *
-     * @param  string  $payload
-     * @param  string|null  $queue
+     * @param string $payload
+     * @param string|null $queue
      * @return mixed
      */
-    public function pushRaw($payload, $queue = null, array $options = []);
+    public function pushRaw(string $payload, ?string $queue = null, array $options = []): mixed;
 
     /**
      * Push a new job onto the queue after (n) seconds.
      *
-     * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  string|object  $job
-     * @param  mixed  $data
-     * @param  string|null  $queue
+     * @param \DateInterval|\DateTimeInterface|int $delay
+     * @param object|string $job
+     * @param mixed|string $data
+     * @param string|null $queue
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null);
+    public function later(DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = '', ?string $queue = null): mixed;
 
     /**
      * Push a new job onto a specific queue after (n) seconds.
      *
-     * @param  string  $queue
-     * @param  \DateTimeInterface|\DateInterval|int  $delay
-     * @param  string|object  $job
-     * @param  mixed  $data
+     * @param string $queue
+     * @param \DateInterval|\DateTimeInterface|int $delay
+     * @param object|string $job
+     * @param mixed|string $data
      * @return mixed
      */
-    public function laterOn($queue, $delay, $job, $data = '');
+    public function laterOn(string $queue, DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = ''): mixed;
 
     /**
      * Push an array of jobs onto the queue.
      *
-     * @param  array  $jobs
-     * @param  mixed  $data
-     * @param  string|null  $queue
+     * @param array $jobs
+     * @param mixed|string $data
+     * @param string|null $queue
      * @return mixed
      */
-    public function bulk($jobs, $data = '', $queue = null);
+    public function bulk(array $jobs, mixed $data = '', ?string $queue = null): mixed;
 
     /**
      * Pop the next job off of the queue.
      *
-     * @param  string|null  $queue
+     * @param string|null $queue
      * @return \Voyager\Contracts\Queue\Job|null
      */
-    public function pop($queue = null);
+    public function pop(?string $queue = null): ?Job;
 
     /**
      * Get the connection name for the queue.
      *
      * @return string
      */
-    public function getConnectionName();
+    public function getConnectionName(): string;
 
     /**
      * Set the connection name for the queue.
      *
-     * @param  string  $name
+     * @param string $name
      * @return $this
      */
-    public function setConnectionName($name);
+    public function setConnectionName(string $name): static;
 }

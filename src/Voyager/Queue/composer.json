@@ -16,16 +16,16 @@
         "laravel/serializable-closure": "^2.0",
         "ramsey/uuid": "^4.7",
         "symfony/process": "^7.2",
-        "venusian-voyager/collections": "^0.8.0",
-        "venusian-voyager/console": "^0.8.0",
-        "venusian-voyager/contracts": "^0.8.0",
-        "venusian-voyager/filesystem": "^0.8.0",
-        "venusian-voyager/nuts-and-bolts": "^0.8.0",
-        "venusian-voyager/pipeline": "^0.8.0",
-        "venusian-voyager/vessel": "^0.8.0"
+        "venusian-voyager/collections": "^0.9.0",
+        "venusian-voyager/console": "^0.9.0",
+        "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/filesystem": "^0.9.0",
+        "venusian-voyager/nuts-and-bolts": "^0.9.0",
+        "venusian-voyager/pipeline": "^0.9.0",
+        "venusian-voyager/vessel": "^0.9.0"
     },
     "suggest": {
-        "venusian-voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.8.0)."
+        "venusian-voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.9.0)."
     },
     "autoload": {
         "psr-4": {
@@ -34,13 +34,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.8.x-dev"
-        },
-        "venusian": {
-            "upstream": "laravel/framework",
-            "upstream-ref": "v12.67.0",
-            "upstream-path": "src/Illuminate/Queue",
-            "ported-at": "2026-08-20"
+            "dev-main": "0.9.x-dev"
         }
     },
     "config": {

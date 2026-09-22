@@ -5,7 +5,7 @@ namespace Voyager\Queue\Console;
 use DateTimeInterface;
 use Voyager\Console\Command;
 use Voyager\Contracts\Encryption\Encrypter;
-use Voyager\Queue\Events\JobRetryRequested;
+use Voyager\Queue\Signals\JobRetryRequested;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use RuntimeException;
@@ -50,7 +50,7 @@ class RetryCommand extends Command
             if (is_null($job)) {
                 $this->components->error("Unable to find failed job with ID [{$id}].");
             } else {
-                $this->venusian['events']->dispatch(new JobRetryRequested($job));
+                $this->venusian['signals']->dispatch(new JobRetryRequested($job));
 
                 $this->components->task($id, fn () => $this->retryJob($job));
 
@@ -233,7 +233,7 @@ class RetryCommand extends Command
             return unserialize($payload['data']['command']);
         }
 
-        if ($this->venusian->bound(Encrypter::class)) {
+        if ($this->venusian->isBound(Encrypter::class)) {
             return unserialize($this->venusian->make(Encrypter::class)->decrypt($payload['data']['command']));
         }
 

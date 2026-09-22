@@ -7,11 +7,11 @@ use Voyager\Cache\RedisStore;
 use Voyager\Cache\Repository;
 use Voyager\Cache\TaggableStore;
 use Voyager\Cache\TaggedCache;
-use Voyager\Vessel\Vessel as Container;
+use Voyager\Vessel\ControlPanel as Container;
 use Voyager\Contracts\Cache\LockProvider;
 use Voyager\Contracts\Cache\LockTimeoutException;
 use Voyager\Contracts\Cache\Store;
-use Voyager\Events\Dispatcher;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Filesystem\Filesystem;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use BadMethodCallException;
 use Exception;
@@ -69,7 +69,7 @@ function dbSoftDeletesCreateSchema()
 /**
  * Helpers...
  *
- * @return \Tests\Database\SoftDeletesTestUser[]
+ * @return \Venusian\Tests\Database\SoftDeletesTestUser[]
  */
 function dbSoftDeletesCreateUsers()
 {
@@ -399,7 +399,7 @@ test('update model after soft deleting', function () {
     Carbon::setTestNow($now = Carbon::now());
     dbSoftDeletesCreateUsers();
 
-    /** @var \Tests\Database\SoftDeletesTestUser $userModel */
+    /** @var \Venusian\Tests\Database\SoftDeletesTestUser $userModel */
     $userModel = SoftDeletesTestUser::find(2);
     $userModel->delete();
     expect($userModel->getOriginal('deleted_at'))->toEqual($now->toDateTimeString())
@@ -413,7 +413,7 @@ test('update model after soft deleting', function () {
 test('restore after soft delete', function () {
     dbSoftDeletesCreateUsers();
 
-    /** @var \Tests\Database\SoftDeletesTestUser $userModel */
+    /** @var \Venusian\Tests\Database\SoftDeletesTestUser $userModel */
     $userModel = SoftDeletesTestUser::find(2);
     $userModel->delete();
     $userModel->restore();
@@ -427,7 +427,7 @@ test('restore after soft delete', function () {
 test('soft delete after restoring', function () {
     dbSoftDeletesCreateUsers();
 
-    /** @var \Tests\Database\SoftDeletesTestUser $userModel */
+    /** @var \Venusian\Tests\Database\SoftDeletesTestUser $userModel */
     $userModel = SoftDeletesTestUser::withTrashed()->find(1);
     $userModel->restore();
     expect(SoftDeletesTestUser::find(1)->deleted_at)->toEqual($userModel->deleted_at)
@@ -441,7 +441,7 @@ test('soft delete after restoring', function () {
 test('modifying before soft deleting and restoring', function () {
     dbSoftDeletesCreateUsers();
 
-    /** @var \Tests\Database\SoftDeletesTestUser $userModel */
+    /** @var \Venusian\Tests\Database\SoftDeletesTestUser $userModel */
     $userModel = SoftDeletesTestUser::find(2);
     $userModel->email = 'foo@bar.com';
     $userModel->delete();

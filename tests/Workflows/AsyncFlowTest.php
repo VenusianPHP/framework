@@ -1,10 +1,12 @@
 <?php
 
 use Voyager\Contracts\Workflows\WorkflowRuntimeException;
+use Voyager\IOPools\EventLoop;
 use Voyager\Workflows\AsyncFlow;
 use Voyager\Workflows\AsyncNode;
 use Voyager\Workflows\Flow;
 use Voyager\Workflows\Node;
+use Voyager\Workflows\Runtimes\LoopRuntime;
 use Voyager\Workflows\SharedBag;
 
 /**
@@ -15,7 +17,7 @@ function asyncTrail(SharedBag $shared): array
     return $shared->trail ?? [];
 }
 
-test('an async flow walks async and sync nodes in one graph', function (string $runtime) {
+test('an async flow walks async and sync nodes in one graph', function (LoopRuntime $runtime) {
     $first = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -39,13 +41,13 @@ test('an async flow walks async and sync nodes in one graph', function (string $
     $first->next($second, 'onwards');
 
     $shared = new SharedBag;
-    $flow = new AsyncFlow($first, new $runtime);
+    $flow = new AsyncFlow($first, $runtime);
 
     expect($flow->runAsync($shared))->toBe('finished')
         ->and(asyncTrail($shared))->toBe(['async', 'sync']);
 })->with('async runtimes');
 
-test('an async flow runs its own prep and post around orchestration', function (string $runtime) {
+test('an async flow runs its own prep and post around orchestration', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -75,7 +77,7 @@ test('an async flow runs its own prep and post around orchestration', function (
 
     $shared = new SharedBag;
 
-    expect($flow->usesRuntime(new $runtime)->runAsync($shared))->toBe('outer')
+    expect($flow->usesRuntime($runtime)->runAsync($shared))->toBe('outer')
         ->and(asyncTrail($shared))->toBe(['flow prep', 'node', 'flow post:prepared']);
 })->with('async runtimes');
 
@@ -90,7 +92,7 @@ test('a flow hands its runtime to every async member it orchestrates', function 
         }
     };
 
-    $runtime = new \Voyager\Workflows\Runtimes\FiberRuntime;
+    $runtime = new LoopRuntime(new EventLoop);
     $shared = new SharedBag;
 
     (new AsyncFlow($node, $runtime))->runAsync($shared);
@@ -98,7 +100,7 @@ test('a flow hands its runtime to every async member it orchestrates', function 
     expect($shared->seen)->toBe($runtime);
 });
 
-test('a nested async flow runs its full lifecycle', function (string $runtime) {
+test('a nested async flow runs its full lifecycle', function (LoopRuntime $runtime) {
     $inner = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -133,11 +135,11 @@ test('a nested async flow runs its full lifecycle', function (string $runtime) {
 
     $shared = new SharedBag;
 
-    expect((new AsyncFlow($innerFlow, new $runtime))->runAsync($shared))->toBe('done')
+    expect((new AsyncFlow($innerFlow, $runtime))->runAsync($shared))->toBe('done')
         ->and(asyncTrail($shared))->toBe(['inner node', 'inner flow post', 'last']);
 })->with('async runtimes');
 
-test('the walk stops when no successor matches the action', function (string $runtime) {
+test('the walk stops when no successor matches the action', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -148,10 +150,10 @@ test('the walk stops when no successor matches the action', function (string $ru
 
     $node->next(new AsyncNode, 'somewhere');
 
-    expect((new AsyncFlow($node, new $runtime))->runAsync(new SharedBag))->toBe('nowhere');
+    expect((new AsyncFlow($node, $runtime))->runAsync(new SharedBag))->toBe('nowhere');
 })->with('async runtimes');
 
-test('params reach every node in the walk', function (string $runtime) {
+test('params reach every node in the walk', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -162,7 +164,7 @@ test('params reach every node in the walk', function (string $runtime) {
         }
     };
 
-    $flow = new AsyncFlow($node, new $runtime);
+    $flow = new AsyncFlow($node, $runtime);
     $flow->setParams(['tenant' => 'acme']);
 
     $shared = new SharedBag;

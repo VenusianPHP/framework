@@ -2,7 +2,7 @@
 
 namespace Voyager\Database\Instrument;
 
-use Voyager\Contracts\System\Application;
+use Voyager\Contracts\Core\FrameworkCore;
 use Voyager\Database\Instrument\Relations\Relation;
 use Voyager\NutsAndBolts\Collection as BaseCollection;
 use Voyager\NutsAndBolts\DataObjects\Str;
@@ -37,9 +37,9 @@ class ModelInspector
     /**
      * Create a new model inspector instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app  The Laravel application instance.
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app  The Laravel application instance.
      */
-    public function __construct(protected Application $app)
+    public function __construct(protected FrameworkCore $app)
     {
     }
 
@@ -240,7 +240,7 @@ class ModelInspector
      */
     protected function getObservers($model)
     {
-        $listeners = $this->app->make('events')->getRawListeners();
+        $listeners = $this->app->make('signals')->getRawListeners();
 
         // Get the Instrument observers for this model...
         $listeners = array_filter($listeners, function ($v, $key) use ($model) {

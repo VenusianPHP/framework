@@ -11,7 +11,6 @@ use Voyager\NutsAndBolts\DataObjects\Arr;
 use Predis\Connection\Cluster\RedisCluster;
 use Predis\Connection\ConnectionException;
 use RedisException;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class RedisBroadcaster extends Broadcaster
 {
@@ -52,10 +51,6 @@ class RedisBroadcaster extends Broadcaster
         $this->connection = $connection;
     }
 
-    // Laravel authenticates an incoming request for a channel here.
-    // Receiving requests is out of scope for this port, so the auth surface
-    // is cut and only the broadcast path remains.
-
     /**
      * Broadcast the given event.
      *
@@ -66,7 +61,7 @@ class RedisBroadcaster extends Broadcaster
      *
      * @throws \Voyager\Broadcasting\BroadcastException
      */
-    public function broadcast(array $channels, $event, array $payload = [])
+    public function broadcast(array $channels, string $event, array $payload = []): void
     {
         if (empty($channels)) {
             return;

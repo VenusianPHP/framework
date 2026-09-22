@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Pagination\Fixtures;
+namespace Venusian\Tests\Pagination\Fixtures;
 
 use Voyager\Pagination\AbstractPaginator;
 

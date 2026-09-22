@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Closure;
 use Voyager\Database\Connection;
@@ -102,5 +102,30 @@ test('create repository creates proper database table', function () {
     $schema->shouldReceive('create')->once()->with('migrations', m::type(Closure::class));
 
     $repo->createRepository();
+});
+
+test('migrator runs without a dispatcher', function () {
+    $db = new \Voyager\Database\Capsule\Manager;
+    $db->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
+    $db->setAsGlobal();
+    $repository = new \Voyager\Database\Migrations\DatabaseMigrationRepository($db->getDatabaseManager(), 'migrations');
+    $repository->createRepository();
+
+    $migrator = new \Voyager\Database\Migrations\Migrator($repository, $db->getDatabaseManager(), new \Voyager\Filesystem\Filesystem);
+    $dir = sys_get_temp_dir().'/vf-migrations-'.uniqid();
+    mkdir($dir);
+    file_put_contents($dir.'/2026_01_01_000000_create_things.php', <<<'PHP'
+    <?php
+    use Voyager\Database\Migrations\Migration;
+    use Voyager\Database\Schema\Blueprint;
+    return new class extends Migration {
+        public function up(): void { \Voyager\Database\Capsule\Manager::schema()->create('things', fn (Blueprint $t) => $t->id()); }
+        public function down(): void {}
+    };
+    PHP);
+
+    expect(fn () => $migrator->run([$dir]))->not->toThrow(\Throwable::class);
+    expect($repository->getRan())->toBe(['2026_01_01_000000_create_things']);
+    @unlink($dir.'/2026_01_01_000000_create_things.php'); @rmdir($dir);
 });
 

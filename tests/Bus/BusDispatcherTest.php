@@ -1,16 +1,16 @@
 <?php
 
-use Tests\Bus\Fixtures\BusDispatcherBasicCommand;
-use Tests\Bus\Fixtures\BusDispatcherTestCustomQueueCommand;
-use Tests\Bus\Fixtures\BusDispatcherTestSpecificQueueAndDelayCommand;
-use Tests\Bus\Fixtures\ShouldNotBeDispatched;
-use Tests\Bus\Fixtures\StandAloneCommand;
-use Tests\Bus\Fixtures\StandAloneHandler;
+use Venusian\Tests\Bus\Fixtures\BusDispatcherBasicCommand;
+use Venusian\Tests\Bus\Fixtures\BusDispatcherTestCustomQueueCommand;
+use Venusian\Tests\Bus\Fixtures\BusDispatcherTestSpecificQueueAndDelayCommand;
+use Venusian\Tests\Bus\Fixtures\ShouldNotBeDispatched;
+use Venusian\Tests\Bus\Fixtures\StandAloneCommand;
+use Venusian\Tests\Bus\Fixtures\StandAloneHandler;
 use Voyager\Bus\Dispatcher;
 use Voyager\Config\Repository as Config;
 use Voyager\Contracts\Queue\Queue;
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel as Vessel;
 
 test('commands that should queue is queued', function () {
     $vessel = new Vessel;
@@ -75,7 +75,7 @@ test('dispatcher can dispatch stand alone handler', function () {
 
 test('on connection on job when dispatching', function () {
     $vessel = new Vessel;
-    $vessel->singleton('config', function () {
+    $vessel->registerSingleton('config', function () {
         return new Config([
             'queue' => [
                 'default' => 'null',

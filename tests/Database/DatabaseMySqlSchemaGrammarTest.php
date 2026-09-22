@@ -7,7 +7,7 @@ use Voyager\Database\Schema\Blueprint;
 use Voyager\Database\Schema\ForeignIdColumnDefinition;
 use Voyager\Database\Schema\Grammars\MySqlGrammar;
 use Voyager\Database\Schema\MySqlBuilder;
-use Tests\Database\Fixtures\Enums\Foo;
+use Venusian\Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 
 function mySqlSchemaGrammarConnection(

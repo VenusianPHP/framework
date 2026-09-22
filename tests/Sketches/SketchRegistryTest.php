@@ -1,44 +1,38 @@
 <?php
+declare(strict_types=1);
 
-use Voyager\Contracts\Sketches\SketchException;
+use Venusian\Tests\Sketches\Fixtures\Sketches\NamedSketch;
+use Venusian\Tests\Sketches\Fixtures\Sketches\PingSketch;
 use Voyager\Sketches\SketchRegistry;
-use Voyager\Vessel\Vessel;
-use Tests\Sketches\Fixtures\AttributedFixtureSketch;
-use Tests\Sketches\Fixtures\ReplaceFixtureSketch;
+use Voyager\Vessel\ControlPanel;
 
-test('registry registers attributed sketches and resolves them', function () {
-    $registry = new SketchRegistry(new Vessel);
-
-    $registry->register(AttributedFixtureSketch::class);
-
-    expect($registry->has('attributed-fixture'))->toBeTrue()
-        ->and($registry->resolve('attributed-fixture'))->toBeInstanceOf(AttributedFixtureSketch::class);
+test('kebab name from class basename', function () {
+    $r = new SketchRegistry(new ControlPanel);
+    $r->register(PingSketch::class);
+    expect($r->all())->toBe(['ping-sketch' => PingSketch::class])
+        ->and($r->has('ping-sketch'))->toBeTrue();
 });
 
-test('registry rejects duplicate names', function () {
-    $registry = new SketchRegistry(new Vessel);
-
-    $registry->registerConvention('hello', AttributedFixtureSketch::class);
-
-    expect(fn () => $registry->registerConvention('hello', AttributedFixtureSketch::class))
-        ->toThrow(SketchException::class);
+test('attribute name wins', function () {
+    $r = new SketchRegistry(new ControlPanel);
+    $r->register(NamedSketch::class);
+    expect($r->all())->toHaveKey('custom-name');
 });
 
-test('registry replace overwrites an existing sketch name', function () {
-    $registry = new SketchRegistry(new Vessel);
-
-    $registry->registerConvention('replace-fixture', AttributedFixtureSketch::class);
-    $registry->replace(ReplaceFixtureSketch::class);
-
-    expect($registry->all()['replace-fixture'])->toBe(ReplaceFixtureSketch::class)
-        ->and($registry->resolve('replace-fixture'))->toBeInstanceOf(ReplaceFixtureSketch::class);
+test('duplicate name throws', function () {
+    $r = new SketchRegistry(new ControlPanel);
+    $r->register(PingSketch::class);
+    expect(fn () => $r->register(PingSketch::class))->toThrow(InvalidArgumentException::class);
 });
 
-test('registry replaceAs binds under an explicit name', function () {
-    $registry = new SketchRegistry(new Vessel);
+test('non-sketch class throws', function () {
+    expect(fn () => (new SketchRegistry(new ControlPanel))->register(\Venusian\Tests\Sketches\Fixtures\Sketches\NotASketch::class))
+        ->toThrow(InvalidArgumentException::class);
+});
 
-    $registry->registerConvention('canvas-window-demo', AttributedFixtureSketch::class);
-    $registry->replaceAs('canvas-window-demo', ReplaceFixtureSketch::class);
-
-    expect($registry->all()['canvas-window-demo'])->toBe(ReplaceFixtureSketch::class);
+test('resolve builds through the container', function () {
+    $r = new SketchRegistry(new ControlPanel);
+    $r->register(PingSketch::class);
+    expect($r->resolve('ping-sketch'))->toBeInstanceOf(PingSketch::class);
+    expect(fn () => $r->resolve('nope'))->toThrow(InvalidArgumentException::class);
 });

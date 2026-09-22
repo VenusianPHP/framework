@@ -3,9 +3,9 @@
 namespace Voyager\Queue\Console;
 
 use Voyager\Console\Command;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Contracts\Queue\Factory;
-use Voyager\Queue\Events\QueueBusy;
+use Voyager\Queue\Signals\QueueBusy;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Voyager\NutsAndBolts\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -40,7 +40,7 @@ class MonitorCommand extends Command
     /**
      * The events dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
     protected $events;
 
@@ -48,7 +48,7 @@ class MonitorCommand extends Command
      * Create a new queue monitor command.
      *
      * @param  \Voyager\Contracts\Queue\Factory  $manager
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $events
      */
     public function __construct(Factory $manager, Dispatcher $events)
     {

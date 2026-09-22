@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Queue\Fixtures;
+namespace Venusian\Tests\Queue\Fixtures;
 
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\System\Queue\Queueable;
+use Voyager\Core\Queue\Queueable;
 
 class FakeSqsJobWithMessageGroup implements ShouldQueue
 {

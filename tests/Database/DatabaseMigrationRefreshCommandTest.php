@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Console\Migrations\MigrateCommand;
 use Voyager\Database\Console\Migrations\RefreshCommand;
 use Voyager\Database\Console\Migrations\ResetCommand;
 use Voyager\Database\Console\Migrations\RollbackCommand;
 use Voyager\Database\Events\DatabaseRefreshed;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -29,7 +29,7 @@ test('refresh command calls commands with proper arguments', function () {
     $command = new RefreshCommand;
 
     $app = new ApplicationDatabaseRefreshStub(['path.database' => __DIR__]);
-    $dispatcher = $app->instance(Dispatcher::class, $events = m::mock());
+    $app->registerInstance(Dispatcher::class, $dispatcher = $events = m::mock());
     $console = m::mock(ConsoleApplication::class)->makePartial();
     $console->__construct();
     $command->setVenusian($app);
@@ -53,7 +53,7 @@ test('refresh command calls commands with step', function () {
     $command = new RefreshCommand;
 
     $app = new ApplicationDatabaseRefreshStub(['path.database' => __DIR__]);
-    $dispatcher = $app->instance(Dispatcher::class, $events = m::mock());
+    $app->registerInstance(Dispatcher::class, $dispatcher = $events = m::mock());
     $console = m::mock(ConsoleApplication::class)->makePartial();
     $console->__construct();
     $command->setVenusian($app);
@@ -77,7 +77,7 @@ test('refresh command exits when prohibited', function () {
     $command = new RefreshCommand;
 
     $app = new ApplicationDatabaseRefreshStub(['path.database' => __DIR__]);
-    $dispatcher = $app->instance(Dispatcher::class, $events = m::mock());
+    $app->registerInstance(Dispatcher::class, $dispatcher = $events = m::mock());
     $console = m::mock(ConsoleApplication::class)->makePartial();
     $console->__construct();
     $command->setVenusian($app);
@@ -110,12 +110,12 @@ class InputMatcher extends m\Matcher\MatcherAbstract
     }
 }
 
-class ApplicationDatabaseRefreshStub extends Application
+class ApplicationDatabaseRefreshStub extends RenderedInstance
 {
     public function __construct(array $data = [])
     {
         foreach ($data as $abstract => $instance) {
-            $this->instance($abstract, $instance);
+            $this->registerInstance($abstract, $instance);
         }
     }
 

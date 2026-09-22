@@ -31,7 +31,7 @@ trait MassPrunable
                 : $query->delete();
 
             if ($count > 0) {
-                event(new ModelsPruned(static::class, $total));
+                signal(new ModelsPruned(static::class, $total));
             }
         } while ($count > 0);
 

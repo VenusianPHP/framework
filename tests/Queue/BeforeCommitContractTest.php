@@ -2,7 +2,7 @@
 
 use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueueAfterCommit;
-use Voyager\System\Bus\Dispatchable;
+use Voyager\Core\Bus\Dispatchable;
 use Voyager\Queue\InteractsWithQueue;
 
 function shouldDispatchAfterCommit($job)
@@ -51,6 +51,8 @@ test('job without contract respects after commit', function () {
 test('job with contract defaults to after commit', function () {
     $job = new class implements ShouldQueueAfterCommit
     {
+        public function handle(): mixed { return null; }
+
         use Dispatchable, InteractsWithQueue, Queueable;
     };
 
@@ -60,6 +62,8 @@ test('job with contract defaults to after commit', function () {
 test('job with contract and after commit false respects before commit', function () {
     $job = new class implements ShouldQueueAfterCommit
     {
+        public function handle(): mixed { return null; }
+
         use Dispatchable, InteractsWithQueue, Queueable;
 
         public function beforeCommit()
@@ -78,6 +82,8 @@ test('job with contract and after commit false respects before commit', function
 test('job with contract and explicit after commit true still schedules after commit', function () {
     $job = new class implements ShouldQueueAfterCommit
     {
+        public function handle(): mixed { return null; }
+
         use Dispatchable, InteractsWithQueue, Queueable;
 
         public function afterCommit()

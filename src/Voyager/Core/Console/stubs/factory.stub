@@ -1,0 +1,23 @@
+<?php
+
+namespace {{ factoryNamespace }};
+
+use Voyager\Database\Instrument\Factories\Factory;
+
+/**
+ * @extends \Voyager\Database\Instrument\Factories\Factory<\{{ namespacedModel }}>
+ */
+class {{ factory }}Factory extends Factory
+{
+    /**
+     * The model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            //
+        ];
+    }
+}

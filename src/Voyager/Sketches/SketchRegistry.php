@@ -1,206 +1,57 @@
 <?php
-
+declare(strict_types=1);
 namespace Voyager\Sketches;
 
-use Voyager\Contracts\Sketches\Attributes\Sketch as SketchAttribute;
-use Voyager\Contracts\Sketches\Sketch as SketchContract;
-use Voyager\Contracts\Sketches\SketchException;
-use Voyager\Contracts\Sketches\SketchRegistry as SketchRegistryContract;
-use Voyager\Contracts\Vessel\Vessel;
-use Voyager\NutsAndBolts\DataObjects\Str;
-use ReflectionAttribute;
+use InvalidArgumentException;
 use ReflectionClass;
-use ReflectionException;
+use Voyager\Contracts\Sketches\Attributes\Sketch as SketchAttribute;
+use Voyager\Contracts\Sketches\Sketch;
+use Voyager\Contracts\Sketches\SketchRegistry as RegistryContract;
+use Voyager\Contracts\Vessel\TheServiceContainer;
+use Voyager\NutsAndBolts\DataObjects\Str;
 
-class SketchRegistry implements SketchRegistryContract
+class SketchRegistry implements RegistryContract
 {
-    /**
-     * @var array<string, class-string>
-     */
+    /** @var array<string, class-string<Sketch>> */
     protected array $sketches = [];
 
-    public function __construct(
-        protected Vessel $container,
-    ) {}
+    public function __construct(protected TheServiceContainer $container) {}
 
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
     public function register(string $class): void
     {
-        $reflection = $this->reflectSketchClass($class);
-        $attribute = $this->requireSketchAttribute($reflection);
-        $name = trim($attribute->name);
-
-        if ($name === '') {
-            throw new SketchException("Sketch [{$class}] attribute name must not be empty.");
+        if (! is_subclass_of($class, Sketch::class)) {
+            throw new InvalidArgumentException("[{$class}] is not a sketch.");
         }
 
-        $this->bind($name, $class);
-    }
+        $name = static::nameFor($class);
 
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
-    public function registerConvention(string $name, string $class): void
-    {
-        $this->reflectSketchClass($class);
-        $this->bind($name, $class);
-    }
-
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
-    public function replace(string $class): void
-    {
-        $reflection = $this->reflectSketchClass($class);
-        $attribute = $this->requireSketchAttribute($reflection);
-        $name = trim($attribute->name);
-
-        if ($name === '') {
-            throw new SketchException("Sketch [{$class}] attribute name must not be empty.");
+        if (isset($this->sketches[$name])) {
+            throw new InvalidArgumentException("Sketch name [{$name}] is already registered to [{$this->sketches[$name]}].");
         }
 
-        $this->rebind($name, $class);
+        $this->sketches[$name] = $class;
     }
 
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
-    public function replaceAs(string $name, string $class): void
+    public function has(string $name): bool { return isset($this->sketches[$name]); }
+
+    public function all(): array { return $this->sketches; }
+
+    public function resolve(string $name): Sketch
     {
-        $this->reflectSketchClass($class);
-        $this->rebind($name, $class);
+        if (! $this->has($name)) {
+            throw new InvalidArgumentException("Unknown sketch [{$name}].");
+        }
+
+        return $this->container->make($this->sketches[$name]);
     }
 
-    /**
-     * @throws SketchException
-     */
-    public function resolve(string $name): SketchContract
+    /** @param class-string<Sketch> $class */
+    public static function nameFor(string $class): string
     {
-        $normalized = $this->normalize($name);
+        $attributes = (new ReflectionClass($class))->getAttributes(SketchAttribute::class);
 
-        if (! isset($this->sketches[$normalized])) {
-            throw new SketchException("Sketch [{$normalized}] is not registered.");
-        }
-
-        $sketch = $this->container->make($this->sketches[$normalized]);
-
-        if (! $sketch instanceof SketchContract) {
-            throw new SketchException(
-                'Resolved class ['.$this->sketches[$normalized].'] must implement '.SketchContract::class.'.'
-            );
-        }
-
-        return $sketch;
-    }
-
-    public function has(string $name): bool
-    {
-        return isset($this->sketches[$this->normalize($name)]);
-    }
-
-    /**
-     * @return array<string, class-string>
-     */
-    public function all(): array
-    {
-        return $this->sketches;
-    }
-
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
-    protected function bind(string $name, string $class): void
-    {
-        $normalized = $this->normalize($name);
-
-        if ($normalized === '') {
-            throw new SketchException("Sketch name for [{$class}] must not be empty.");
-        }
-
-        if (isset($this->sketches[$normalized])) {
-            throw new SketchException(
-                "Sketch [{$normalized}] is already registered as [{$this->sketches[$normalized]}]."
-            );
-        }
-
-        $this->sketches[$normalized] = $class;
-    }
-
-    /**
-     * @param  class-string  $class
-     *
-     * @throws SketchException
-     */
-    protected function rebind(string $name, string $class): void
-    {
-        $normalized = $this->normalize($name);
-
-        if ($normalized === '') {
-            throw new SketchException("Sketch name for [{$class}] must not be empty.");
-        }
-
-        $this->sketches[$normalized] = $class;
-    }
-
-    /**
-     * @param  class-string  $class
-     * @return ReflectionClass<object>
-     *
-     * @throws SketchException
-     */
-    protected function reflectSketchClass(string $class): ReflectionClass
-    {
-        try {
-            $reflection = new ReflectionClass($class);
-        } catch (ReflectionException $e) {
-            throw new SketchException("Sketch class [{$class}] does not exist.", previous: $e);
-        }
-
-        if (! $reflection->implementsInterface(SketchContract::class)) {
-            throw new SketchException(
-                "Class [{$class}] must implement ".SketchContract::class.'.'
-            );
-        }
-
-        if (! $reflection->isInstantiable()) {
-            throw new SketchException("Sketch class [{$class}] must be instantiable.");
-        }
-
-        return $reflection;
-    }
-
-    /**
-     * @param  ReflectionClass<object>  $reflection
-     *
-     * @throws SketchException
-     */
-    protected function requireSketchAttribute(ReflectionClass $reflection): SketchAttribute
-    {
-        $attributes = $reflection->getAttributes(SketchAttribute::class, ReflectionAttribute::IS_INSTANCEOF);
-
-        if ($attributes === []) {
-            throw new SketchException(
-                'Sketch ['.$reflection->getName().'] must declare the #['.class_basename(SketchAttribute::class).'] attribute.'
-            );
-        }
-
-        return $attributes[0]->newInstance();
-    }
-
-    protected function normalize(string $name): string
-    {
-        return Str::lower(trim($name));
+        return $attributes === []
+            ? Str::kebab(class_basename($class))
+            : $attributes[0]->newInstance()->name;
     }
 }

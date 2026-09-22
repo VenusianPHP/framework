@@ -1,81 +1,35 @@
 <?php
-
+declare(strict_types=1);
 namespace Voyager\Sketches;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Voyager\Console\Concerns\InteractsWithIO;
 use Voyager\Console\OutputStyle;
 use Voyager\Contracts\Sketches\Sketch as SketchContract;
 use Voyager\Contracts\Sketches\SketchLoopResult;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
 
 abstract class Sketch implements SketchContract
 {
     use InteractsWithIO;
 
-    /**
-     * The sketch description.
-     *
-     * @var string
-     */
     protected string $description = '';
 
-    /**
-     * Middleware for this sketch (class-strings / callables), merged after global stack.
-     *
-     * @var array<int, class-string|callable|object>
-     */
-    protected array $middleware = [];
+    // Hz. Null defers to config('sketches.refresh_rate').
+    protected ?float $refresh_rate = null;
 
-    /**
-     * Bind console input/output for use during the sketch lifecycle.
-     */
     public function configureIO(InputInterface $input, OutputStyle $output): void
     {
         $this->input = $input;
         $this->output = $output;
     }
 
-    /**
-     * Register sketch-specific CLI arguments / options on the runner command.
-     */
-    public function configureCommand(Command $command): void
-    {
-        //
-    }
+    public function getDescription(): string { return $this->description; }
 
-    /**
-     * Get the sketch description.
-     */
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
+    public function refreshRate(): ?float { return $this->refresh_rate; }
 
-    /**
-     * @return array<int, class-string|callable|object>
-     */
-    public function middleware(): array
-    {
-        return $this->middleware;
-    }
+    public function boot(): void {}
 
-    /**
-     * Prepare the sketch before the first loop tick.
-     */
-    public function boot(): void
-    {
-    }
-
-    /**
-     * Execute one cooperative tick of the sketch.
-     */
     abstract public function loop(): SketchLoopResult;
 
-    /**
-     * Release resources after the loop ends or fails.
-     */
-    public function shutdown(): void
-    {
-    }
+    public function shutdown(): void {}
 }

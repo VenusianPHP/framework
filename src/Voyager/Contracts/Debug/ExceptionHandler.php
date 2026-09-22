@@ -21,7 +21,7 @@ interface ExceptionHandler
      *
      * @throws Throwable
      */
-    public function report(Throwable $e);
+    public function report(Throwable $e): void;
 
     /**
      * Determine if the exception should be reported.

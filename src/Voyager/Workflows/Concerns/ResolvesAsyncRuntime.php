@@ -3,7 +3,7 @@
 namespace Voyager\Workflows\Concerns;
 
 use Voyager\Contracts\Workflows\AsyncRuntime;
-use Voyager\Workflows\Runtimes\SyncRuntime;
+use Voyager\Workflows\Runtimes\LoopRuntime;
 
 trait ResolvesAsyncRuntime
 {
@@ -17,11 +17,10 @@ trait ResolvesAsyncRuntime
     }
 
     /**
-     * Falling back to the sync runtime keeps a node usable with no container
-     * and no extra packages present.
+     * A bare node gets a private loop, so a unit test needs no container.
      */
     public function runtime(): AsyncRuntime
     {
-        return $this->runtime ??= new SyncRuntime;
+        return $this->runtime ??= LoopRuntime::isolated();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Connectors\Connector;
 use Voyager\Database\Connectors\MySqlConnector;

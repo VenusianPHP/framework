@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Instrument\Casts\AsBinary;
 use Voyager\Database\Instrument\Model;

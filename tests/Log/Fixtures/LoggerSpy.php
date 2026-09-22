@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Log\Fixtures;
+namespace Venusian\Tests\Log\Fixtures;
 
 use Psr\Log\LoggerInterface;
 use Psr\Log\LoggerTrait;

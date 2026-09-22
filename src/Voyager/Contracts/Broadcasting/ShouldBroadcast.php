@@ -2,12 +2,14 @@
 
 namespace Voyager\Contracts\Broadcasting;
 
+use Voyager\Broadcasting\Channel;
+
 interface ShouldBroadcast
 {
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return \Voyager\Broadcasting\Channel|\Voyager\Broadcasting\Channel[]|string[]|string
+     * @return Channel|Channel[]|string[]|string
      */
-    public function broadcastOn();
+    public function broadcastOn(): array|Channel|string;
 }

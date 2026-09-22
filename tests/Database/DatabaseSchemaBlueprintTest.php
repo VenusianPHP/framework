@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Closure;
 use Voyager\Database\Connection;
 use Voyager\Database\Schema\Blueprint;
 use Voyager\Database\Schema\Builder;
 use Voyager\Database\Schema\Grammars\MySqlGrammar;
-use Tests\Database\Fixtures\Models\User;
+use Venusian\Tests\Database\Fixtures\Models\User;
 use Mockery as m;
 
 function schemaBlueprintConnection(?string $grammar = null, string $prefix = '')
@@ -425,7 +425,7 @@ test('default using nullable ulid morph', function () {
 test('generate relationship column with incremental model', function () {
     $getSql = function ($grammar) {
         return schemaBlueprintBlueprint($grammar, 'posts', function ($table) {
-            $table->foreignIdFor(\Tests\Database\Fixtures\Auth\User::class);
+            $table->foreignIdFor(\Venusian\Tests\Database\Fixtures\Auth\User::class);
         })->toSql();
     };
 
@@ -477,7 +477,7 @@ test('generate relationship column with ulid model', function () {
 test('generate relationship constrained column', function () {
     $getSql = function ($grammar) {
         return schemaBlueprintBlueprint($grammar, 'posts', function ($table) {
-            $table->foreignIdFor(\Tests\Database\Fixtures\Auth\User::class)->constrained();
+            $table->foreignIdFor(\Venusian\Tests\Database\Fixtures\Auth\User::class)->constrained();
         })->toSql();
     };
 
@@ -503,7 +503,7 @@ test('generate relationship for model with non standard primary key name', funct
 test('drop relationship column with incremental model', function () {
     $getSql = function ($grammar) {
         return schemaBlueprintBlueprint($grammar, 'posts', function ($table) {
-            $table->dropForeignIdFor(\Tests\Database\Fixtures\Auth\User::class);
+            $table->dropForeignIdFor(\Venusian\Tests\Database\Fixtures\Auth\User::class);
         })->toSql();
     };
 
@@ -527,7 +527,7 @@ test('drop relationship column with uuid model', function () {
 test('drop constrained relationship column with incremental model', function () {
     $getSql = function ($grammar) {
         return schemaBlueprintBlueprint($grammar, 'posts', function ($table) {
-            $table->dropConstrainedForeignIdFor(\Tests\Database\Fixtures\Auth\User::class);
+            $table->dropConstrainedForeignIdFor(\Venusian\Tests\Database\Fixtures\Auth\User::class);
         })->toSql();
     };
 

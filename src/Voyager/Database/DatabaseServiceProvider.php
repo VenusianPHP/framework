@@ -30,7 +30,7 @@ class DatabaseServiceProvider extends ServiceProvider
     {
         Model::setConnectionResolver($this->app['db']);
 
-        Model::setEventDispatcher($this->app['events']);
+        Model::setEventDispatcher($this->app['signals']);
     }
 
     /**
@@ -57,14 +57,14 @@ class DatabaseServiceProvider extends ServiceProvider
         // The connection factory is used to create the actual connection instances on
         // the database. We will inject the factory into the manager so that it may
         // make the connections while they are actually needed and not of before.
-        $this->app->singleton('db.factory', function ($app) {
+        $this->app->registerSingleton('db.factory', function ($app) {
             return new ConnectionFactory($app);
         });
 
         // The database manager is used to resolve various connections, since multiple
         // connections might be managed. It also implements the connection resolver
         // interface which may be used by other components requiring connections.
-        $this->app->singleton('db', function ($app) {
+        $this->app->registerSingleton('db', function ($app) {
             return new DatabaseManager($app, $app['db.factory']);
         });
 
@@ -76,15 +76,15 @@ class DatabaseServiceProvider extends ServiceProvider
             return $app['db']->connection()->getSchemaBuilder();
         });
 
-        $this->app->singleton('db.transactions', function () {
+        $this->app->registerSingleton('db.transactions', function () {
             return new DatabaseTransactionsManager;
         });
 
-        $this->app->singleton(ConcurrencyErrorDetectorContract::class, function () {
+        $this->app->registerSingleton(ConcurrencyErrorDetectorContract::class, function () {
             return new ConcurrencyErrorDetector;
         });
 
-        $this->app->singleton(LostConnectionDetectorContract::class, function () {
+        $this->app->registerSingleton(LostConnectionDetectorContract::class, function () {
             return new LostConnectionDetector;
         });
     }
@@ -100,7 +100,7 @@ class DatabaseServiceProvider extends ServiceProvider
             return;
         }
 
-        $this->app->singleton(FakerGenerator::class, function ($app, $parameters) {
+        $this->app->registerSingleton(FakerGenerator::class, function ($app, $parameters) {
             $locale = $parameters['locale'] ?? $app['config']->get('app.faker_locale', 'en_US');
 
             if (! isset(static::$fakers[$locale])) {
@@ -120,7 +120,7 @@ class DatabaseServiceProvider extends ServiceProvider
      */
     protected function registerQueueableEntityResolver()
     {
-        $this->app->singleton(EntityResolver::class, function () {
+        $this->app->registerSingleton(EntityResolver::class, function () {
             return new QueueEntityResolver;
         });
     }

@@ -1,13 +1,12 @@
 <?php
 
 use Voyager\Console\CommandMutex;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Console\Migrations\MigrateCommand;
 use Voyager\Database\Events\SchemaLoaded;
 use Voyager\Database\Migrations\Migrator;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
-use stdClass;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -129,17 +128,17 @@ test('step may be set', function () {
     migrateCommandRun($command, ['--step' => true]);
 });
 
-class ApplicationDatabaseMigrationStub extends Application
+class ApplicationDatabaseMigrationStub extends RenderedInstance
 {
     public function __construct(array $data = [])
     {
         $mutex = m::mock(CommandMutex::class);
         $mutex->shouldReceive('create')->andReturn(true);
         $mutex->shouldReceive('release')->andReturn(true);
-        $this->instance(CommandMutex::class, $mutex);
+        $this->registerInstance(CommandMutex::class, $mutex);
 
         foreach ($data as $abstract => $instance) {
-            $this->instance($abstract, $instance);
+            $this->registerInstance($abstract, $instance);
         }
     }
 

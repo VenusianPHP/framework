@@ -2,7 +2,6 @@
 
 use Voyager\Database\Migrations\Migration;
 use Voyager\Database\Schema\Blueprint;
-use Voyager\NutsAndBolts\MagicAliases\Schema;
 
 return new class extends Migration
 {
@@ -11,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('{{ table }}', function (Blueprint $table) {
+        app('db.schema')->table('{{ table }}', function (Blueprint $table) {
             //
         });
     }
@@ -21,7 +20,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('{{ table }}', function (Blueprint $table) {
+        app('db.schema')->table('{{ table }}', function (Blueprint $table) {
             //
         });
     }

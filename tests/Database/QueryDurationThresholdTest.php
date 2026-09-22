@@ -2,7 +2,7 @@
 
 use Carbon\CarbonInterval;
 use Voyager\Database\Connection;
-use Voyager\Events\Dispatcher;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 

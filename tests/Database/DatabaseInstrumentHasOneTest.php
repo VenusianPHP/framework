@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Contracts\Database\Query\Expression;
 use Voyager\Database\Instrument\Builder;

@@ -3,7 +3,7 @@
 namespace Voyager\Database\Console;
 
 use Voyager\Console\Command;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Events\ModelPruningFinished;
 use Voyager\Database\Events\ModelPruningStarting;
@@ -39,7 +39,7 @@ class PruneCommand extends Command
     /**
      * Execute the console command.
      *
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $events
      * @return void
      */
     public function handle(Dispatcher $events)

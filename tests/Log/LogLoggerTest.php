@@ -3,10 +3,10 @@
 use Monolog\Handler\TestHandler;
 use Monolog\Level;
 use Monolog\Logger as Monolog;
-use Tests\Log\Fixtures\SpyingArrayable;
-use Voyager\Contracts\Events\Dispatcher as DispatcherContract;
-use Voyager\Events\Dispatcher;
-use Voyager\Log\Events\MessageLogged;
+use Venusian\Tests\Log\Fixtures\SpyingArrayable;
+use Voyager\Contracts\Signals\SignalDispatcher as DispatcherContract;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
+use Voyager\Log\Signals\MessageLogged;
 use Voyager\Log\Logger;
 
 test('a level method passes the message straight on to monolog', function () {

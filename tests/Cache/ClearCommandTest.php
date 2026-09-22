@@ -1,10 +1,10 @@
 <?php
 
-use Tests\Cache\Fixtures\ClearCommandTestStub;
+use Venusian\Tests\Cache\Fixtures\ClearCommandTestStub;
 use Voyager\Cache\CacheManager;
 use Voyager\Contracts\Cache\Repository;
 use Voyager\Filesystem\Filesystem;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance as Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 

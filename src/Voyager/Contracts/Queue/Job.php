@@ -2,6 +2,8 @@
 
 namespace Voyager\Contracts\Queue;
 
+use Throwable;
+
 interface Job
 {
     /**
@@ -87,50 +89,50 @@ interface Job
      *
      * @return void
      */
-    public function markAsFailed();
+    public function markAsFailed(): void;
 
     /**
      * Delete the job, call the "failed" method, and raise the failed job event.
      *
-     * @param  \Throwable|null  $e
+     * @param \Throwable|null $e
      * @return void
      */
-    public function fail($e = null);
+    public function fail(?Throwable $e = null): void;
 
     /**
      * Get the number of times to attempt a job.
      *
      * @return int|null
      */
-    public function maxTries();
+    public function maxTries(): ?int;
 
     /**
      * Get the maximum number of exceptions allowed, regardless of attempts.
      *
      * @return int|null
      */
-    public function maxExceptions();
+    public function maxExceptions(): ?int;
 
     /**
      * Get the number of seconds the job can run.
      *
      * @return int|null
      */
-    public function timeout();
+    public function timeout(): ?int;
 
     /**
      * Get the timestamp indicating when the job should timeout.
      *
      * @return int|null
      */
-    public function retryUntil();
+    public function retryUntil(): ?int;
 
     /**
      * Get the name of the queued job class.
      *
      * @return string
      */
-    public function getName();
+    public function getName(): string;
 
     /**
      * Get the display name of the queued job class.
@@ -139,7 +141,7 @@ interface Job
      *
      * @return string
      */
-    public function resolveName();
+    public function resolveName(): string;
 
     /**
      * Get the class of the queued job.
@@ -148,26 +150,26 @@ interface Job
      *
      * @return string
      */
-    public function resolveQueuedJobClass();
+    public function resolveQueuedJobClass(): string;
 
     /**
      * Get the name of the connection the job belongs to.
      *
      * @return string
      */
-    public function getConnectionName();
+    public function getConnectionName(): string;
 
     /**
      * Get the name of the queue the job belongs to.
      *
      * @return string
      */
-    public function getQueue();
+    public function getQueue(): string;
 
     /**
      * Get the raw body string for the job.
      *
      * @return string
      */
-    public function getRawBody();
+    public function getRawBody(): string;
 }

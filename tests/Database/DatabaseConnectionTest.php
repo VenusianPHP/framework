@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use DateTime;
 use ErrorException;
 use Exception;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Connection;
 use Voyager\Database\Events\QueryExecuted;
 use Voyager\Database\Events\TransactionBeginning;

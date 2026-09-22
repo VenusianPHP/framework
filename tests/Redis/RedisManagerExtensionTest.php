@@ -1,8 +1,8 @@
 <?php
 
-use Tests\Redis\Fixtures\FakeRedisConnector;
+use Venusian\Tests\Redis\Fixtures\FakeRedisConnector;
 use Voyager\Contracts\Redis\Connector;
-use Voyager\System\Application;
+use Voyager\Vessel\ControlPanel as Application;
 use Voyager\Redis\RedisManager;
 use Mockery as m;
 

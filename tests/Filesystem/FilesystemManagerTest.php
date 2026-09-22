@@ -1,20 +1,23 @@
 <?php
 
+use Voyager\Config\Repository;
 use Voyager\Contracts\Filesystem\Filesystem;
+use Voyager\Core\RenderedInstance as Application;
 use Voyager\Filesystem\FilesystemManager;
-use Voyager\System\Application;
 use League\Flysystem\UnableToReadFile;
 
 test('an exception is thrown on an unsupported driver', function () {
-    $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-        $app['config'] = ['filesystems.disks.local' => null];
+    $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+        $app->registerInstance('config', new Repository(['filesystems.disks.local' => null]));
     }));
 
     $filesystem->disk('local');
 })->throws(InvalidArgumentException::class, 'Disk [local] does not have a configured driver.');
 
 test('it can build an on demand disk', function () {
-    $filesystem = new FilesystemManager(new Application);
+    $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+        $app->registerInstance('config', new Repository([]));
+    }));
 
     expect($filesystem->build('my-custom-path'))->toBeInstanceOf(Filesystem::class);
 
@@ -29,7 +32,9 @@ test('it can build an on demand disk', function () {
 });
 
 test('it can build read only disks', function () {
-    $filesystem = new FilesystemManager(new Application);
+    $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+        $app->registerInstance('config', new Repository([]));
+    }));
 
     $disk = $filesystem->build([
         'driver' => 'local',
@@ -62,13 +67,13 @@ test('it can build read only disks', function () {
 
 test('it can build scoped disks', function () {
     try {
-        $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-            $app['config'] = [
+        $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+            $app->registerInstance('config', new Repository([
                 'filesystems.disks.local' => [
                     'driver' => 'local',
                     'root' => 'to-be-scoped',
                 ],
-            ];
+            ]));
         }));
 
         $local = $filesystem->disk('local');
@@ -88,8 +93,8 @@ test('it can build scoped disks', function () {
 
 test('it can build a scoped disk from a scoped disk', function () {
     try {
-        $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-            $app['config'] = [
+        $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+            $app->registerInstance('config', new Repository([
                 'filesystems.disks.local' => [
                     'driver' => 'local',
                     'root' => 'root-to-be-scoped',
@@ -99,7 +104,7 @@ test('it can build a scoped disk from a scoped disk', function () {
                     'disk' => 'local',
                     'prefix' => 'scoped-from-root-prefix',
                 ],
-            ];
+            ]));
         }));
 
         $root = $filesystem->disk('local');
@@ -119,14 +124,14 @@ test('it can build a scoped disk from a scoped disk', function () {
 
 test('it can build scoped disks with visibility', function () {
     try {
-        $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-            $app['config'] = [
+        $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+            $app->registerInstance('config', new Repository([
                 'filesystems.disks.local' => [
                     'driver' => 'local',
                     'root' => 'to-be-scoped',
                     'visibility' => 'public',
                 ],
-            ];
+            ]));
         }));
 
         $scoped = $filesystem->build([
@@ -151,14 +156,14 @@ test('it can build scoped disks with throw', function () {
     set_error_handler(static fn (): bool => true);
 
     try {
-        $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-            $app['config'] = [
+        $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+            $app->registerInstance('config', new Repository([
                 'filesystems.disks.local' => [
                     'driver' => 'local',
                     'root' => 'to-be-scoped',
                     'throw' => false,
                 ],
-            ];
+            ]));
         }));
 
         $scoped = $filesystem->build([
@@ -179,7 +184,9 @@ test('it can build scoped disks with throw', function () {
 
 test('it can build inline scoped disks', function () {
     try {
-        $filesystem = new FilesystemManager(new Application);
+        $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+            $app->registerInstance('config', new Repository([]));
+        }));
 
         $scoped = $filesystem->build([
             'driver' => 'scoped',
@@ -203,13 +210,13 @@ test('it can build inline scoped disks', function () {
 
 // test('it keeps track of adapter decoration', function () {
 //     try {
-//         $filesystem = new FilesystemManager(tap(new Application, function ($app) {
-//             $app['config'] = [
+//         $filesystem = new FilesystemManager(tap(new Application(sys_get_temp_dir()), function ($app) {
+//             $app->registerInstance('config', new Repository([
 //                 'filesystems.disks.local' => [
 //                     'driver' => 'local',
 //                     'root' => 'to-be-scoped',
 //                 ],
-//             ];
+//             ]));
 //         }));
 //
 //         $scoped = $filesystem->build([

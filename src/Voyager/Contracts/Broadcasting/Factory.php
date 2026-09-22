@@ -7,8 +7,8 @@ interface Factory
     /**
      * Get a broadcaster implementation by name.
      *
-     * @param  string|null  $name
+     * @param string|null $name
      * @return \Voyager\Contracts\Broadcasting\Broadcaster
      */
-    public function connection($name = null);
+    public function connection(?string $name = null): Broadcaster;
 }

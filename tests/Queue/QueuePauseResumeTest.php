@@ -2,10 +2,10 @@
 
 use Voyager\Cache\ArrayStore;
 use Voyager\Cache\Repository;
-use Voyager\Events\Dispatcher;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Queue\Console\Concerns\ParsesQueue;
-use Voyager\Queue\Events\QueuePaused;
-use Voyager\Queue\Events\QueueResumed;
+use Voyager\Queue\Signals\QueuePaused;
+use Voyager\Queue\Signals\QueueResumed;
 use Voyager\Queue\QueueManager;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Mockery as m;
@@ -24,7 +24,7 @@ beforeEach(function () {
             'queue.connections.database' => ['driver' => 'database'],
         ],
         'cache' => $cacheMock,
-        'events' => new Dispatcher(),
+        'signals' => new Dispatcher(),
     ];
 
     $this->manager = new QueueManager($app);
@@ -93,7 +93,7 @@ test('resuming only affects specific queue', function () {
 test('pause dispatches queue paused event', function () {
     $dispatchedEvent = null;
 
-    $dispatcher = $this->manager->getApplication()['events'];
+    $dispatcher = $this->manager->getApplication()['signals'];
 
     $dispatcher->listen(QueuePaused::class, function ($event) use (&$dispatchedEvent) {
         $dispatchedEvent = $event;
@@ -110,7 +110,7 @@ test('pause dispatches queue paused event', function () {
 test('pause for dispatches queue paused event with t t l', function () {
     $dispatchedEvent = null;
 
-    $dispatcher = $this->manager->getApplication()['events'];
+    $dispatcher = $this->manager->getApplication()['signals'];
 
     $dispatcher->listen(QueuePaused::class, function ($event) use (&$dispatchedEvent) {
         $dispatchedEvent = $event;
@@ -127,7 +127,7 @@ test('pause for dispatches queue paused event with t t l', function () {
 test('resume dispatches queue resumed event', function () {
     $dispatchedEvent = null;
 
-    $dispatcher = $this->manager->getApplication()['events'];
+    $dispatcher = $this->manager->getApplication()['signals'];
 
     $dispatcher->listen(QueueResumed::class, function ($event) use (&$dispatchedEvent) {
         $dispatchedEvent = $event;

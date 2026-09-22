@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Database\Fixtures\Models\Money;
+namespace Venusian\Tests\Database\Fixtures\Models\Money;
 
 use Voyager\Database\Instrument\Factories\HasFactory;
 use Voyager\Database\Instrument\Model;
-use Tests\Database\Fixtures\Factories\Money\PriceFactory;
+use Venusian\Tests\Database\Fixtures\Factories\Money\PriceFactory;
 
 class Price extends Model
 {

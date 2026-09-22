@@ -22,9 +22,9 @@ use Voyager\Pagination\Cursor;
 use Voyager\Pagination\CursorPaginator;
 use Voyager\Pagination\LengthAwarePaginator;
 use Voyager\NutsAndBolts\DataObjects\Str;
-use Tests\Database\Fixtures\Enums\Bar;
-use Tests\Database\IntegerStatus;
-use Tests\Database\NonBackedStatus;
+use Venusian\Tests\Database\Fixtures\Enums\Bar;
+use Venusian\Tests\Database\IntegerStatus;
+use Venusian\Tests\Database\NonBackedStatus;
 use Mockery as m;
 include_once 'Enums.php';
 

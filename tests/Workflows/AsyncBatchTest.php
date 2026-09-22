@@ -6,9 +6,10 @@ use Voyager\Workflows\AsyncFlow;
 use Voyager\Workflows\AsyncNode;
 use Voyager\Workflows\AsyncParallelBatchFlow;
 use Voyager\Workflows\AsyncParallelBatchNode;
+use Voyager\Workflows\Runtimes\LoopRuntime;
 use Voyager\Workflows\SharedBag;
 
-test('a batch node maps exec over every item', function (string $runtime) {
+test('a batch node maps exec over every item', function (LoopRuntime $runtime) {
     $node = new class extends AsyncBatchNode
     {
         public function prepAsync(SharedBag $shared): mixed
@@ -30,12 +31,12 @@ test('a batch node maps exec over every item', function (string $runtime) {
     };
 
     $shared = new SharedBag;
-    $node->usesRuntime(new $runtime)->runAsync($shared);
+    $node->usesRuntime($runtime)->runAsync($shared);
 
     expect($shared->results)->toBe(['A', 'B', 'C']);
 })->with('async runtimes');
 
-test('a batch node retries each item on its own', function (string $runtime) {
+test('a batch node retries each item on its own', function (LoopRuntime $runtime) {
     $node = new class(2) extends AsyncBatchNode
     {
         public array $attempts = [];
@@ -65,13 +66,13 @@ test('a batch node retries each item on its own', function (string $runtime) {
     };
 
     $shared = new SharedBag;
-    $node->usesRuntime(new $runtime)->runAsync($shared);
+    $node->usesRuntime($runtime)->runAsync($shared);
 
     expect($shared->results)->toBe(['ok', 'flaky'])
         ->and($node->attempts)->toBe(['ok' => 1, 'flaky' => 2]);
 })->with('async runtimes');
 
-test('a parallel batch node keeps item order in its results', function (string $runtime) {
+test('a parallel batch node keeps item order in its results', function (LoopRuntime $runtime) {
     $node = new class extends AsyncParallelBatchNode
     {
         public function prepAsync(SharedBag $shared): mixed
@@ -95,12 +96,12 @@ test('a parallel batch node keeps item order in its results', function (string $
     };
 
     $shared = new SharedBag;
-    $node->usesRuntime(new $runtime)->runAsync($shared);
+    $node->usesRuntime($runtime)->runAsync($shared);
 
     expect($shared->results)->toBe([3, 1, 2]);
 })->with('async runtimes');
 
-test('a parallel batch node overlaps its items', function (string $runtime) {
+test('a parallel batch node overlaps its items', function (LoopRuntime $runtime) {
     $node = new class extends AsyncParallelBatchNode
     {
         public function prepAsync(SharedBag $shared): mixed
@@ -117,12 +118,12 @@ test('a parallel batch node overlaps its items', function (string $runtime) {
     };
 
     $started = microtime(true);
-    $node->usesRuntime(new $runtime)->runAsync(new SharedBag);
+    $node->usesRuntime($runtime)->runAsync(new SharedBag);
 
     expect(microtime(true) - $started)->toBeLessThan(0.075);
 })->with('overlapping async runtimes');
 
-test('a batch flow runs the graph once per param set', function (string $runtime) {
+test('a batch flow runs the graph once per param set', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -142,12 +143,12 @@ test('a batch flow runs the graph once per param set', function (string $runtime
     };
 
     $shared = new SharedBag;
-    $flow->usesRuntime(new $runtime)->runAsync($shared);
+    $flow->usesRuntime($runtime)->runAsync($shared);
 
     expect($shared->seen)->toBe([1, 2, 3]);
 })->with('async runtimes');
 
-test('a nested batch flow still loops its whole param list', function (string $runtime) {
+test('a nested batch flow still loops its whole param list', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -167,12 +168,12 @@ test('a nested batch flow still loops its whole param list', function (string $r
     };
 
     $shared = new SharedBag;
-    (new AsyncFlow($batch, new $runtime))->runAsync($shared);
+    (new AsyncFlow($batch, $runtime))->runAsync($shared);
 
     expect($shared->seen)->toBe(['x', 'y']);
 })->with('async runtimes');
 
-test('a parallel batch flow runs every branch and isolates node params', function (string $runtime) {
+test('a parallel batch flow runs every branch and isolates node params', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function execAsync(mixed $prepRes): mixed
@@ -201,13 +202,13 @@ test('a parallel batch flow runs every branch and isolates node params', functio
     };
 
     $shared = new SharedBag;
-    $flow->usesRuntime(new $runtime)->runAsync($shared);
+    $flow->usesRuntime($runtime)->runAsync($shared);
 
     expect($shared->seen)->toHaveCount(3)
         ->and($shared->seen)->not->toContain('clobbered');
 })->with('async runtimes');
 
-test('a parallel batch flow overlaps its branches', function (string $runtime) {
+test('a parallel batch flow overlaps its branches', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public function execAsync(mixed $prepRes): mixed
@@ -225,7 +226,7 @@ test('a parallel batch flow overlaps its branches', function (string $runtime) {
     };
 
     $started = microtime(true);
-    $flow->usesRuntime(new $runtime)->runAsync(new SharedBag);
+    $flow->usesRuntime($runtime)->runAsync(new SharedBag);
 
     expect(microtime(true) - $started)->toBeLessThan(0.075);
 })->with('overlapping async runtimes');

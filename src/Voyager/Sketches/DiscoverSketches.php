@@ -1,91 +1,50 @@
 <?php
-
+declare(strict_types=1);
 namespace Voyager\Sketches;
 
-use Voyager\NutsAndBolts\DataObjects\Str;
 use ReflectionClass;
-use ReflectionException;
-use SplFileInfo;
 use Symfony\Component\Finder\Finder;
+use Voyager\Contracts\Sketches\Sketch;
+use Voyager\NutsAndBolts\DataObjects\Str;
 
 class DiscoverSketches
 {
     /**
-     * Discover concrete Sketch subclasses under the given path.
+     * Class-from-path, the Laravel Kernel::load() formula: a file under $root_path
+     * maps onto $root_namespace by replacing the directory separators.
      *
-     * @return array<string, class-string>  registration key => FQCN
+     * @param  array<string> $paths
+     * @return array<class-string<Sketch>>
      */
-    public static function within(
-        string $path,
-        string $basePath,
-        string $baseClass,
-        string $appNamespace,
-        string $appPath,
-    ): array {
-        if (! is_dir($path) || ! class_exists($baseClass)) {
+    public static function within(array $paths, string $root_namespace, string $root_path): array
+    {
+        $paths = array_filter(array_map('realpath', $paths));
+
+        if ($paths === []) {
             return [];
         }
 
-        $discovered = [];
+        $root_path = rtrim((string) realpath($root_path), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        $found = [];
 
-        foreach (Finder::create()->files()->name('*.php')->in($path) as $file) {
-            try {
-                $class = new ReflectionClass(static::classFromFile(
-                    $file,
-                    $basePath,
-                    $appNamespace,
-                    $appPath,
-                ));
-            } catch (ReflectionException) {
+        foreach (Finder::create()->in($paths)->files()->name('*.php') as $file) {
+            $class = rtrim($root_namespace, '\\').'\\'.str_replace(
+                [DIRECTORY_SEPARATOR, '.php'],
+                ['\\', ''],
+                Str::after($file->getRealPath(), $root_path),
+            );
+
+            if (! class_exists($class) || ! is_subclass_of($class, Sketch::class)) {
                 continue;
             }
 
-            if (! $class->isInstantiable()) {
+            if ((new ReflectionClass($class))->isAbstract()) {
                 continue;
             }
 
-            if (! $class->isSubclassOf($baseClass)) {
-                continue;
-            }
-
-            $name = Str::kebab($class->getShortName());
-
-            if ($name === '') {
-                continue;
-            }
-
-            $discovered[Str::lower($name)] = $class->getName();
+            $found[] = $class;
         }
 
-        return $discovered;
-    }
-
-    /**
-     * @return class-string
-     */
-    protected static function classFromFile(
-        SplFileInfo $file,
-        string $basePath,
-        string $appNamespace,
-        string $appPath,
-    ): string {
-        $appPath = realpath($appPath) ?: $appPath;
-        $basePath = realpath($basePath) ?: $basePath;
-
-        $filePath = $file->getRealPath() ?: $file->getPathname();
-
-        $relativeToApp = Str::after($filePath, rtrim($appPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR);
-
-        if ($relativeToApp === $filePath) {
-            $relativeToApp = ltrim(Str::replaceFirst($basePath, '', $filePath), DIRECTORY_SEPARATOR);
-            $appDir = basename($appPath);
-            $relativeToApp = Str::after($relativeToApp, $appDir.DIRECTORY_SEPARATOR);
-        }
-
-        return rtrim($appNamespace, '\\').'\\'.str_replace(
-            ['/', '.php'],
-            ['\\', ''],
-            $relativeToApp,
-        );
+        return $found;
     }
 }

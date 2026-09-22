@@ -1,12 +1,12 @@
 <?php
 
-use Tests\Concurrency\Fixtures\ExceptionWithParam;
+use Venusian\Tests\Concurrency\Fixtures\ExceptionWithParam;
 use Voyager\Concurrency\ProcessDriver;
 use Voyager\Concurrency\SyncDriver;
 use Voyager\NutsAndBolts\Defer\DeferredCallback;
 use Voyager\NutsAndBolts\Defer\DeferredCallbackCollection;
 use Voyager\Process\Factory as ProcessFactory;
-use Voyager\Vessel\Vessel;
+use Voyager\Core\RenderedInstance as Vessel;
 
 /**
  * Build a process factory whose pooled children answer with the given output in order.
@@ -35,13 +35,13 @@ beforeEach(function () {
 
     $vessel = new class extends Vessel
     {
-        public function basePath($path = '')
+        public function basePath(string $path = ''): string
         {
             return __DIR__.($path != '' ? DIRECTORY_SEPARATOR.$path : $path);
         }
     };
 
-    $vessel->singleton(DeferredCallbackCollection::class);
+    $vessel->registerSingleton(DeferredCallbackCollection::class);
 
     Vessel::setInstance($vessel);
 });

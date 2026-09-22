@@ -2,7 +2,7 @@
 
 namespace Voyager\Database;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Database\LostConnectionDetector as LostConnectionDetectorContract;
 use Throwable;
 
@@ -16,9 +16,9 @@ trait DetectsLostConnections
      */
     protected function causedByLostConnection(Throwable $e)
     {
-        $container = Vessel::getInstance();
+        $container = ControlPanel::getInstance();
 
-        $detector = $container->bound(LostConnectionDetectorContract::class)
+        $detector = $container->isBound(LostConnectionDetectorContract::class)
             ? $container[LostConnectionDetectorContract::class]
             : new LostConnectionDetector();
 

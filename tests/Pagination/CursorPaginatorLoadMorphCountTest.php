@@ -1,7 +1,7 @@
 <?php
 
 use Mockery as m;
-use Tests\Pagination\Fixtures\ConcreteCursorPaginator;
+use Venusian\Tests\Pagination\Fixtures\ConcreteCursorPaginator;
 use Voyager\Database\Instrument\Collection;
 
 test('collection loadMorphCount can chain on the paginator', function () {

@@ -30,10 +30,8 @@ use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\Collection as BaseCollection;
+use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\NutsAndBolts\Exceptions\MathException;
-use Voyager\NutsAndBolts\MagicAliases\Crypt;
-use Voyager\NutsAndBolts\MagicAliases\Date;
-use Voyager\NutsAndBolts\MagicAliases\Hash;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use InvalidArgumentException;
 use LogicException;
@@ -1458,7 +1456,7 @@ trait HasAttributes
      */
     public static function currentEncrypter()
     {
-        return static::$encrypter ?? Crypt::getFacadeRoot();
+        return static::$encrypter ?? app(Encrypter::class);
     }
 
     /**
@@ -1474,12 +1472,12 @@ trait HasAttributes
             return null;
         }
 
-        if (! Hash::isHashed($value)) {
-            return Hash::make($value);
+        if (! app('hash')->isHashed($value)) {
+            return app('hash')->make($value);
         }
 
         /** @phpstan-ignore staticMethod.notFound */
-        if (! Hash::verifyConfiguration($value)) {
+        if (! app('hash')->verifyConfiguration($value)) {
             throw new RuntimeException("Could not verify the hashed value's configuration.");
         }
 
@@ -1545,14 +1543,14 @@ trait HasAttributes
         // This prevents us having to re-instantiate a Carbon instance when we know
         // it already is one, which wouldn't be fulfilled by the DateTime check.
         if ($value instanceof CarbonInterface) {
-            return Date::instance($value);
+            return Carbon::instance($value);
         }
 
         // If the value is already a DateTime instance, we will just skip the rest of
         // these checks since they will be a waste of time, and hinder performance
         // when checking the field. We will just return the DateTime right away.
         if ($value instanceof DateTimeInterface) {
-            return Date::parse(
+            return Carbon::parse(
                 $value->format('Y-m-d H:i:s.u'), $value->getTimezone()
             );
         }
@@ -1561,14 +1559,14 @@ trait HasAttributes
         // and format a Carbon object from this timestamp. This allows flexibility
         // when defining your date fields as they might be UNIX timestamps here.
         if (is_numeric($value)) {
-            return Date::createFromTimestamp($value, date_default_timezone_get());
+            return Carbon::createFromTimestamp($value, date_default_timezone_get());
         }
 
         // If the value is in simply year, month, day format, we will instantiate the
         // Carbon instances from that format. Again, this provides for simple date
         // fields on the database, while still supporting Carbonized conversion.
         if ($this->isStandardDateFormat($value)) {
-            return Date::instance(Carbon::createFromFormat('Y-m-d', $value)->startOfDay());
+            return Carbon::instance(Carbon::createFromFormat('Y-m-d', $value)->startOfDay());
         }
 
         $format = $this->getDateFormat();
@@ -1577,12 +1575,12 @@ trait HasAttributes
         // the database connection and use that format to create the Carbon object
         // that is returned back out to the developers after we convert it here.
         try {
-            $date = Date::createFromFormat($format, $value);
+            $date = Carbon::createFromFormat($format, $value);
         } catch (InvalidArgumentException) {
             $date = false;
         }
 
-        return $date ?: Date::parse($value);
+        return $date ?: Carbon::parse($value);
     }
 
     /**

@@ -19,14 +19,14 @@ class Optional implements ArrayAccess
      *
      * @var mixed
      */
-    protected $value;
+    protected mixed $value;
 
     /**
      * Create a new optional instance.
      *
      * @param  mixed  $value
      */
-    public function __construct($value)
+    public function __construct(mixed $value)
     {
         $this->value = $value;
     }
@@ -34,13 +34,13 @@ class Optional implements ArrayAccess
     /**
      * Dynamically access a property on the underlying object.
      *
-     * @param  string  $key
+     * @param string $offset
      * @return mixed
      */
-    public function __get($key)
+    public function __get(string $offset)
     {
         if (is_object($this->value)) {
-            return $this->value->{$key} ?? null;
+            return $this->value->{$offset} ?? null;
         }
     }
 
@@ -66,60 +66,61 @@ class Optional implements ArrayAccess
     /**
      * Determine if an item exists at an offset.
      *
-     * @param  mixed  $key
+     * @param  mixed  $offset
      * @return bool
      */
-    public function offsetExists($key): bool
+    public function offsetExists($offset): bool
     {
-        return Arr::accessible($this->value) && Arr::exists($this->value, $key);
+        return Arr::accessible($this->value) && Arr::exists($this->value, $offset);
     }
 
     /**
      * Get an item at a given offset.
      *
-     * @param  mixed  $key
+     * @param  mixed  $offset
      * @return mixed
      */
-    public function offsetGet($key): mixed
+    public function offsetGet(mixed $offset): mixed
     {
-        return Arr::get($this->value, $key);
+        return Arr::get($this->value, $offset);
     }
 
     /**
      * Set the item at a given offset.
      *
-     * @param  mixed  $key
+     * @param  mixed  $offset
      * @param  mixed  $value
      * @return void
      */
-    public function offsetSet($key, $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         if (Arr::accessible($this->value)) {
-            $this->value[$key] = $value;
+            $this->value[$offset] = $value;
         }
     }
 
     /**
      * Unset the item at a given offset.
      *
-     * @param  string  $key
+     * @param  string  $offset
      * @return void
      */
-    public function offsetUnset($key): void
+    public function offsetUnset(mixed $offset): void
     {
         if (Arr::accessible($this->value)) {
-            unset($this->value[$key]);
+            unset($this->value[$offset]);
         }
     }
 
     /**
      * Dynamically pass a method to the underlying object.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param string $method
+     * @param array $parameters
      * @return mixed
+     * @throws \ReflectionException
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters)
     {
         if (static::hasMacro($method)) {
             return $this->macroCall($method, $parameters);

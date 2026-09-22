@@ -29,7 +29,7 @@ class HtmlString implements Htmlable, Stringable
      *
      * @return string
      */
-    public function toHtml()
+    public function toHtml(): string
     {
         return $this->html;
     }
@@ -39,7 +39,7 @@ class HtmlString implements Htmlable, Stringable
      *
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return ($this->html ?? '') === '';
     }
@@ -49,7 +49,7 @@ class HtmlString implements Htmlable, Stringable
      *
      * @return bool
      */
-    public function isNotEmpty()
+    public function isNotEmpty(): bool
     {
         return ! $this->isEmpty();
     }
@@ -59,7 +59,7 @@ class HtmlString implements Htmlable, Stringable
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->toHtml() ?? '';
     }

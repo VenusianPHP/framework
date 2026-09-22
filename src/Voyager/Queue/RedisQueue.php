@@ -2,6 +2,9 @@
 
 namespace Voyager\Queue;
 
+use DateTimeInterface;
+use DateInterval;
+use Voyager\Contracts\Queue\Job;
 use Voyager\Contracts\Queue\ClearableQueue;
 use Voyager\Contracts\Queue\Queue as QueueContract;
 use Voyager\Contracts\Redis\Factory as Redis;
@@ -100,7 +103,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return int
      */
-    public function size($queue = null)
+    public function size(?string $queue = null): int
     {
         $queue = $this->getQueue($queue);
 
@@ -169,7 +172,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return void
      */
-    public function bulk($jobs, $data = '', $queue = null)
+    public function bulk(array $jobs, mixed $data = '', ?string $queue = null): mixed
     {
         $connection = $this->getConnection();
 
@@ -200,7 +203,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null)
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         return $this->enqueueUsing(
             $job,
@@ -221,7 +224,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  array  $options
      * @return mixed
      */
-    public function pushRaw($payload, $queue = null, array $options = [])
+    public function pushRaw(string $payload, ?string $queue = null, array $options = []): mixed
     {
         $this->getConnection()->eval(
             LuaScripts::push(), 2, $this->getQueue($queue),
@@ -240,7 +243,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string|null  $queue
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null)
+    public function later(DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         return $this->enqueueUsing(
             $job,
@@ -294,7 +297,7 @@ class RedisQueue extends Queue implements QueueContract, ClearableQueue
      * @param  int  $index
      * @return \Voyager\Contracts\Queue\Job|null
      */
-    public function pop($queue = null, $index = 0)
+    public function pop(?string $queue = null, int $index = 0): ?Job
     {
         $this->migrate($prefixed = $this->getQueue($queue));
 

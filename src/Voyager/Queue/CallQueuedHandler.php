@@ -9,13 +9,13 @@ use Voyager\Bus\UniqueLock;
 use Voyager\Contracts\Bus\Dispatcher;
 use Voyager\Contracts\Cache\Factory as CacheFactory;
 use Voyager\Contracts\Cache\Repository as Cache;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\Contracts\Queue\Job;
 use Voyager\Contracts\Queue\ShouldBeUnique;
 use Voyager\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Voyager\Database\Instrument\ModelNotFoundException;
-use Voyager\Events\CallQueuedListener;
+use Voyager\Signals\CallQueuedListener;
 use Voyager\Log\Context\Repository as ContextRepository;
 use Voyager\Pipeline\Pipeline;
 use Voyager\Queue\Attributes\DeleteWhenMissingModels;
@@ -34,7 +34,7 @@ class CallQueuedHandler
     /**
      * The container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
     protected $container;
 
@@ -42,9 +42,9 @@ class CallQueuedHandler
      * Create a new handler instance.
      *
      * @param  \Voyager\Contracts\Bus\Dispatcher  $dispatcher
-     * @param  \Voyager\Contracts\Vessel\Vessel  $container
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $container
      */
-    public function __construct(Dispatcher $dispatcher, Vessel $container)
+    public function __construct(Dispatcher $dispatcher, TheServiceContainer $container)
     {
         $this->container = $container;
         $this->dispatcher = $dispatcher;
@@ -97,7 +97,7 @@ class CallQueuedHandler
             return unserialize($data['command']);
         }
 
-        if ($this->container->bound(Encrypter::class)) {
+        if ($this->container->isBound(Encrypter::class)) {
             return unserialize($this->container[Encrypter::class]->decrypt($data['command']));
         }
 
@@ -277,8 +277,8 @@ class CallQueuedHandler
      */
     protected function ensureUniqueJobLockIsReleasedViaContext()
     {
-        if (! $this->container->bound(ContextRepository::class) ||
-            ! $this->container->bound(CacheFactory::class)) {
+        if (! $this->container->isBound(ContextRepository::class) ||
+            ! $this->container->isBound(CacheFactory::class)) {
             return;
         }
 
@@ -310,7 +310,7 @@ class CallQueuedHandler
             return;
         }
 
-        if (! $this->container->bound(BatchRepository::class)) {
+        if (! $this->container->isBound(BatchRepository::class)) {
             return;
         }
 

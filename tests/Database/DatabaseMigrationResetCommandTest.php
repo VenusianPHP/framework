@@ -2,7 +2,7 @@
 
 use Voyager\Database\Console\Migrations\ResetCommand;
 use Voyager\Database\Migrations\Migrator;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -64,12 +64,12 @@ test('refresh command exits when prohibited', function () {
     $migrator->shouldNotHaveBeenCalled();
 });
 
-class ApplicationDatabaseResetStub extends Application
+class ApplicationDatabaseResetStub extends RenderedInstance
 {
     public function __construct(array $data = [])
     {
         foreach ($data as $abstract => $instance) {
-            $this->instance($abstract, $instance);
+            $this->registerInstance($abstract, $instance);
         }
     }
 

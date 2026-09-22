@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Collection;
@@ -139,3 +139,9 @@ test('query grammar uses correct prefix after cloning', function () {
     $this->assertStringContainsString('prefix_users', $originalSql);
     $this->assertStringNotContainsString('new_prefix_users', $originalSql);
 });
+
+class InstrumentTestUser extends Instrument
+{
+    protected $table = 'users';
+    protected $guarded = [];
+}

@@ -1,7 +1,7 @@
 <?php
 
-use Tests\Filesystem\Fixtures\StringableObjecty;
-use Tests\Filesystem\Fixtures\StringableZero;
+use Venusian\Tests\Filesystem\Fixtures\StringableObjecty;
+use Venusian\Tests\Filesystem\Fixtures\StringableZero;
 
 use function Voyager\Filesystem\join_paths;
 

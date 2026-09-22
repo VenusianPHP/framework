@@ -1,6 +1,6 @@
 <?php
 
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance as Application;
 use Voyager\Queue\Console\ListFailedCommand;
 use Voyager\Queue\Failed\FailedJobProviderInterface;
 use Mockery as m;
@@ -56,7 +56,7 @@ function executeCommand(array $rows): string
     // The command resolves the failer via the queue.failer container binding.
     $failer = m::mock(FailedJobProviderInterface::class);
     $failer->shouldReceive('all')->andReturn($rows);
-    $container->instance('queue.failer', $failer);
+    $container->registerInstance('queue.failer', $failer);
 
     $command = new ListFailedCommand;
     $command->setVenusian($container);

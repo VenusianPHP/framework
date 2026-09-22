@@ -1,11 +1,13 @@
 <?php
 
 use Voyager\Console\Command;
-use Voyager\Vessel\Vessel;
+use Voyager\Console\OutputStyle;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Database\Seeder;
 use Mockery as m;
 use Mockery\Mock;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class TestSeeder extends Seeder
 {
@@ -25,9 +27,8 @@ class TestDepsSeeder extends Seeder
 
 test('call resolve the class and calls run', function () {
     $seeder = new TestSeeder;
-    $seeder->setContainer($container = m::mock(Vessel::class));
-    $output = m::mock(OutputInterface::class);
-    $output->shouldReceive('writeln')->times(3);
+    $seeder->setContainer($container = m::mock(ControlPanel::class));
+    $output = new OutputStyle(new ArrayInput([]), new NullOutput);
     $command = m::mock(Command::class);
     $command->shouldReceive('getOutput')->times(3)->andReturn($output);
     $seeder->setCommand($command);
@@ -41,7 +42,7 @@ test('call resolve the class and calls run', function () {
 
 test('set container', function () {
     $seeder = new TestSeeder;
-    $container = m::mock(Vessel::class);
+    $container = m::mock(ControlPanel::class);
     $this->assertEquals($seeder->setContainer($container), $seeder);
 });
 
@@ -52,7 +53,7 @@ test('set command', function () {
 });
 
 test('inject dependencies on run method', function () {
-    $container = m::mock(Vessel::class);
+    $container = m::mock(ControlPanel::class);
     $container->shouldReceive('call');
 
     $seeder = new TestDepsSeeder;
@@ -64,7 +65,7 @@ test('inject dependencies on run method', function () {
 });
 
 test('send params on call method with deps', function () {
-    $container = m::mock(Vessel::class);
+    $container = m::mock(ControlPanel::class);
     $container->shouldReceive('call');
 
     $seeder = new TestDepsSeeder;

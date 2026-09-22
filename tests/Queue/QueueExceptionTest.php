@@ -25,7 +25,7 @@ class MyFakeRedisJob extends RedisJob
         //
     }
 
-    public function resolveName()
+    public function resolveName(): string
     {
         return 'App\\Jobs\\UnderlyingJob';
     }

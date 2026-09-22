@@ -5,7 +5,7 @@ namespace Voyager\Queue\Failed;
 use Closure;
 use DateTimeInterface;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\NutsAndBolts\MagicAliases\Date;
+use Voyager\NutsAndBolts\DataObjects\Carbon as Date;
 
 class FileFailedJobProvider implements CountableFailedJobProvider, FailedJobProviderInterface, PrunableFailedJobProvider
 {

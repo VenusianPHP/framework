@@ -2,7 +2,7 @@
 
 namespace Voyager\Contracts\IOPools;
 
-interface Tickable
+interface Tickable extends Sourceable
 {
     public function tick(): void;
 }

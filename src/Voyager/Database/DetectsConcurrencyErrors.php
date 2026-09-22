@@ -2,7 +2,7 @@
 
 namespace Voyager\Database;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Database\ConcurrencyErrorDetector as ConcurrencyErrorDetectorContract;
 use Throwable;
 
@@ -16,9 +16,9 @@ trait DetectsConcurrencyErrors
      */
     protected function causedByConcurrencyError(Throwable $e)
     {
-        $container = Vessel::getInstance();
+        $container = ControlPanel::getInstance();
 
-        $detector = $container->bound(ConcurrencyErrorDetectorContract::class)
+        $detector = $container->isBound(ConcurrencyErrorDetectorContract::class)
             ? $container[ConcurrencyErrorDetectorContract::class]
             : new ConcurrencyErrorDetector();
 

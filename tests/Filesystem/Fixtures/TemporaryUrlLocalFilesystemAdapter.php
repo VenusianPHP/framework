@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Filesystem\Fixtures;
+namespace Venusian\Tests\Filesystem\Fixtures;
 
 use Carbon\Carbon;
 use League\Flysystem\Local\LocalFilesystemAdapter;

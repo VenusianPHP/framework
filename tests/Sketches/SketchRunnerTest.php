@@ -1,105 +1,93 @@
 <?php
+declare(strict_types=1);
 
-use Voyager\Contracts\Sketches\SketchExitStatus;
+use Voyager\Config\Repository;
 use Voyager\Contracts\Sketches\SketchLoopResult;
+use Voyager\IOPools\EventLoop;
 use Voyager\Sketches\Sketch;
 use Voyager\Sketches\SketchRunner;
-use Tests\Sketches\Fixtures\CountingSketch;
-use Tests\Sketches\Fixtures\ExternalStopSketch;
-use Tests\Sketches\Fixtures\ThrowingSketch;
 
-test('lifecycle boots loops and shuts down', function () {
-    $sketch = new CountingSketch(3);
-    $runner = new SketchRunner;
-
-    $status = $runner->run($sketch);
-
-    expect($status)->toBe(SketchExitStatus::SUCCESS->value)
-        ->and($sketch->loops)->toBe(3)
-        ->and($sketch->calls)->toBe(['boot', 'loop', 'loop', 'loop', 'shutdown']);
-});
-
-test('external stop ends the loop cooperatively', function () {
-    $runner = new SketchRunner;
-    $sketch = new ExternalStopSketch($runner);
-
-    $status = $runner->run($sketch);
-
-    expect($status)->toBe(SketchExitStatus::SUCCESS->value)
-        ->and($runner->shouldStop())->toBeTrue()
-        ->and($sketch->calls)->toBe(['boot', 'loop', 'shutdown']);
-});
-
-test('exceptions propagate after exactly once shutdown', function () {
-    $sketch = new ThrowingSketch('loop');
-    $runner = new SketchRunner;
-
-    expect(fn () => $runner->run($sketch))
-        ->toThrow(RuntimeException::class, 'loop failed');
-
-    expect($sketch->calls)->toBe(['boot', 'loop', 'shutdown']);
-});
-
-test('boot exceptions still invoke shutdown once', function () {
-    $sketch = new ThrowingSketch('boot');
-    $runner = new SketchRunner;
-
-    expect(fn () => $runner->run($sketch))
-        ->toThrow(RuntimeException::class, 'boot failed');
-
-    expect($sketch->calls)->toBe(['boot', 'shutdown']);
-});
-
-test('signal handler requests cooperative stop', function () {
-    if (! extension_loaded('pcntl') || ! function_exists('posix_kill')) {
-        skip('pcntl and posix required');
-    }
-
-    $previousTerm = pcntl_signal_get_handler(SIGTERM);
-    $previousInt = pcntl_signal_get_handler(SIGINT);
-
-    try {
-        $runner = new SketchRunner;
-
-        $sketch = new class extends Sketch
+function countingSketch(int $stop_after, ?float $hz = null, ?callable $on_tick = null): Sketch
+{
+    return new class($stop_after, $hz, $on_tick) extends Sketch {
+        public int $ticks = 0;
+        public int $boots = 0;
+        public int $shutdowns = 0;
+        public function __construct(private int $stop_after, ?float $hz, private mixed $on_tick) { $this->refresh_rate = $hz; }
+        public function boot(): void { $this->boots++; }
+        public function loop(): SketchLoopResult
         {
-            /** @var list<string> */
-            public array $calls = [];
+            $this->ticks++;
+            if ($this->on_tick) { ($this->on_tick)($this); }
+            return $this->ticks >= $this->stop_after ? SketchLoopResult::STOP : SketchLoopResult::CONTINUE;
+        }
+        public function shutdown(): void { $this->shutdowns++; }
+    };
+}
 
-            public int $loops = 0;
+test('ticks until STOP, boots and shuts down once, exits 0', function () {
+    $runner = new SketchRunner(new EventLoop, new Repository(['sketches' => ['refresh_rate' => 1000]]));
+    $sketch = countingSketch(5);
+    expect($runner->run($sketch))->toBe(0)
+        ->and($sketch->ticks)->toBe(5)
+        ->and($sketch->boots)->toBe(1)
+        ->and($sketch->shutdowns)->toBe(1);
+});
 
-            public function boot(): void
-            {
-                $this->calls[] = 'boot';
-            }
+test('sketch refresh rate overrides config for the session', function () {
+    $config = new Repository(['sketches' => ['refresh_rate' => 60]]);
+    (new SketchRunner(new EventLoop, $config))->run(countingSketch(1, 500.0));
+    expect($config->get('sketches.refresh_rate'))->toBe(500.0);
+});
 
-            public function loop(): SketchLoopResult
-            {
-                $this->loops++;
-                $this->calls[] = 'loop';
+test('null refresh rate defers to config', function () {
+    $config = new Repository(['sketches' => ['refresh_rate' => 250]]);
+    (new SketchRunner(new EventLoop, $config))->run(countingSketch(1));
+    expect($config->get('sketches.refresh_rate'))->toBe(250);
+});
 
-                if ($this->loops === 1) {
-                    posix_kill(getmypid(), SIGTERM);
-                    pcntl_signal_dispatch();
-                }
+test('config change mid-run changes the period', function () {
+    $config = new Repository(['sketches' => ['refresh_rate' => 5]]);   // 200ms per tick
+    $sketch = countingSketch(6, null, function ($s) use ($config) {
+        if ($s->ticks === 1) { $config->set('sketches.refresh_rate', 1000); }
+    });
+    $start = microtime(true);
+    (new SketchRunner(new EventLoop, $config))->run($sketch);
+    // 5 ticks at 200ms would be ~1s; at 1000Hz they take well under 100ms
+    expect(microtime(true) - $start)->toBeLessThan(0.5);
+});
 
-                return SketchLoopResult::CONTINUE;
-            }
+test('loop throw shuts down once and rethrows', function () {
+    $sketch = countingSketch(99, 1000.0, fn ($s) => throw new RuntimeException('tick died'));
+    $runner = new SketchRunner(new EventLoop, new Repository(['sketches' => ['refresh_rate' => 1000]]));
+    expect(fn () => $runner->run($sketch))->toThrow(RuntimeException::class, 'tick died');
+    expect($sketch->shutdowns)->toBe(1);
+});
 
-            public function shutdown(): void
-            {
-                $this->calls[] = 'shutdown';
-            }
-        };
+test('boot throw shuts down once', function () {
+    $sketch = new class extends Sketch {
+        public int $shutdowns = 0;
+        public function boot(): void { throw new LogicException('no boot'); }
+        public function loop(): SketchLoopResult { return SketchLoopResult::STOP; }
+        public function shutdown(): void { $this->shutdowns++; }
+    };
+    $runner = new SketchRunner(new EventLoop, new Repository(['sketches' => ['refresh_rate' => 1000]]));
+    expect(fn () => $runner->run($sketch))->toThrow(LogicException::class);
+    expect($sketch->shutdowns)->toBe(1);
+});
 
-        $status = $runner->run($sketch);
+test('zero refresh rate clamps', function () {
+    $runner = new SketchRunner(new EventLoop, new Repository(['sketches' => ['refresh_rate' => 0]]));
+    $start = microtime(true);
+    $runner->run(countingSketch(3));
+    expect(microtime(true) - $start)->toBeLessThan(4.0);   // floor is 1 Hz: 3 arms ≈ 3s, not a hang or a fault
+});
 
-        expect($runner->shouldStop())->toBeTrue()
-            ->and($status)->toBe(SketchExitStatus::SUCCESS->value)
-            ->and($sketch->loops)->toBe(1)
-            ->and($sketch->calls)->toBe(['boot', 'loop', 'shutdown']);
-    } finally {
-        pcntl_signal(SIGTERM, $previousTerm ?: SIG_DFL);
-        pcntl_signal(SIGINT, $previousInt ?: SIG_DFL);
-    }
+test('stop() from outside ends the run with the given status', function () {
+    $loop = new EventLoop;
+    $runner = new SketchRunner($loop, new Repository(['sketches' => ['refresh_rate' => 1000]]));
+    $loop->at(0.01, fn () => $runner->stop(7));
+    $sketch = countingSketch(PHP_INT_MAX);
+    expect($runner->run($sketch))->toBe(7)
+        ->and($sketch->shutdowns)->toBe(1);
 });

@@ -5,7 +5,7 @@ namespace Voyager\NutsAndBolts;
 use Voyager\NutsAndBolts\DataObjects\Str;
 
 use Closure;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use InvalidArgumentException;
 
 abstract class Manager
@@ -13,9 +13,9 @@ abstract class Manager
     /**
      * The container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var TheServiceContainer
      */
-    protected $vessel;
+    protected TheServiceContainer $vessel;
 
     /**
      * The configuration repository instance.
@@ -41,9 +41,9 @@ abstract class Manager
     /**
      * Create a new manager instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $vessel
+     * @param TheServiceContainer $vessel
      */
-    public function __construct(Vessel $vessel)
+    public function __construct(TheServiceContainer $vessel)
     {
         $this->vessel = $vessel;
         $this->config = $vessel->make('config');
@@ -54,17 +54,17 @@ abstract class Manager
      *
      * @return string|null
      */
-    abstract public function getDefaultDriver();
+    abstract public function getDefaultDriver(): ?string;
 
     /**
      * Get a driver instance.
      *
-     * @param  string|null  $driver
+     * @param string|null $driver
      * @return mixed
      *
      * @throws \InvalidArgumentException
      */
-    public function driver($driver = null)
+    public function driver(?string $driver = null): mixed
     {
         $driver = $driver ?: $this->getDefaultDriver();
 
@@ -83,12 +83,12 @@ abstract class Manager
     /**
      * Create a new driver instance.
      *
-     * @param  string  $driver
+     * @param string $driver
      * @return mixed
      *
      * @throws \InvalidArgumentException
      */
-    protected function createDriver($driver)
+    protected function createDriver(string $driver): mixed
     {
         // First, we will determine if a custom driver creator exists for the given driver and
         // if it does not we will check for a creator method for the driver. Custom creator
@@ -109,10 +109,10 @@ abstract class Manager
     /**
      * Call a custom driver creator.
      *
-     * @param  string  $driver
+     * @param string $driver
      * @return mixed
      */
-    protected function callCustomCreator($driver)
+    protected function callCustomCreator(string $driver): mixed
     {
         return $this->customCreators[$driver]($this->vessel);
     }
@@ -120,11 +120,11 @@ abstract class Manager
     /**
      * Register a custom driver creator Closure.
      *
-     * @param  string  $driver
+     * @param string $driver
      * @param  \Closure  $callback
      * @return $this
      */
-    public function extend($driver, Closure $callback)
+    public function extend(string $driver, Closure $callback): static
     {
         $this->customCreators[$driver] = $callback;
 
@@ -136,7 +136,7 @@ abstract class Manager
      *
      * @return array
      */
-    public function getDrivers()
+    public function getDrivers(): array
     {
         return $this->drivers;
     }
@@ -144,9 +144,9 @@ abstract class Manager
     /**
      * Get the container instance used by the manager.
      *
-     * @return \Voyager\Contracts\Vessel\Vessel
+     * @return TheServiceContainer
      */
-    public function getContainer()
+    public function getContainer(): TheServiceContainer
     {
         return $this->vessel;
     }
@@ -154,10 +154,10 @@ abstract class Manager
     /**
      * Set the container instance used by the manager.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $vessel
+     * @param TheServiceContainer $vessel
      * @return $this
      */
-    public function setContainer(Vessel $vessel)
+    public function setContainer(TheServiceContainer $vessel): static
     {
         $this->vessel = $vessel;
 
@@ -169,7 +169,7 @@ abstract class Manager
      *
      * @return $this
      */
-    public function forgetDrivers()
+    public function forgetDrivers(): static
     {
         $this->drivers = [];
 
@@ -179,11 +179,11 @@ abstract class Manager
     /**
      * Dynamically call the default driver instance.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param string $method
+     * @param array $parameters
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters)
     {
         return $this->driver()->$method(...$parameters);
     }

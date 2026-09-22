@@ -2,9 +2,9 @@
 
 namespace Voyager\Broadcasting;
 
-use Voyager\Vessel\Vessel;
 use Voyager\Contracts\Cache\Repository;
 use Voyager\Contracts\Queue\ShouldBeUnique;
+use Voyager\Vessel\ControlPanel;
 
 class UniqueBroadcastEvent extends BroadcastEvent implements ShouldBeUnique
 {
@@ -53,6 +53,6 @@ class UniqueBroadcastEvent extends BroadcastEvent implements ShouldBeUnique
     {
         return method_exists($this->event, 'uniqueVia')
             ? $this->event->uniqueVia()
-            : Vessel::getInstance()->make(Repository::class);
+            : ControlPanel::getInstance()->make(Repository::class);
     }
 }

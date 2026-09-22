@@ -39,7 +39,7 @@ trait Prunable
                     }
                 });
 
-                event(new ModelsPruned(static::class, $total));
+                signal(new ModelsPruned(static::class, $total));
             });
 
         return $total;

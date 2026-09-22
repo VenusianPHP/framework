@@ -2,7 +2,9 @@
 
 namespace Voyager\Contracts\Queue;
 
-interface ShouldQueue
+use Voyager\Contracts\NutsAndBolts\Handleable;
+
+interface ShouldQueue extends Handleable
 {
     //
 }

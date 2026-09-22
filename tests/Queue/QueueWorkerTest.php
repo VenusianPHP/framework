@@ -1,17 +1,20 @@
 <?php
 
-use Voyager\Vessel\Vessel;
+use Venusian\Tests\Queue\Fixtures\StubsQueueContract;
+use Voyager\Contracts\Queue\Job as JobContract;
+use Voyager\Contracts\Queue\Queue as QueueContract;
+use Voyager\Vessel\ControlPanel as Vessel;
 use Voyager\Contracts\Debug\ExceptionHandler;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Contracts\Queue\Job as QueueJobContract;
-use Voyager\Queue\Events\JobExceptionOccurred;
-use Voyager\Queue\Events\JobPopped;
-use Voyager\Queue\Events\JobPopping;
-use Voyager\Queue\Events\JobProcessed;
-use Voyager\Queue\Events\JobProcessing;
-use Voyager\Queue\Events\JobReleasedAfterException;
-use Voyager\Queue\Events\WorkerStarting;
-use Voyager\Queue\Events\WorkerStopping;
+use Voyager\Queue\Signals\JobExceptionOccurred;
+use Voyager\Queue\Signals\JobPopped;
+use Voyager\Queue\Signals\JobPopping;
+use Voyager\Queue\Signals\JobProcessed;
+use Voyager\Queue\Signals\JobProcessing;
+use Voyager\Queue\Signals\JobReleasedAfterException;
+use Voyager\Queue\Signals\WorkerStarting;
+use Voyager\Queue\Signals\WorkerStopping;
 use Voyager\Queue\MaxAttemptsExceededException;
 use Voyager\Queue\QueueManager;
 use Voyager\Queue\Worker;
@@ -59,8 +62,8 @@ beforeEach(function () {
 
     Vessel::setInstance($container = new Vessel);
 
-    $container->instance(Dispatcher::class, $this->events);
-    $container->instance(ExceptionHandler::class, $this->exceptionHandler);
+    $container->registerInstance(Dispatcher::class, $this->events);
+    $container->registerInstance(ExceptionHandler::class, $this->exceptionHandler);
 });
 
 afterEach(function () {
@@ -570,14 +573,16 @@ class WorkerFakeManager extends QueueManager
         $this->connections[$name] = $connection;
     }
 
-    public function connection($name = null)
+    public function connection(?string $name = null): \Voyager\Contracts\Queue\Queue
     {
         return $this->connections[$name];
     }
 }
 
-class WorkerFakeConnection
+class WorkerFakeConnection implements QueueContract
 {
+    use StubsQueueContract;
+
     public $connectionName;
     public $jobs = [];
 
@@ -587,19 +592,21 @@ class WorkerFakeConnection
         $this->jobs = $jobs;
     }
 
-    public function pop($queue)
+    public function pop(?string $queue = null): ?JobContract
     {
         return array_shift($this->jobs[$queue]);
     }
 
-    public function getConnectionName()
+    public function getConnectionName(): string
     {
         return $this->connectionName;
     }
 }
 
-class BrokenQueueConnection
+class BrokenQueueConnection implements QueueContract
 {
+    use StubsQueueContract;
+
     public $connectionName;
     public $exception;
 
@@ -609,12 +616,12 @@ class BrokenQueueConnection
         $this->exception = $exception;
     }
 
-    public function pop($queue)
+    public function pop(?string $queue = null): ?JobContract
     {
         throw $this->exception;
     }
 
-    public function getConnectionName()
+    public function getConnectionName(): string
     {
         return $this->connectionName;
     }
@@ -664,12 +671,12 @@ class WorkerFakeJob implements QueueJobContract
         return [];
     }
 
-    public function maxTries()
+    public function maxTries(): ?int
     {
         return $this->maxTries;
     }
 
-    public function maxExceptions()
+    public function maxExceptions(): ?int
     {
         return $this->maxExceptions;
     }
@@ -689,7 +696,7 @@ class WorkerFakeJob implements QueueJobContract
         return $this->backoff;
     }
 
-    public function retryUntil()
+    public function retryUntil(): ?int
     {
         return $this->retryUntil;
     }
@@ -726,12 +733,12 @@ class WorkerFakeJob implements QueueJobContract
         return $this->attempts;
     }
 
-    public function markAsFailed()
+    public function markAsFailed(): void
     {
         $this->failed = true;
     }
 
-    public function fail($e = null)
+    public function fail(?\Throwable $e = null): void
     {
         $this->markAsFailed();
 
@@ -745,37 +752,37 @@ class WorkerFakeJob implements QueueJobContract
         return $this->failed;
     }
 
-    public function getName()
+    public function getName(): string
     {
         return 'WorkerFakeJob';
     }
 
-    public function resolveName()
+    public function resolveName(): string
     {
         return $this->getName();
     }
 
-    public function getConnectionName()
+    public function getConnectionName(): string
     {
         return $this->connectionName;
     }
 
-    public function getQueue()
+    public function getQueue(): string
     {
         return $this->queue;
     }
 
-    public function getRawBody()
+    public function getRawBody(): string
     {
         return $this->rawBody;
     }
 
-    public function timeout()
+    public function timeout(): ?int
     {
         return time() + 60;
     }
 
-    public function resolveQueuedJobClass()
+    public function resolveQueuedJobClass(): string
     {
         return 'WorkerFakeJob';
     }

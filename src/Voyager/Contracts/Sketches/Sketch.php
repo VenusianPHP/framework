@@ -1,21 +1,12 @@
 <?php
-
+declare(strict_types=1);
 namespace Voyager\Contracts\Sketches;
 
 interface Sketch
 {
-    /**
-     * Prepare the sketch before the first loop tick.
-     */
     public function boot(): void;
-
-    /**
-     * Execute one cooperative tick of the sketch.
-     */
     public function loop(): SketchLoopResult;
-
-    /**
-     * Release resources after the loop ends or fails.
-     */
     public function shutdown(): void;
+    /** Hz. Null = use config('sketches.refresh_rate'). */
+    public function refreshRate(): ?float;
 }

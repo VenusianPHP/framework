@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Middleware;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Redis\Connection;
 use Voyager\Contracts\Redis\Factory as Redis;
 use Voyager\Redis\Limiters\DurationLimiter;
@@ -43,7 +43,7 @@ class ThrottlesExceptionsWithRedis extends ThrottlesExceptions
      */
     public function handle($job, $next)
     {
-        $this->redis = Vessel::getInstance()
+        $this->redis = ControlPanel::getInstance()
             ->make(Redis::class)
             ->connection($this->connectionName);
 

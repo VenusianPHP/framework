@@ -4,8 +4,8 @@ namespace Voyager\Database\Instrument\Factories;
 
 use Closure;
 use Faker\Generator;
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\System\Application;
+use Voyager\Vessel\ControlPanel;
+use Voyager\Contracts\Core\FrameworkCore;
 use Voyager\Database\Instrument\Collection as InstrumentCollection;
 use Voyager\Database\Instrument\Model;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
@@ -1039,7 +1039,7 @@ abstract class Factory
             return;
         }
 
-        return Vessel::getInstance()->make(Generator::class);
+        return ControlPanel::getInstance()->make(Generator::class);
     }
 
     /**
@@ -1073,8 +1073,8 @@ abstract class Factory
     protected static function appNamespace()
     {
         try {
-            return Vessel::getInstance()
-                ->make(Application::class)
+            return ControlPanel::getInstance()
+                ->make(FrameworkCore::class)
                 ->getNamespace();
         } catch (Throwable) {
             return 'App\\';

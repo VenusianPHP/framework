@@ -6,7 +6,7 @@ use Carbon\CarbonInterval;
 use Closure;
 use DateTimeInterface;
 use Exception;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Events\QueryExecuted;
 use Voyager\Database\Events\StatementPrepared;
 use Voyager\Database\Events\TransactionBeginning;
@@ -115,7 +115,7 @@ class Connection implements ConnectionInterface
     /**
      * The event dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher|null
+     * @var \Voyager\Contracts\Signals\SignalDispatcher|null
      */
     protected $events;
 
@@ -1505,7 +1505,7 @@ class Connection implements ConnectionInterface
     /**
      * Get the event dispatcher used by the connection.
      *
-     * @return \Voyager\Contracts\Events\Dispatcher|null
+     * @return \Voyager\Contracts\Signals\SignalDispatcher|null
      */
     public function getEventDispatcher()
     {
@@ -1515,7 +1515,7 @@ class Connection implements ConnectionInterface
     /**
      * Set the event dispatcher instance on the connection.
      *
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $events
      * @return $this
      */
     public function setEventDispatcher(Dispatcher $events)

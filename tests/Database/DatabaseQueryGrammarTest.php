@@ -5,7 +5,6 @@ use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Expression;
 use Voyager\Database\Query\Grammars\Grammar;
 use Mockery as m;
-use ReflectionClass;
 
 test('where raw returns string when expression passed', function () {
     $builder = m::mock(Builder::class);

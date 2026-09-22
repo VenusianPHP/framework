@@ -3,7 +3,7 @@
 namespace Voyager\Pipeline;
 
 use Closure;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer as Vessel;
 use Voyager\Contracts\Pipeline\Hub as HubContract;
 
 class Hub implements HubContract

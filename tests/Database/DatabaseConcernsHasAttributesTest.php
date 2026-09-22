@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Instrument\Casts\Attribute;
 use Voyager\Database\Instrument\Concerns\HasAttributes;

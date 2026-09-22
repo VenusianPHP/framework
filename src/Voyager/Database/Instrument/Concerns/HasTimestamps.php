@@ -3,7 +3,7 @@
 namespace Voyager\Database\Instrument\Concerns;
 
 use Voyager\NutsAndBolts\DataObjects\Arr;
-use Voyager\NutsAndBolts\MagicAliases\Date;
+use Voyager\NutsAndBolts\DataObjects\Carbon;
 
 trait HasTimestamps
 {
@@ -116,7 +116,7 @@ trait HasTimestamps
      */
     public function freshTimestamp()
     {
-        return Date::now();
+        return Carbon::now();
     }
 
     /**

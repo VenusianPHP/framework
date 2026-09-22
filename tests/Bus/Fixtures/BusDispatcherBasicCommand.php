@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Bus\Fixtures;
+namespace Venusian\Tests\Bus\Fixtures;
 
 class BusDispatcherBasicCommand
 {

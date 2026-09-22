@@ -44,7 +44,7 @@ class AsyncFlow extends Flow implements AsyncRunnable
      * Prepare data before orchestration.
      *
      * @param SharedBag $shared The shared data store
-     * @return mixed Data to pass to postAsync(), or an Awaitable of it
+     * @return mixed Data to pass to postAsync(), or a Promise of it
      */
     public function prepAsync(SharedBag $shared): mixed
     {
@@ -57,7 +57,7 @@ class AsyncFlow extends Flow implements AsyncRunnable
      * @param SharedBag $shared The shared data store
      * @param mixed $prepRes The resolved result from prepAsync()
      * @param mixed $execRes The final action from orchestration
-     * @return mixed Unchanged result, or an Awaitable of it
+     * @return mixed Unchanged result, or a Promise of it
      */
     public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
     {

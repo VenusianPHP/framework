@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Jobs;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Queue\Job as JobContract;
 use Voyager\Queue\RedisQueue;
 
@@ -46,7 +46,7 @@ class RedisJob extends Job implements JobContract
      * @param  string  $connectionName
      * @param  string  $queue
      */
-    public function __construct(Vessel $container, RedisQueue $redis, $job, $reserved, $connectionName, $queue)
+    public function __construct(ControlPanel $container, RedisQueue $redis, $job, $reserved, $connectionName, $queue)
     {
         // The $job variable is the original job JSON as it existed in the ready queue while
         // the $reserved variable is the raw JSON in the reserved queue. The exact format
@@ -66,7 +66,7 @@ class RedisJob extends Job implements JobContract
      *
      * @return string
      */
-    public function getRawBody()
+    public function getRawBody(): string
     {
         return $this->job;
     }

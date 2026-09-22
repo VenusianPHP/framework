@@ -2,8 +2,8 @@
 
 namespace Voyager\Database\Capsule;
 
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Vessel\ControlPanel;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Connectors\ConnectionFactory;
 use Voyager\Database\DatabaseManager;
 use Voyager\Database\Instrument\Model as Instrument;
@@ -24,11 +24,11 @@ class Manager
     /**
      * Create a new database capsule manager.
      *
-     * @param  \Voyager\Vessel\Vessel|null  $container
+     * @param  \Voyager\Vessel\ControlPanel|null  $container
      */
-    public function __construct(?Vessel $container = null)
+    public function __construct(?ControlPanel $container = null)
     {
-        $this->setupContainer($container ?: new Vessel);
+        $this->setupContainer($container ?: new ControlPanel);
 
         // Once we have the container setup, we will setup the default configuration
         // options in the container "config" binding. This will make the database
@@ -167,24 +167,24 @@ class Manager
     /**
      * Get the current event dispatcher instance.
      *
-     * @return \Voyager\Contracts\Events\Dispatcher|null
+     * @return \Voyager\Contracts\Signals\SignalDispatcher|null
      */
     public function getEventDispatcher()
     {
-        if ($this->vessel->bound('events')) {
-            return $this->vessel['events'];
+        if ($this->vessel->isBound('signals')) {
+            return $this->vessel['signals'];
         }
     }
 
     /**
      * Set the event dispatcher instance to be used by connections.
      *
-     * @param  \Voyager\Contracts\Events\Dispatcher  $dispatcher
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $dispatcher
      * @return void
      */
     public function setEventDispatcher(Dispatcher $dispatcher)
     {
-        $this->vessel->instance('events', $dispatcher);
+        $this->vessel->registerInstance('signals', $dispatcher);
     }
 
     /**

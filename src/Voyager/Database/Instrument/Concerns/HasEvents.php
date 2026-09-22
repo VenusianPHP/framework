@@ -2,10 +2,10 @@
 
 namespace Voyager\Database\Instrument\Concerns;
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Instrument\Attributes\ObservedBy;
 use Voyager\Database\Instrument\Model;
-use Voyager\Events\NullDispatcher;
+use Voyager\Signals\NullDispatcher;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use InvalidArgumentException;
@@ -183,7 +183,7 @@ trait HasEvents
      * Register a model event with the dispatcher.
      *
      * @param  string  $event
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     protected static function registerModelEvent($event, $callback)
@@ -266,7 +266,7 @@ trait HasEvents
     /**
      * Register a retrieved model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function retrieved($callback)
@@ -277,7 +277,7 @@ trait HasEvents
     /**
      * Register a saving model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function saving($callback)
@@ -288,7 +288,7 @@ trait HasEvents
     /**
      * Register a saved model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function saved($callback)
@@ -299,7 +299,7 @@ trait HasEvents
     /**
      * Register an updating model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function updating($callback)
@@ -310,7 +310,7 @@ trait HasEvents
     /**
      * Register an updated model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function updated($callback)
@@ -321,7 +321,7 @@ trait HasEvents
     /**
      * Register a creating model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function creating($callback)
@@ -332,7 +332,7 @@ trait HasEvents
     /**
      * Register a created model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function created($callback)
@@ -343,7 +343,7 @@ trait HasEvents
     /**
      * Register a replicating model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function replicating($callback)
@@ -354,7 +354,7 @@ trait HasEvents
     /**
      * Register a deleting model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function deleting($callback)
@@ -365,7 +365,7 @@ trait HasEvents
     /**
      * Register a deleted model event with the dispatcher.
      *
-     * @param  \Voyager\Events\QueuedClosure|callable|array|class-string  $callback
+     * @param  \Voyager\Signals\QueuedClosure|callable|array|class-string  $callback
      * @return void
      */
     public static function deleted($callback)
@@ -408,7 +408,7 @@ trait HasEvents
     /**
      * Get the event dispatcher instance.
      *
-     * @return \Voyager\Contracts\Events\Dispatcher|null
+     * @return \Voyager\Contracts\Signals\SignalDispatcher|null
      */
     public static function getEventDispatcher()
     {
@@ -418,7 +418,7 @@ trait HasEvents
     /**
      * Set the event dispatcher instance.
      *
-     * @param  \Voyager\Contracts\Events\Dispatcher  $dispatcher
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $dispatcher
      * @return void
      */
     public static function setEventDispatcher(Dispatcher $dispatcher)

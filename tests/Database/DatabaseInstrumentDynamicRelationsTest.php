@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\HasMany;
 use Voyager\Database\Instrument\Relations\HasOne;
 use Voyager\Database\Query\Builder as Query;
-use Tests\Database\DynamicRelationModel2 as Related;
+use Venusian\Tests\Database\DynamicRelationModel2 as Related;
 
 test('basic dynamic relations', function () {
     DynamicRelationModel::resolveRelationUsing('dynamicRel_2', fn () => new FakeHasManyRel);

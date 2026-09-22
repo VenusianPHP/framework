@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Exception;
 use Voyager\Database\Capsule\Manager as DB;

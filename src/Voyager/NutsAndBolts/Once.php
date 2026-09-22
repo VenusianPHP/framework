@@ -35,7 +35,7 @@ class Once
      *
      * @return static
      */
-    public static function instance()
+    public static function instance(): static
     {
         return static::$instance ??= new static(new WeakMap);
     }
@@ -46,7 +46,7 @@ class Once
      * @param  Onceable  $onceable
      * @return mixed
      */
-    public function value(Onceable $onceable)
+    public function value(Onceable $onceable): mixed
     {
         if (! static::$enabled) {
             return call_user_func($onceable->callable);

@@ -4,7 +4,6 @@ namespace Voyager\Database\Schema;
 
 use Voyager\Database\QueryException;
 use Voyager\NutsAndBolts\DataObjects\Arr;
-use Voyager\NutsAndBolts\MagicAliases\File;
 
 class SQLiteBuilder extends Builder
 {
@@ -16,7 +15,7 @@ class SQLiteBuilder extends Builder
      */
     public function createDatabase($name)
     {
-        return File::put($name, '') !== false;
+        return app('files')->put($name, '') !== false;
     }
 
     /**
@@ -27,7 +26,7 @@ class SQLiteBuilder extends Builder
      */
     public function dropDatabaseIfExists($name)
     {
-        return ! File::exists($name) || File::delete($name);
+        return ! app('files')->exists($name) || app('files')->delete($name);
     }
 
     /** @inheritDoc */

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Pipeline\Fixtures;
+namespace Venusian\Tests\Pipeline\Fixtures;
 
 class PipelineTestPipeOne
 {

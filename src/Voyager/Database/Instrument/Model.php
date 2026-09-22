@@ -145,7 +145,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     /**
      * The event dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher|null
+     * @var \Voyager\Contracts\Signals\SignalDispatcher|null
      */
     protected static $dispatcher;
 
@@ -2307,7 +2307,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      *
      * @return string
      */
-    public function broadcastChannelRoute()
+    public function broadcastChannelRoute(): string
     {
         return str_replace('\\', '.', get_class($this)).'.{'.Str::camel(class_basename($this)).'}';
     }
@@ -2317,7 +2317,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      *
      * @return string
      */
-    public function broadcastChannel()
+    public function broadcastChannel(): string
     {
         return str_replace('\\', '.', get_class($this)).'.'.$this->getKey();
     }

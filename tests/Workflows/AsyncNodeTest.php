@@ -1,13 +1,15 @@
 <?php
 
+use Voyager\Contracts\IOPools\Promise;
 use Voyager\Contracts\Workflows\AsyncRuntime;
 use Voyager\Contracts\Workflows\WorkflowRuntimeException;
+use Voyager\IOPools\EventLoop;
 use Voyager\Workflows\AsyncNode;
 use Voyager\Workflows\Node;
-use Voyager\Workflows\Runtimes\SyncRuntime;
+use Voyager\Workflows\Runtimes\LoopRuntime;
 use Voyager\Workflows\SharedBag;
 
-test('the async lifecycle runs prep then exec then post', function (string $runtime) {
+test('the async lifecycle runs prep then exec then post', function (LoopRuntime $runtime) {
     $node = new class extends AsyncNode
     {
         public array $order = [];
@@ -37,14 +39,14 @@ test('the async lifecycle runs prep then exec then post', function (string $runt
 
     $shared = new SharedBag;
 
-    expect($node->usesRuntime(new $runtime)->runAsync($shared))->toBe('next')
+    expect($node->usesRuntime($runtime)->runAsync($shared))->toBe('next')
         ->and($node->order)->toBe(['prep', 'exec:prepared', 'post:executed'])
         ->and($shared->result)->toBe('executed');
 })->with('async runtimes');
 
-test('lifecycle methods may return a plain value or an awaitable', function (string $runtime) {
+test('lifecycle methods may return a plain value or an awaitable', function (LoopRuntime $runtime) {
     /** @var AsyncRuntime $instance */
-    $instance = new $runtime;
+    $instance = $runtime;
 
     $plain = new class extends AsyncNode
     {
@@ -81,7 +83,7 @@ test('lifecycle methods may return a plain value or an awaitable', function (str
         ->and($wrapped->runAsync(new SharedBag))->toBe('wrapped');
 })->with('async runtimes');
 
-test('exec is retried up to maxRetries before the fallback runs', function (string $runtime) {
+test('exec is retried up to maxRetries before the fallback runs', function (LoopRuntime $runtime) {
     $node = new class(3) extends AsyncNode
     {
         public int $attempts = 0;
@@ -104,12 +106,12 @@ test('exec is retried up to maxRetries before the fallback runs', function (stri
         }
     };
 
-    expect($node->usesRuntime(new $runtime)->runAsync(new SharedBag))
+    expect($node->usesRuntime($runtime)->runAsync(new SharedBag))
         ->toBe('fell back after attempt 3')
         ->and($node->attempts)->toBe(3);
 })->with('async runtimes');
 
-test('a retry that eventually succeeds never reaches the fallback', function (string $runtime) {
+test('a retry that eventually succeeds never reaches the fallback', function (LoopRuntime $runtime) {
     $node = new class(3) extends AsyncNode
     {
         public int $attempts = 0;
@@ -136,11 +138,11 @@ test('a retry that eventually succeeds never reaches the fallback', function (st
         }
     };
 
-    expect($node->usesRuntime(new $runtime)->runAsync(new SharedBag))->toBe('recovered')
+    expect($node->usesRuntime($runtime)->runAsync(new SharedBag))->toBe('recovered')
         ->and($node->attempts)->toBe(2);
 })->with('async runtimes');
 
-test('the default fallback rethrows the final failure', function (string $runtime) {
+test('the default fallback rethrows the final failure', function (LoopRuntime $runtime) {
     $node = new class(2) extends AsyncNode
     {
         public function execAsync(mixed $prepRes): mixed
@@ -149,16 +151,16 @@ test('the default fallback rethrows the final failure', function (string $runtim
         }
     };
 
-    expect(fn () => $node->usesRuntime(new $runtime)->runAsync(new SharedBag))
+    expect(fn () => $node->usesRuntime($runtime)->runAsync(new SharedBag))
         ->toThrow(RuntimeException::class, 'never works');
 })->with('async runtimes');
 
 test('retry backoff goes through the runtime instead of blocking', function () {
-    $runtime = new class extends SyncRuntime
+    $runtime = new class(new EventLoop) extends LoopRuntime
     {
         public array $delays = [];
 
-        public function delay(float $seconds): \Voyager\Contracts\Workflows\Awaitable
+        public function delay(float $seconds): Promise
         {
             $this->delays[] = $seconds;
 
@@ -189,7 +191,7 @@ test('retry backoff goes through the runtime instead of blocking', function () {
     expect($runtime->delays)->toBe([5.0, 5.0]);
 });
 
-test('an async node falls back to the sync runtime when none is supplied', function () {
+test('an async node falls back to an isolated loop runtime when none is supplied', function () {
     $node = new class extends AsyncNode
     {
         public function postAsync(SharedBag $shared, mixed $prepRes, mixed $execRes): mixed
@@ -198,7 +200,7 @@ test('an async node falls back to the sync runtime when none is supplied', funct
         }
     };
 
-    expect($node->runtime())->toBeInstanceOf(SyncRuntime::class)
+    expect($node->runtime())->toBeInstanceOf(LoopRuntime::class)
         ->and($node->runAsync(new SharedBag))->toBe('ran');
 });
 

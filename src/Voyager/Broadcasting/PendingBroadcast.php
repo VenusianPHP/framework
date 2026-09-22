@@ -2,18 +2,18 @@
 
 namespace Voyager\Broadcasting;
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher;
 
 use function Voyager\NutsAndBolts\Helpers\enum_value;
 
 class PendingBroadcast
 {
     /**
-     * The event dispatcher implementation.
+     * The signal dispatcher implementation.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
-    protected $events;
+    protected $signals;
 
     /**
      * The event instance.
@@ -25,13 +25,13 @@ class PendingBroadcast
     /**
      * Create a new pending broadcast instance.
      *
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $signals
      * @param  mixed  $event
      */
-    public function __construct(Dispatcher $events, $event)
+    public function __construct(SignalDispatcher $signals, $event)
     {
         $this->event = $event;
-        $this->events = $events;
+        $this->signals = $signals;
     }
 
     /**
@@ -50,14 +50,17 @@ class PendingBroadcast
     }
 
     /**
-     * Broadcast the event to everyone except the current user.
+     * Broadcast the event to everyone except the given socket.
      *
+     * Pusher/Reverb-only exclusion; Redis only passes the field through.
+     *
+     * @param  string  $socket
      * @return $this
      */
-    public function toOthers()
+    public function toOthers(string $socket)
     {
         if (method_exists($this->event, 'dontBroadcastToCurrentUser')) {
-            $this->event->dontBroadcastToCurrentUser();
+            $this->event->dontBroadcastToCurrentUser($socket);
         }
 
         return $this;
@@ -70,6 +73,6 @@ class PendingBroadcast
      */
     public function __destruct()
     {
-        $this->events->dispatch($this->event);
+        $this->signals->dispatch($this->event);
     }
 }

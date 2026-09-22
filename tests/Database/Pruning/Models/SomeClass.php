@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\Pruning\Models;
+namespace Venusian\Tests\Database\Pruning\Models;
 
 class SomeClass
 {

@@ -2,8 +2,8 @@
 
 namespace Voyager\Broadcasting;
 
-use Voyager\Contracts\Broadcasting\HasBroadcastChannel;
 use Stringable;
+use Voyager\Contracts\Broadcasting\HasBroadcastChannel;
 
 class Channel implements Stringable
 {
@@ -12,14 +12,14 @@ class Channel implements Stringable
      *
      * @var string
      */
-    public $name;
+    public string|HasBroadcastChannel $name;
 
     /**
      * Create a new channel instance.
      *
-     * @param  \Voyager\Contracts\Broadcasting\HasBroadcastChannel|string  $name
+     * @param \Voyager\Contracts\Broadcasting\HasBroadcastChannel|string $name
      */
-    public function __construct($name)
+    public function __construct(HasBroadcastChannel|string $name)
     {
         $this->name = $name instanceof HasBroadcastChannel ? $name->broadcastChannel() : $name;
     }

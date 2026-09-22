@@ -1,13 +1,13 @@
 <?php
 
-use Tests\Bus\Fixtures\BatchableJob;
+use Venusian\Tests\Bus\Fixtures\BatchableJob;
 use Voyager\Bus\Batch;
 use Voyager\Bus\Batchable;
 use Voyager\Bus\BatchRepository;
 use Voyager\Bus\PendingBatch;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel as Vessel;
 
 test('pending batch may be configured and dispatched', function () {
     $vessel = new Vessel;
@@ -15,7 +15,7 @@ test('pending batch may be configured and dispatched', function () {
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldReceive('dispatch')->once();
 
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -47,7 +47,7 @@ test('pending batch may be configured and dispatched', function () {
     $repository->shouldReceive('store')->once()->with($pendingBatch)->andReturn($batch = Mockery::mock(stdClass::class));
     $batch->shouldReceive('add')->once()->with(Mockery::type(Collection::class))->andReturn($batch = Mockery::mock(Batch::class));
 
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $pendingBatch->dispatch();
 });
@@ -72,7 +72,7 @@ test('batch is deleted from storage if exception thrown during batching', functi
 
     $repository->shouldReceive('delete')->once()->with('test-id');
 
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $pendingBatch->dispatch();
 })->throws(RuntimeException::class);
@@ -82,7 +82,7 @@ test('batch is dispatched when dispatchIf is true', function () {
 
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldReceive('dispatch')->once();
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -95,7 +95,7 @@ test('batch is dispatched when dispatchIf is true', function () {
     $repository->shouldReceive('store')->once()->andReturn($batch = Mockery::mock(stdClass::class));
     $batch->shouldReceive('add')->once()->andReturn($batch = Mockery::mock(Batch::class));
 
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $result = $pendingBatch->dispatchIf(true);
 
@@ -107,7 +107,7 @@ test('batch is not dispatched when dispatchIf is false', function () {
 
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldNotReceive('dispatch');
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -117,7 +117,7 @@ test('batch is not dispatched when dispatchIf is false', function () {
     $pendingBatch = new PendingBatch($vessel, new Collection([$job]));
 
     $repository = Mockery::mock(BatchRepository::class);
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $result = $pendingBatch->dispatchIf(false);
 
@@ -129,7 +129,7 @@ test('batch is dispatched when dispatchUnless is false', function () {
 
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldReceive('dispatch')->once();
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -142,7 +142,7 @@ test('batch is dispatched when dispatchUnless is false', function () {
     $repository->shouldReceive('store')->once()->andReturn($batch = Mockery::mock(stdClass::class));
     $batch->shouldReceive('add')->once()->andReturn($batch = Mockery::mock(Batch::class));
 
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $result = $pendingBatch->dispatchUnless(false);
 
@@ -154,7 +154,7 @@ test('batch is not dispatched when dispatchUnless is true', function () {
 
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldNotReceive('dispatch');
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -164,7 +164,7 @@ test('batch is not dispatched when dispatchUnless is true', function () {
     $pendingBatch = new PendingBatch($vessel, new Collection([$job]));
 
     $repository = Mockery::mock(BatchRepository::class);
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $result = $pendingBatch->dispatchUnless(true);
 
@@ -177,7 +177,7 @@ test('batch before event is called', function () {
     $eventDispatcher = Mockery::mock(Dispatcher::class);
     $eventDispatcher->shouldReceive('dispatch')->once();
 
-    $vessel->instance(Dispatcher::class, $eventDispatcher);
+    $vessel->registerInstance(Dispatcher::class, $eventDispatcher);
 
     $job = new class
     {
@@ -196,7 +196,7 @@ test('batch before event is called', function () {
     $repository->shouldReceive('store')->once()->with($pendingBatch)->andReturn($batch = Mockery::mock(stdClass::class));
     $batch->shouldReceive('add')->once()->with(Mockery::type(Collection::class))->andReturn($batch = Mockery::mock(Batch::class));
 
-    $vessel->instance(BatchRepository::class, $repository);
+    $vessel->registerInstance(BatchRepository::class, $repository);
 
     $pendingBatch->dispatch();
 

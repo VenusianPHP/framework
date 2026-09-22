@@ -7,7 +7,7 @@ use Voyager\Database\Schema\Builder;
 use Voyager\Database\Schema\ForeignIdColumnDefinition;
 use Voyager\Database\Schema\Grammars\PostgresGrammar;
 use Voyager\Database\Schema\PostgresBuilder;
-use Tests\Database\Fixtures\Enums\Foo;
+use Venusian\Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 
 test('basic create table', function () {

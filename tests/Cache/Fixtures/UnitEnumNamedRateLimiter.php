@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Cache\Fixtures;
+namespace Venusian\Tests\Cache\Fixtures;
 
 /** A plain (non-backed) enum used as a rate limiter name. */
 enum UnitEnumNamedRateLimiter

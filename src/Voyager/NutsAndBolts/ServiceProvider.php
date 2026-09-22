@@ -2,12 +2,13 @@
 
 namespace Voyager\NutsAndBolts;
 
-use Voyager\NutsAndBolts\DataObjects\Arr;
-use Voyager\NutsAndBolts\DataObjects\Str;
 
 use Closure;
-use Voyager\Console\Application as Computer;
-use Voyager\Contracts\System\CachesConfiguration;
+use Voyager\Console\ComputerConsoleInstance as Computer;
+use Voyager\Contracts\Core\FrameworkCore;
+use Voyager\NutsAndBolts\DataObjects\Str;
+use Voyager\NutsAndBolts\DataObjects\Arr;
+use Voyager\Contracts\Core\CachesConfiguration;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\Database\Instrument\Factory as ModelFactory;
 
@@ -20,44 +21,44 @@ abstract class ServiceProvider
     /**
      * The application instance.
      *
-     * @var \Voyager\Contracts\System\Application
+     * @var FrameworkCore
      */
-    protected $app;
+    protected FrameworkCore $app;
 
     /**
      * Every registered booting callback.
      *
      * @var array
      */
-    protected $bootingCallbacks = [];
+    protected array $bootingCallbacks = [];
 
     /**
      * Every registered booted callback.
      *
      * @var array
      */
-    protected $bootedCallbacks = [];
+    protected array $bootedCallbacks = [];
 
     /**
      * The paths that should be published.
      *
      * @var array
      */
-    public static $publishes = [];
+    public static array $publishes = [];
 
     /**
      * The paths that should be published by group.
      *
      * @var array
      */
-    public static $publishGroups = [];
+    public static array $publishGroups = [];
 
     /**
      * The migration paths available for publishing.
      *
      * @var array
      */
-    protected static $publishableMigrationPaths = [];
+    protected static array $publishableMigrationPaths = [];
 
     /**
      * Commands that should be run during the "optimize" command.
@@ -83,9 +84,9 @@ abstract class ServiceProvider
     /**
      * Create a new service provider instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param FrameworkCore $app
      */
-    public function __construct($app)
+    public function __construct(FrameworkCore $app)
     {
         $this->app = $app;
     }
@@ -106,7 +107,7 @@ abstract class ServiceProvider
      * @param  \Closure  $callback
      * @return void
      */
-    public function booting(Closure $callback)
+    public function booting(Closure $callback): void
     {
         $this->bootingCallbacks[] = $callback;
     }
@@ -117,7 +118,7 @@ abstract class ServiceProvider
      * @param  \Closure  $callback
      * @return void
      */
-    public function booted(Closure $callback)
+    public function booted(Closure $callback): void
     {
         $this->bootedCallbacks[] = $callback;
     }
@@ -127,7 +128,7 @@ abstract class ServiceProvider
      *
      * @return void
      */
-    public function callBootingCallbacks()
+    public function callBootingCallbacks(): void
     {
         $index = 0;
 
@@ -143,7 +144,7 @@ abstract class ServiceProvider
      *
      * @return void
      */
-    public function callBootedCallbacks()
+    public function callBootedCallbacks(): void
     {
         $index = 0;
 
@@ -157,11 +158,11 @@ abstract class ServiceProvider
     /**
      * Merge the given configuration with the existing configuration.
      *
-     * @param  string  $path
-     * @param  string  $key
+     * @param string $path
+     * @param string $key
      * @return void
      */
-    protected function mergeConfigFrom($path, $key)
+    protected function mergeConfigFrom(string $path, string $key): void
     {
         if (! ($this->app instanceof CachesConfiguration && $this->app->configurationIsCached())) {
             $config = $this->app->make('config');
@@ -175,11 +176,11 @@ abstract class ServiceProvider
     /**
      * Replace the given configuration with the existing configuration recursively.
      *
-     * @param  string  $path
-     * @param  string  $key
+     * @param string $path
+     * @param string $key
      * @return void
      */
-    protected function replaceConfigRecursivelyFrom($path, $key)
+    protected function replaceConfigRecursivelyFrom(string $path, string $key): void
     {
         if (! ($this->app instanceof CachesConfiguration && $this->app->configurationIsCached())) {
             $config = $this->app->make('config');
@@ -193,11 +194,11 @@ abstract class ServiceProvider
     /**
      * Register a translation file namespace or path.
      *
-     * @param  string  $path
-     * @param  string|null  $namespace
+     * @param string $path
+     * @param string|null $namespace
      * @return void
      */
-    protected function loadTranslationsFrom($path, $namespace = null)
+    protected function loadTranslationsFrom(string $path, ?string $namespace = null): void
     {
         $this->callAfterResolving('translator', fn ($translator) => is_null($namespace)
             ? $translator->addPath($path)
@@ -207,10 +208,10 @@ abstract class ServiceProvider
     /**
      * Register a JSON translation file path.
      *
-     * @param  string  $path
+     * @param string $path
      * @return void
      */
-    protected function loadJsonTranslationsFrom($path)
+    protected function loadJsonTranslationsFrom(string $path): void
     {
         $this->callAfterResolving('translator', function ($translator) use ($path) {
             $translator->addJsonPath($path);
@@ -220,10 +221,10 @@ abstract class ServiceProvider
     /**
      * Register database migration paths.
      *
-     * @param  array|string  $paths
+     * @param array|string $paths
      * @return void
      */
-    protected function loadMigrationsFrom($paths)
+    protected function loadMigrationsFrom(array|string $paths): void
     {
         $this->callAfterResolving('migrator', function ($migrator) use ($paths) {
             foreach ((array) $paths as $path) {
@@ -235,12 +236,12 @@ abstract class ServiceProvider
     /**
      * Register Instrument model factory paths.
      *
-     * @deprecated Will be removed in a future Venusian version.
-     *
      * @param  array|string  $paths
      * @return void
+     *@deprecated Will be removed in a future Venusian version.
+     *
      */
-    protected function loadFactoriesFrom($paths)
+    protected function loadFactoriesFrom(array|string $paths): void
     {
         $this->callAfterResolving(ModelFactory::class, function ($factory) use ($paths) {
             foreach ((array) $paths as $path) {
@@ -252,15 +253,15 @@ abstract class ServiceProvider
     /**
      * Setup an after resolving listener, or fire immediately if already resolved.
      *
-     * @param  string  $name
-     * @param  callable  $callback
+     * @param string $name
+     * @param callable $callback
      * @return void
      */
-    protected function callAfterResolving($name, $callback)
+    protected function callAfterResolving(string $name, callable $callback): void
     {
         $this->app->afterResolving($name, $callback);
 
-        if ($this->app->resolved($name)) {
+        if ($this->app->isResolved($name)) {
             $callback($this->app->make($name), $this->app);
         }
     }
@@ -269,14 +270,15 @@ abstract class ServiceProvider
      * Register migration paths to be published by the publish command.
      *
      * @param  array  $paths
-     * @param  mixed  $groups
+     * @param mixed|null $groups
      * @return void
+     * @throws
      */
-    protected function publishesMigrations(array $paths, $groups = null)
+    protected function publishesMigrations(array $paths, mixed $groups = null): void
     {
         $this->publishes($paths, $groups);
-
-        if ($this->app->config->get('database.migrations.update_date_on_publish', false)) {
+        $config = $this->app->get('config');
+        if ($config->get('database.migrations.update_date_on_publish', false)) {
             static::$publishableMigrationPaths = array_unique(array_merge(static::$publishableMigrationPaths, array_keys($paths)));
         }
     }
@@ -285,10 +287,10 @@ abstract class ServiceProvider
      * Register paths to be published by the publish command.
      *
      * @param  array  $paths
-     * @param  mixed  $groups
+     * @param mixed|null $groups
      * @return void
      */
-    protected function publishes(array $paths, $groups = null)
+    protected function publishes(array $paths, mixed $groups = null): void
     {
         $this->ensurePublishArrayInitialized($class = static::class);
 
@@ -302,10 +304,10 @@ abstract class ServiceProvider
     /**
      * Ensure the publish array for the service provider is initialized.
      *
-     * @param  string  $class
+     * @param string $class
      * @return void
      */
-    protected function ensurePublishArrayInitialized($class)
+    protected function ensurePublishArrayInitialized(string $class): void
     {
         if (! array_key_exists($class, static::$publishes)) {
             static::$publishes[$class] = [];
@@ -315,11 +317,11 @@ abstract class ServiceProvider
     /**
      * Add a publish group / tag to the service provider.
      *
-     * @param  string  $group
-     * @param  array  $paths
+     * @param string $group
+     * @param array $paths
      * @return void
      */
-    protected function addPublishGroup($group, $paths)
+    protected function addPublishGroup(string $group, array $paths): void
     {
         if (! array_key_exists($group, static::$publishGroups)) {
             static::$publishGroups[$group] = [];
@@ -333,17 +335,17 @@ abstract class ServiceProvider
     /**
      * Get the paths to publish.
      *
-     * @param  string|null  $provider
-     * @param  string|null  $group
+     * @param string|null $provider
+     * @param string|null $group
      * @return array
      */
-    public static function pathsToPublish($provider = null, $group = null)
+    public static function pathsToPublish(?string $provider = null, ?string $group = null): array
     {
         if (! is_null($paths = static::pathsForProviderOrGroup($provider, $group))) {
             return $paths;
         }
 
-        return (new Collection(static::$publishes))->reduce(function ($paths, $p) {
+        return new Collection(static::$publishes)->reduce(function ($paths, $p) {
             return array_merge($paths, $p);
         }, []);
     }
@@ -351,11 +353,11 @@ abstract class ServiceProvider
     /**
      * Get the paths for the provider or group (or both).
      *
-     * @param  string|null  $provider
-     * @param  string|null  $group
+     * @param string|null $provider
+     * @param string|null $group
      * @return array
      */
-    protected static function pathsForProviderOrGroup($provider, $group)
+    protected static function pathsForProviderOrGroup(?string $provider, ?string $group): array
     {
         if ($provider && $group) {
             return static::pathsForProviderAndGroup($provider, $group);
@@ -363,19 +365,19 @@ abstract class ServiceProvider
             return static::$publishGroups[$group];
         } elseif ($provider && array_key_exists($provider, static::$publishes)) {
             return static::$publishes[$provider];
-        } elseif ($group || $provider) {
-            return [];
         }
+
+        return [];
     }
 
     /**
      * Get the paths for the provider and group.
      *
-     * @param  string  $provider
-     * @param  string  $group
+     * @param string $provider
+     * @param string $group
      * @return array
      */
-    protected static function pathsForProviderAndGroup($provider, $group)
+    protected static function pathsForProviderAndGroup(string $provider, string $group): array
     {
         if (! empty(static::$publishes[$provider]) && ! empty(static::$publishGroups[$group])) {
             return array_intersect_key(static::$publishes[$provider], static::$publishGroups[$group]);
@@ -389,7 +391,7 @@ abstract class ServiceProvider
      *
      * @return array
      */
-    public static function publishableProviders()
+    public static function publishableProviders(): array
     {
         return array_keys(static::$publishes);
     }
@@ -399,7 +401,7 @@ abstract class ServiceProvider
      *
      * @return array
      */
-    public static function publishableMigrationPaths()
+    public static function publishableMigrationPaths(): array
     {
         return static::$publishableMigrationPaths;
     }
@@ -409,7 +411,7 @@ abstract class ServiceProvider
      *
      * @return array
      */
-    public static function publishableGroups()
+    public static function publishableGroups(): array
     {
         return array_keys(static::$publishGroups);
     }
@@ -420,7 +422,7 @@ abstract class ServiceProvider
      * @param  mixed  $commands
      * @return void
      */
-    public function commands($commands)
+    public function commands(mixed $commands): void
     {
         $commands = is_array($commands) ? $commands : func_get_args();
 
@@ -437,7 +439,7 @@ abstract class ServiceProvider
      * @param  string|null  $key
      * @return void
      */
-    protected function optimizes(?string $optimize = null, ?string $clear = null, ?string $key = null)
+    protected function optimizes(?string $optimize = null, ?string $clear = null, ?string $key = null): void
     {
         $key = $this->getProviderKey($key);
 
@@ -457,7 +459,7 @@ abstract class ServiceProvider
      * @param  string|null  $key
      * @return void
      */
-    protected function reloads(string $reload, ?string $key = null)
+    protected function reloads(string $reload, ?string $key = null): void
     {
         $key = $this->getProviderKey($key);
 
@@ -491,7 +493,7 @@ abstract class ServiceProvider
      *
      * @return array
      */
-    public function provides()
+    public function provides(): array
     {
         return [];
     }
@@ -501,7 +503,7 @@ abstract class ServiceProvider
      *
      * @return array
      */
-    public function when()
+    public function when(): array
     {
         return [];
     }
@@ -511,7 +513,7 @@ abstract class ServiceProvider
      *
      * @return bool
      */
-    public function isDeferred()
+    public function isDeferred(): bool
     {
         return $this instanceof DeferrableProvider;
     }
@@ -523,7 +525,7 @@ abstract class ServiceProvider
      * @param  string|null  $path
      * @return bool
      */
-    public static function addProviderToBootstrapFile(string $provider, ?string $path = null)
+    public static function addProviderToBootstrapFile(string $provider, ?string $path = null): bool
     {
         $path ??= app()->getBootstrapProvidersPath();
 
@@ -535,7 +537,7 @@ abstract class ServiceProvider
             opcache_invalidate($path, true);
         }
 
-        $providers = (new Collection(require $path))
+        $providers = new Collection(require $path)
             ->merge([$provider])
             ->unique()
             ->sort()
@@ -562,7 +564,7 @@ return [
      * @param  bool  $strict
      * @return bool
      */
-    public static function removeProviderFromBootstrapFile(string|array $providersToRemove, ?string $path = null, bool $strict = false)
+    public static function removeProviderFromBootstrapFile(string|array $providersToRemove, ?string $path = null, bool $strict = false): bool
     {
         $path ??= app()->getBootstrapProvidersPath();
 
@@ -576,7 +578,7 @@ return [
 
         $providersToRemove = Arr::wrap($providersToRemove);
 
-        $providers = (new Collection(require $path))
+        $providers = new Collection(require $path)
             ->unique()
             ->sort()
             ->values()

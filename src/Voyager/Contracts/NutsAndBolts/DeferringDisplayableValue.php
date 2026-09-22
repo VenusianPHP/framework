@@ -9,5 +9,5 @@ interface DeferringDisplayableValue
      *
      * @return \Voyager\Contracts\NutsAndBolts\Htmlable|string
      */
-    public function resolveDisplayableValue();
+    public function resolveDisplayableValue(): Htmlable|string;
 }

@@ -4,11 +4,10 @@ namespace Voyager\Workflows;
 
 use BackedEnum;
 use UnitEnum;
+use Voyager\Contracts\IOPools\Loop;
 use Voyager\Contracts\Workflows\AsyncRuntime;
 use Voyager\NutsAndBolts\Manager;
-use Voyager\Workflows\Runtimes\FiberRuntime;
-use Voyager\Workflows\Runtimes\ReactRuntime;
-use Voyager\Workflows\Runtimes\SyncRuntime;
+use Voyager\Workflows\Runtimes\LoopRuntime;
 
 /**
  * @mixin \Voyager\Contracts\Workflows\AsyncRuntime
@@ -29,21 +28,16 @@ class AsyncRuntimeManager extends Manager
 
     public function getDefaultDriver(): string
     {
-        return $this->config->get('workflows.runtime', AsyncRuntimeDriver::SYNC->value);
+        return $this->config->get('workflows.runtime', AsyncRuntimeDriver::LOOP->value);
     }
 
-    protected function createSyncDriver(): AsyncRuntime
+    protected function createLoopDriver(): AsyncRuntime
     {
-        return new SyncRuntime;
+        return new LoopRuntime($this->vessel->make(Loop::class));
     }
 
-    protected function createFiberDriver(): AsyncRuntime
+    protected function createIsolatedDriver(): AsyncRuntime
     {
-        return new FiberRuntime;
-    }
-
-    protected function createReactDriver(): AsyncRuntime
-    {
-        return new ReactRuntime;
+        return LoopRuntime::isolated();
     }
 }

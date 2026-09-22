@@ -2,6 +2,9 @@
 
 namespace Voyager\Queue;
 
+use DateTimeInterface;
+use DateInterval;
+use Voyager\Contracts\Queue\Job;
 use Voyager\Contracts\Queue\Queue as QueueContract;
 
 class NullQueue extends Queue implements QueueContract
@@ -12,7 +15,7 @@ class NullQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return int
      */
-    public function size($queue = null)
+    public function size(?string $queue = null): int
     {
         return 0;
     }
@@ -69,7 +72,7 @@ class NullQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null)
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         //
     }
@@ -82,7 +85,7 @@ class NullQueue extends Queue implements QueueContract
      * @param  array  $options
      * @return mixed
      */
-    public function pushRaw($payload, $queue = null, array $options = [])
+    public function pushRaw(string $payload, ?string $queue = null, array $options = []): mixed
     {
         //
     }
@@ -96,7 +99,7 @@ class NullQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null)
+    public function later(DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         //
     }
@@ -107,7 +110,7 @@ class NullQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return \Voyager\Contracts\Queue\Job|null
      */
-    public function pop($queue = null)
+    public function pop(?string $queue = null): ?Job
     {
         //
     }

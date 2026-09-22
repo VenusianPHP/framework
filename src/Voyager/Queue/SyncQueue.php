@@ -2,15 +2,17 @@
 
 namespace Voyager\Queue;
 
+use DateTimeInterface;
+use DateInterval;
 use Voyager\Bus\UniqueLock;
 use Voyager\Contracts\Cache\Repository as Cache;
 use Voyager\Contracts\Queue\Job;
 use Voyager\Contracts\Queue\Queue as QueueContract;
 use Voyager\Contracts\Queue\ShouldBeUnique;
-use Voyager\Queue\Events\JobAttempted;
-use Voyager\Queue\Events\JobExceptionOccurred;
-use Voyager\Queue\Events\JobProcessed;
-use Voyager\Queue\Events\JobProcessing;
+use Voyager\Queue\Signals\JobAttempted;
+use Voyager\Queue\Signals\JobExceptionOccurred;
+use Voyager\Queue\Signals\JobProcessed;
+use Voyager\Queue\Signals\JobProcessing;
 use Voyager\Queue\Jobs\SyncJob;
 use Throwable;
 
@@ -32,7 +34,7 @@ class SyncQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return int
      */
-    public function size($queue = null)
+    public function size(?string $queue = null): int
     {
         return 0;
     }
@@ -91,10 +93,10 @@ class SyncQueue extends Queue implements QueueContract
      *
      * @throws \Throwable
      */
-    public function push($job, $data = '', $queue = null)
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         if ($this->shouldDispatchAfterCommit($job) &&
-            $this->container->bound('db.transactions')) {
+            $this->container->isBound('db.transactions')) {
             if ($job instanceof ShouldBeUnique) {
                 $this->container->make('db.transactions')->addCallbackForRollback(
                     function () use ($job) {
@@ -162,8 +164,8 @@ class SyncQueue extends Queue implements QueueContract
      */
     protected function raiseBeforeJobEvent(Job $job)
     {
-        if ($this->container->bound('events')) {
-            $this->container['events']->dispatch(new JobProcessing($this->connectionName, $job));
+        if ($this->container->isBound('signals')) {
+            $this->container['signals']->dispatch(new JobProcessing($this->connectionName, $job));
         }
     }
 
@@ -175,8 +177,8 @@ class SyncQueue extends Queue implements QueueContract
      */
     protected function raiseAfterJobEvent(Job $job)
     {
-        if ($this->container->bound('events')) {
-            $this->container['events']->dispatch(new JobProcessed($this->connectionName, $job));
+        if ($this->container->isBound('signals')) {
+            $this->container['signals']->dispatch(new JobProcessed($this->connectionName, $job));
         }
     }
 
@@ -189,8 +191,8 @@ class SyncQueue extends Queue implements QueueContract
      */
     protected function raiseJobAttemptedEvent(Job $job, bool $exceptionOccurred = false)
     {
-        if ($this->container->bound('events')) {
-            $this->container['events']->dispatch(new JobAttempted($this->connectionName, $job, $exceptionOccurred));
+        if ($this->container->isBound('signals')) {
+            $this->container['signals']->dispatch(new JobAttempted($this->connectionName, $job, $exceptionOccurred));
         }
     }
 
@@ -203,8 +205,8 @@ class SyncQueue extends Queue implements QueueContract
      */
     protected function raiseExceptionOccurredJobEvent(Job $job, Throwable $e)
     {
-        if ($this->container->bound('events')) {
-            $this->container['events']->dispatch(new JobExceptionOccurred($this->connectionName, $job, $e));
+        if ($this->container->isBound('signals')) {
+            $this->container['signals']->dispatch(new JobExceptionOccurred($this->connectionName, $job, $e));
         }
     }
 
@@ -234,7 +236,7 @@ class SyncQueue extends Queue implements QueueContract
      * @param  array  $options
      * @return mixed
      */
-    public function pushRaw($payload, $queue = null, array $options = [])
+    public function pushRaw(string $payload, ?string $queue = null, array $options = []): mixed
     {
         //
     }
@@ -248,7 +250,7 @@ class SyncQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null)
+    public function later(DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         return $this->push($job, $data, $queue);
     }
@@ -259,7 +261,7 @@ class SyncQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return \Voyager\Contracts\Queue\Job|null
      */
-    public function pop($queue = null)
+    public function pop(?string $queue = null): ?Job
     {
         //
     }

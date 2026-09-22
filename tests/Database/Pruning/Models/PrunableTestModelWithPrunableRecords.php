@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Database\Pruning\Models;
+namespace Venusian\Tests\Database\Pruning\Models;
 
 use Voyager\Database\Instrument\MassPrunable;
 use Voyager\Database\Instrument\Model;
@@ -17,8 +17,8 @@ class PrunableTestModelWithPrunableRecords extends Model
 
     public function pruneAll()
     {
-        event(new ModelsPruned(static::class, 10));
-        event(new ModelsPruned(static::class, 20));
+        signal(new ModelsPruned(static::class, 10));
+        signal(new ModelsPruned(static::class, 20));
 
         return 20;
     }

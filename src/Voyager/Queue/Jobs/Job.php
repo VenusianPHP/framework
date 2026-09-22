@@ -4,8 +4,8 @@ namespace Voyager\Queue\Jobs;
 
 use Voyager\Bus\Batchable;
 use Voyager\Bus\BatchRepository;
-use Voyager\Contracts\Events\Dispatcher;
-use Voyager\Queue\Events\JobFailed;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
+use Voyager\Queue\Signals\JobFailed;
 use Voyager\Queue\ManuallyFailedException;
 use Voyager\Queue\TimeoutExceededException;
 use Voyager\NutsAndBolts\Concerns\InteractsWithTime;
@@ -76,7 +76,7 @@ abstract class Job
      *
      * @return string
      */
-    abstract public function getRawBody();
+    abstract public function getRawBody(): string;
 
     /**
      * Get the UUID of the job.
@@ -168,7 +168,7 @@ abstract class Job
      *
      * @return void
      */
-    public function markAsFailed()
+    public function markAsFailed(): void
     {
         $this->failed = true;
     }
@@ -179,7 +179,7 @@ abstract class Job
      * @param  \Throwable|null  $e
      * @return void
      */
-    public function fail($e = null)
+    public function fail(?Throwable $e = null): void
     {
         $this->markAsFailed();
 
@@ -235,7 +235,7 @@ abstract class Job
         return $e instanceof TimeoutExceededException &&
             $this->container['config']['queue.failed.database'] &&
             in_array($this->container['config']['queue.failed.driver'], ['database', 'database-uuids']) &&
-            $this->container->bound('db');
+            $this->container->isBound('db');
     }
 
     /**
@@ -291,7 +291,7 @@ abstract class Job
      *
      * @return int|null
      */
-    public function maxTries()
+    public function maxTries(): ?int
     {
         return $this->payload()['maxTries'] ?? null;
     }
@@ -301,7 +301,7 @@ abstract class Job
      *
      * @return int|null
      */
-    public function maxExceptions()
+    public function maxExceptions(): ?int
     {
         return $this->payload()['maxExceptions'] ?? null;
     }
@@ -331,7 +331,7 @@ abstract class Job
      *
      * @return int|null
      */
-    public function timeout()
+    public function timeout(): ?int
     {
         return $this->payload()['timeout'] ?? null;
     }
@@ -341,7 +341,7 @@ abstract class Job
      *
      * @return int|null
      */
-    public function retryUntil()
+    public function retryUntil(): ?int
     {
         return $this->payload()['retryUntil'] ?? null;
     }
@@ -351,7 +351,7 @@ abstract class Job
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->payload()['job'];
     }
@@ -363,7 +363,7 @@ abstract class Job
      *
      * @return string
      */
-    public function resolveName()
+    public function resolveName(): string
     {
         return JobName::resolve($this->getName(), $this->payload());
     }
@@ -375,7 +375,7 @@ abstract class Job
      *
      * @return string
      */
-    public function resolveQueuedJobClass()
+    public function resolveQueuedJobClass(): string
     {
         return JobName::resolveClassName($this->getName(), $this->payload());
     }
@@ -385,7 +385,7 @@ abstract class Job
      *
      * @return string
      */
-    public function getConnectionName()
+    public function getConnectionName(): string
     {
         return $this->connectionName;
     }
@@ -395,7 +395,7 @@ abstract class Job
      *
      * @return string
      */
-    public function getQueue()
+    public function getQueue(): string
     {
         return $this->queue;
     }

@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Middleware;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Cache\Repository as Cache;
 use Voyager\NutsAndBolts\Concerns\InteractsWithTime;
 
@@ -70,7 +70,7 @@ class WithoutOverlapping
      */
     public function handle($job, $next)
     {
-        $lock = Vessel::getInstance()->make(Cache::class)->lock(
+        $lock = ControlPanel::getInstance()->make(Cache::class)->lock(
             $this->getLockKey($job), $this->expiresAfter
         );
 

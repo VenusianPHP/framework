@@ -4,20 +4,20 @@ namespace Voyager\Queue;
 
 use Voyager\Contracts\Cache\Repository as CacheContract;
 use Voyager\Contracts\Debug\ExceptionHandler;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Contracts\Queue\Factory as QueueManager;
 use Voyager\Database\DetectsLostConnections;
-use Voyager\Queue\Events\JobAttempted;
-use Voyager\Queue\Events\JobExceptionOccurred;
-use Voyager\Queue\Events\JobPopped;
-use Voyager\Queue\Events\JobPopping;
-use Voyager\Queue\Events\JobProcessed;
-use Voyager\Queue\Events\JobProcessing;
-use Voyager\Queue\Events\JobReleasedAfterException;
-use Voyager\Queue\Events\JobTimedOut;
-use Voyager\Queue\Events\Looping;
-use Voyager\Queue\Events\WorkerStarting;
-use Voyager\Queue\Events\WorkerStopping;
+use Voyager\Queue\Signals\JobAttempted;
+use Voyager\Queue\Signals\JobExceptionOccurred;
+use Voyager\Queue\Signals\JobPopped;
+use Voyager\Queue\Signals\JobPopping;
+use Voyager\Queue\Signals\JobProcessed;
+use Voyager\Queue\Signals\JobProcessing;
+use Voyager\Queue\Signals\JobReleasedAfterException;
+use Voyager\Queue\Signals\JobTimedOut;
+use Voyager\Queue\Signals\Looping;
+use Voyager\Queue\Signals\WorkerStarting;
+use Voyager\Queue\Signals\WorkerStopping;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
 use Throwable;
 
@@ -46,7 +46,7 @@ class Worker
     /**
      * The event dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
     protected $events;
 
@@ -131,7 +131,7 @@ class Worker
      * Create a new queue worker.
      *
      * @param  \Voyager\Contracts\Queue\Factory  $manager
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $events
      * @param  \Voyager\Contracts\Debug\ExceptionHandler  $exceptions
      * @param  callable  $isDownForMaintenance
      * @param  callable|null  $resetScope

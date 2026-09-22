@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\InstrumentRelationshipsTest;
+namespace Venusian\Tests\Database\InstrumentRelationshipsTest;
 
 use Voyager\Database\Connection;
 use Voyager\Database\Instrument\Builder;

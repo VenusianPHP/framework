@@ -2,6 +2,7 @@
 
 namespace Voyager\Queue\Jobs;
 
+use Throwable;
 use Voyager\Contracts\Queue\Job as JobContract;
 use Voyager\NutsAndBolts\DataObjects\Str;
 
@@ -43,7 +44,7 @@ class FakeJob extends Job implements JobContract
      *
      * @return string
      */
-    public function getRawBody()
+    public function getRawBody(): string
     {
         return '';
     }
@@ -86,7 +87,7 @@ class FakeJob extends Job implements JobContract
      * @param  \Throwable|null  $exception
      * @return void
      */
-    public function fail($exception = null)
+    public function fail(?Throwable $exception = null): void
     {
         $this->failed = true;
         $this->failedWith = $exception;

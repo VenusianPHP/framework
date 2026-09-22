@@ -12,11 +12,11 @@ interface Broadcaster
      * Broadcast the given event.
      *
      * @param  array  $channels
-     * @param  string  $event
+     * @param string $event
      * @param  array  $payload
      * @return void
      *
-     * @throws \Voyager\Broadcasting\BroadcastException
+     * @throws BroadcastException
      */
-    public function broadcast(array $channels, $event, array $payload = []);
+    public function broadcast(array $channels, string $event, array $payload = []): void;
 }

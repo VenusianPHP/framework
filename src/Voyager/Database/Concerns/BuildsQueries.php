@@ -2,7 +2,7 @@
 
 namespace Voyager\Database\Concerns;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\MultipleRecordsFoundException;
 use Voyager\Database\Query\Expression;
@@ -549,7 +549,7 @@ trait BuildsQueries
      */
     protected function paginator($items, $total, $perPage, $currentPage, $options)
     {
-        return Vessel::getInstance()->makeWith(LengthAwarePaginator::class, compact(
+        return ControlPanel::getInstance()->make(LengthAwarePaginator::class, compact(
             'items', 'total', 'perPage', 'currentPage', 'options'
         ));
     }
@@ -565,7 +565,7 @@ trait BuildsQueries
      */
     protected function simplePaginator($items, $perPage, $currentPage, $options)
     {
-        return Vessel::getInstance()->makeWith(Paginator::class, compact(
+        return ControlPanel::getInstance()->make(Paginator::class, compact(
             'items', 'perPage', 'currentPage', 'options'
         ));
     }
@@ -581,7 +581,7 @@ trait BuildsQueries
      */
     protected function cursorPaginator($items, $perPage, $cursor, $options)
     {
-        return Vessel::getInstance()->makeWith(CursorPaginator::class, compact(
+        return ControlPanel::getInstance()->make(CursorPaginator::class, compact(
             'items', 'perPage', 'cursor', 'options'
         ));
     }

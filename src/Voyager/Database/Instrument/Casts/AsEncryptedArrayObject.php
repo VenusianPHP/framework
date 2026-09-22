@@ -4,7 +4,7 @@ namespace Voyager\Database\Instrument\Casts;
 
 use Voyager\Contracts\Database\Instrument\Castable;
 use Voyager\Contracts\Database\Instrument\CastsAttributes;
-use Voyager\NutsAndBolts\MagicAliases\Crypt;
+use Voyager\Contracts\Encryption\Encrypter;
 
 class AsEncryptedArrayObject implements Castable
 {
@@ -21,7 +21,7 @@ class AsEncryptedArrayObject implements Castable
             public function get($model, $key, $value, $attributes)
             {
                 if (isset($attributes[$key])) {
-                    return new ArrayObject(Json::decode(Crypt::decryptString($attributes[$key])), ArrayObject::ARRAY_AS_PROPS);
+                    return new ArrayObject(Json::decode(app(Encrypter::class)->decryptString($attributes[$key])), ArrayObject::ARRAY_AS_PROPS);
                 }
 
                 return null;
@@ -30,7 +30,7 @@ class AsEncryptedArrayObject implements Castable
             public function set($model, $key, $value, $attributes)
             {
                 if (! is_null($value)) {
-                    return [$key => Crypt::encryptString(Json::encode($value))];
+                    return [$key => app(Encrypter::class)->encryptString(Json::encode($value))];
                 }
 
                 return null;

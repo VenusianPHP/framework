@@ -1,10 +1,10 @@
 <?php
 
-use Tests\Pipeline\Fixtures\PipelineTestParameterPipe;
-use Tests\Pipeline\Fixtures\PipelineTestPipeOne;
-use Tests\Pipeline\Fixtures\PipelineTestPipeTwo;
+use Venusian\Tests\Pipeline\Fixtures\PipelineTestParameterPipe;
+use Venusian\Tests\Pipeline\Fixtures\PipelineTestPipeOne;
+use Venusian\Tests\Pipeline\Fixtures\PipelineTestPipeTwo;
 use Voyager\Pipeline\Pipeline;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 
 test('it pipes through a class name and a closure', function () {
     $pipeTwo = function ($piped, $next) {
@@ -13,7 +13,7 @@ test('it pipes through a class name and a closure', function () {
         return $next($piped);
     };
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([PipelineTestPipeOne::class, $pipeTwo])
         ->then(fn ($piped) => $piped);
@@ -26,7 +26,7 @@ test('it pipes through a class name and a closure', function () {
 });
 
 test('it pipes through an already constructed object', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([new PipelineTestPipeOne])
         ->then(fn ($piped) => $piped);
@@ -38,7 +38,7 @@ test('it pipes through an already constructed object', function () {
 });
 
 test('it pipes through an invokable object', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([new PipelineTestPipeTwo])
         ->then(fn ($piped) => $piped);
@@ -56,7 +56,7 @@ test('it pipes through a callable, given as an array or on its own', function ()
         return $next($piped);
     };
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([$function])
         ->then(fn ($piped) => $piped);
@@ -66,7 +66,7 @@ test('it pipes through a callable, given as an array or on its own', function ()
 
     unset($_SERVER['__test.pipe.one']);
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('bar')
         ->through($function)
         ->thenReturn();
@@ -87,7 +87,7 @@ test('pipe appends to the pipes already set', function () {
         return $next($object);
     };
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send($object)
         ->through([$function])
         ->pipe([$function])
@@ -107,7 +107,7 @@ test('through overwrites previously set and appended pipes', function () {
         return $next($object);
     };
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send($object)
         ->through([$function])
         ->pipe([$function])
@@ -119,7 +119,7 @@ test('through overwrites previously set and appended pipes', function () {
 });
 
 test('it pipes through an invokable class name', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([PipelineTestPipeTwo::class])
         ->then(fn ($piped) => $piped);
@@ -134,7 +134,7 @@ test('then is not called if a pipe returns without calling next', function () {
     $_SERVER['__test.pipe.then'] = '(*_*)';
     $_SERVER['__test.pipe.second'] = '(*_*)';
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([
             fn ($value, $next) => 'm(-_-)m',
@@ -156,7 +156,7 @@ test('then is not called if a pipe returns without calling next', function () {
 });
 
 test('then receives whatever the last pipe passed to next', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([function ($value, $next) {
             $value = $next('::not_foo::');
@@ -181,7 +181,7 @@ test('then receives whatever the last pipe passed to next', function () {
 test('a pipe may be given colon separated parameters', function () {
     $parameters = ['one', 'two'];
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through(PipelineTestParameterPipe::class.':'.implode(',', $parameters))
         ->then(fn ($piped) => $piped);
@@ -193,7 +193,7 @@ test('a pipe may be given colon separated parameters', function () {
 });
 
 test('via changes the method being called on the pipes', function () {
-    $pipelineInstance = new Pipeline(new Vessel);
+    $pipelineInstance = new Pipeline(new ControlPanel);
 
     $result = $pipelineInstance->send('data')
         ->through(PipelineTestPipeOne::class)
@@ -217,7 +217,7 @@ test('it throws when using transactions without a container', function () {
 })->throws(RuntimeException::class, 'A container instance has not been passed to the Pipeline.');
 
 test('thenReturn runs the pipeline and returns the passable', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->through([PipelineTestPipeOne::class])
         ->thenReturn();
@@ -229,7 +229,7 @@ test('thenReturn runs the pipeline and returns the passable', function () {
 });
 
 test('the pipeline is conditionable', function () {
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->when(true, function (Pipeline $pipeline) {
             $pipeline->pipe([PipelineTestPipeOne::class]);
@@ -243,7 +243,7 @@ test('the pipeline is conditionable', function () {
 
     $_SERVER['__test.pipe.one'] = null;
 
-    $result = (new Pipeline(new Vessel))
+    $result = (new Pipeline(new ControlPanel))
         ->send('foo')
         ->when(false, function (Pipeline $pipeline) {
             $pipeline->pipe([PipelineTestPipeOne::class]);
@@ -264,7 +264,7 @@ describe('finally', function () {
             $next($piped);
         };
 
-        $result = (new Pipeline(new Vessel))
+        $result = (new Pipeline(new ControlPanel))
             ->send('foo')
             ->through([PipelineTestPipeOne::class, $pipeTwo])
             ->finally(function ($piped) {
@@ -285,7 +285,7 @@ describe('finally', function () {
             $_SERVER['__test.pipe.two'] = $piped;
         };
 
-        $result = (new Pipeline(new Vessel))
+        $result = (new Pipeline(new ControlPanel))
             ->send('foo')
             ->through([PipelineTestPipeOne::class, $pipeTwo])
             ->finally(function ($piped) {
@@ -304,7 +304,7 @@ describe('finally', function () {
     test('it runs after then, not before it', function () {
         $std = new stdClass();
 
-        $result = (new Pipeline(new Vessel))
+        $result = (new Pipeline(new ControlPanel))
             ->send($std)
             ->through([
                 function ($std, $next) {
@@ -335,7 +335,7 @@ describe('finally', function () {
         $std = new stdClass();
 
         try {
-            (new Pipeline(new Vessel))
+            (new Pipeline(new ControlPanel))
                 ->send($std)
                 ->through([
                     function ($std, $next) {

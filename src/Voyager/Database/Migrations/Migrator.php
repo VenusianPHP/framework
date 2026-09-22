@@ -7,7 +7,7 @@ use Voyager\Console\View\Components\BulletList;
 use Voyager\Console\View\Components\Info;
 use Voyager\Console\View\Components\Task;
 use Voyager\Console\View\Components\TwoColumnDetail;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\ConnectionResolverInterface as Resolver;
 use Voyager\Database\Events\MigrationEnded;
 use Voyager\Database\Events\MigrationsEnded;
@@ -27,7 +27,7 @@ class Migrator
     /**
      * The event dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
     protected $events;
 
@@ -100,7 +100,7 @@ class Migrator
      * @param  \Voyager\Database\Migrations\MigrationRepositoryInterface  $repository
      * @param  \Voyager\Database\ConnectionResolverInterface  $resolver
      * @param  \Voyager\Filesystem\Filesystem  $files
-     * @param  \Voyager\Contracts\Events\Dispatcher|null  $dispatcher
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher|null  $dispatcher
      */
     public function __construct(
         MigrationRepositoryInterface $repository,

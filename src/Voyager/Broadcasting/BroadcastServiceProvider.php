@@ -2,8 +2,6 @@
 
 namespace Voyager\Broadcasting;
 
-use Voyager\Contracts\Broadcasting\Broadcaster as BroadcasterContract;
-use Voyager\Contracts\Broadcasting\Factory as BroadcastingFactory;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\NutsAndBolts\ServiceProvider;
 
@@ -16,15 +14,13 @@ class BroadcastServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function register()
     {
-        $this->app->singleton(BroadcastManager::class, fn ($app) => new BroadcastManager($app));
+        $this->mergeConfigFrom(__DIR__.'/config/broadcasting.php', 'broadcasting');
 
-        $this->app->singleton(BroadcasterContract::class, function ($app) {
-            return $app->make(BroadcastManager::class)->connection();
+        $this->app->registerSingleton('broadcast', fn ($app) => new BroadcastManager($app));
+
+        $this->app->registerSingleton('broadcast.connection', function ($app) {
+            return $app->make('broadcast')->connection();
         });
-
-        $this->app->alias(
-            BroadcastManager::class, BroadcastingFactory::class
-        );
     }
 
     /**
@@ -32,12 +28,11 @@ class BroadcastServiceProvider extends ServiceProvider implements DeferrableProv
      *
      * @return array
      */
-    public function provides()
+    public function provides(): array
     {
         return [
-            BroadcastManager::class,
-            BroadcastingFactory::class,
-            BroadcasterContract::class,
+            'broadcast',
+            'broadcast.connection',
         ];
     }
 }

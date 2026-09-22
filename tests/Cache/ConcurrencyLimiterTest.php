@@ -1,8 +1,8 @@
 <?php
 
-use Tests\Cache\Fixtures\ConcurrencyLimiterBackedEnum;
-use Tests\Cache\Fixtures\ConcurrencyLimiterMockThatDoesntRelease;
-use Tests\Cache\Fixtures\ConcurrencyLimiterUnitEnum;
+use Venusian\Tests\Cache\Fixtures\ConcurrencyLimiterBackedEnum;
+use Venusian\Tests\Cache\Fixtures\ConcurrencyLimiterMockThatDoesntRelease;
+use Venusian\Tests\Cache\Fixtures\ConcurrencyLimiterUnitEnum;
 use Voyager\Cache\ArrayStore;
 use Voyager\Cache\Limiters\ConcurrencyLimiter;
 use Voyager\Cache\Limiters\LimiterTimeoutException;

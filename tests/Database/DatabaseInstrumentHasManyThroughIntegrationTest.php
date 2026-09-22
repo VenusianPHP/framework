@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
@@ -238,14 +238,14 @@ test('first or fail throws an exception', function () {
         ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
 
     HasManyThroughTestCountry::first()->posts()->firstOrFail();
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost].');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\HasManyThroughTestPost].');
 
 test('find or fail throws an exception', function () {
     HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
         ->users()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'country_short' => 'us']);
 
     HasManyThroughTestCountry::first()->posts()->findOrFail(1);
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\HasManyThroughTestPost] 1');
 
 test('find or fail with many throws an exception', function () {
     HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
@@ -253,7 +253,7 @@ test('find or fail with many throws an exception', function () {
         ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
 
     HasManyThroughTestCountry::first()->posts()->findOrFail([1, 2]);
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\HasManyThroughTestPost] 1, 2');
 
 test('find or fail with many using collection throws an exception', function () {
     HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])
@@ -261,7 +261,7 @@ test('find or fail with many using collection throws an exception', function () 
         ->posts()->create(['id' => 1, 'title' => 'A title', 'body' => 'A body', 'email' => 'taylorotwell@gmail.com']);
 
     HasManyThroughTestCountry::first()->posts()->findOrFail(new Collection([1, 2]));
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasManyThroughTestPost] 1, 2');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\HasManyThroughTestPost] 1, 2');
 
 test('find or method', function () {
     HasManyThroughTestCountry::create(['id' => 1, 'name' => 'United States of America', 'shortname' => 'us'])

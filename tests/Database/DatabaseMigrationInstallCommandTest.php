@@ -2,7 +2,7 @@
 
 use Voyager\Database\Console\Migrations\InstallCommand;
 use Voyager\Database\Migrations\MigrationRepositoryInterface;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -14,7 +14,7 @@ function migrationInstallRunCommand($command, $options = [])
 
 test('fire calls repository to install', function () {
     $command = new InstallCommand($repo = m::mock(MigrationRepositoryInterface::class));
-    $command->setVenusian(new Application);
+    $command->setVenusian(new RenderedInstance);
     $repo->shouldReceive('setSource')->once()->with('foo');
     $repo->shouldReceive('createRepository')->once();
     $repo->shouldReceive('repositoryExists')->once()->andReturn(false);
@@ -24,7 +24,7 @@ test('fire calls repository to install', function () {
 
 test('fire calls repository to install exists', function () {
     $command = new InstallCommand($repo = m::mock(MigrationRepositoryInterface::class));
-    $command->setVenusian(new Application);
+    $command->setVenusian(new RenderedInstance);
     $repo->shouldReceive('setSource')->once()->with('foo');
     $repo->shouldReceive('repositoryExists')->once()->andReturn(true);
 

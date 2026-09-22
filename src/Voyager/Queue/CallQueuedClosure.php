@@ -5,9 +5,10 @@ namespace Voyager\Queue;
 use Closure;
 use Voyager\Bus\Batchable;
 use Voyager\Bus\Queueable;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\System\Bus\Dispatchable;
+use Voyager\Core\Bus\Dispatchable;
 use Laravel\SerializableClosure\SerializableClosure;
 use ReflectionFunction;
 use Voyager\Queue\Concerns\SerializesModels;
@@ -68,11 +69,12 @@ class CallQueuedClosure implements ShouldQueue
     /**
      * Execute the job.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $container
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $container
      * @return void
      */
-    public function handle(Vessel $container)
+    public function handle(?TheServiceContainer $container = null): mixed
     {
+        $container ??= ControlPanel::getInstance();
         $container->call($this->closure->getClosure(), ['job' => $this]);
     }
 

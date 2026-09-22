@@ -1,6 +1,7 @@
 <?php
 
-namespace Tests\Vessel\Fixtures;
+namespace Venusian\Tests\Vessel\Fixtures;
+
 
 #[ContainerTestConfiguresClass(value: 'the-right-value')]
 final class ContainerTestHasSelfConfiguringAttributeAndConstructor

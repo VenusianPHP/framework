@@ -2,13 +2,13 @@
 
 namespace Voyager\Config;
 
-use ArrayAccess;
 use Closure;
-use Voyager\Contracts\Config\Repository as ConfigContract;
-use Voyager\NutsAndBolts\DataObjects\Arr;
-use Voyager\NutsAndBolts\Collection;
-use Voyager\NutsAndBolts\Concerns\Macroable;
+use ArrayAccess;
 use InvalidArgumentException;
+use Voyager\NutsAndBolts\Collection;
+use Voyager\NutsAndBolts\DataObjects\Arr;
+use Voyager\NutsAndBolts\Concerns\Macroable;
+use Voyager\Contracts\Config\Repository as ConfigContract;
 
 class Repository implements ArrayAccess, ConfigContract
 {
@@ -34,10 +34,10 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Determine if the given configuration value exists.
      *
-     * @param  string  $key
+     * @param string $key
      * @return bool
      */
-    public function has($key): bool
+    public function has(string $key): bool
     {
         return Arr::has($this->items, $key);
     }
@@ -45,11 +45,11 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Get the specified configuration value.
      *
-     * @param  array|string  $key
+     * @param array|string $key
      * @param  mixed  $default
      * @return mixed
      */
-    public function get($key, mixed $default = null): mixed
+    public function get(array|string $key, mixed $default = null): mixed
     {
         if (is_array($key)) {
             return $this->getMany($key);
@@ -204,11 +204,11 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Set a given configuration value.
      *
-     * @param  array|string  $key
+     * @param array|string $key
      * @param  mixed  $value
      * @return void
      */
-    public function set($key, mixed $value = null): void
+    public function set(array|string $key, mixed $value = null): void
     {
         $keys = is_array($key) ? $key : [$key => $value];
 
@@ -220,11 +220,11 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Prepend a value onto an array configuration value.
      *
-     * @param  string  $key
+     * @param string $key
      * @param  mixed  $value
      * @return void
      */
-    public function prepend($key, mixed $value): void
+    public function prepend(string $key, mixed $value): void
     {
         $array = $this->get($key, []);
 
@@ -236,11 +236,11 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Push a value onto an array configuration value.
      *
-     * @param  string  $key
+     * @param string $key
      * @param  mixed  $value
      * @return void
      */
-    public function push($key, mixed $value): void
+    public function push(string $key, mixed $value): void
     {
         $array = $this->get($key, []);
 
@@ -262,45 +262,45 @@ class Repository implements ArrayAccess, ConfigContract
     /**
      * Determine if the given configuration option exists.
      *
-     * @param  string  $key
+     * @param  string  $offset
      * @return bool
      */
-    public function offsetExists(mixed $key): bool
+    public function offsetExists(mixed $offset): bool
     {
-        return $this->has($key);
+        return $this->has($offset);
     }
 
     /**
      * Get a configuration option.
      *
-     * @param  string  $key
+     * @param  string  $offset
      * @return mixed
      */
-    public function offsetGet(mixed $key): mixed
+    public function offsetGet(mixed $offset): mixed
     {
-        return $this->get($key);
+        return $this->get($offset);
     }
 
     /**
      * Set a configuration option.
      *
-     * @param  string  $key
+     * @param  string  $offset
      * @param  mixed  $value
      * @return void
      */
-    public function offsetSet(mixed $key, mixed $value): void
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->set($key, $value);
+        $this->set($offset, $value);
     }
 
     /**
      * Unset a configuration option.
      *
-     * @param  string  $key
+     * @param  string  $offset
      * @return void
      */
-    public function offsetUnset(mixed $key): void
+    public function offsetUnset(mixed $offset): void
     {
-        $this->set($key, null);
+        $this->set($offset, null);
     }
 }

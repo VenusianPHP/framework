@@ -13,9 +13,11 @@
   ],
   "require": {
       "php": "^8.4|^8.5",
-      "venusian-voyager/macroable": "^0.8.0",
-      "venusian-voyager/contracts": "^0.8.0",
-      "venusian-voyager/conditionable": "^0.8.0"
+      "symfony/polyfill-php84": "^1.33",
+      "symfony/polyfill-php85": "^1.33",
+      "venusian-voyager/macroable": "^0.9.0",
+      "venusian-voyager/contracts": "^0.9.0",
+      "venusian-voyager/conditionable": "^0.9.0"
   },
   "minimum-stability": "dev",
   "autoload": {
@@ -32,7 +34,7 @@
   },
   "extra": {
     "branch-alias": {
-        "dev-main": "0.8.x-dev"
+        "dev-main": "0.9.x-dev"
     }
   }
 }

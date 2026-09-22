@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Pagination\Fixtures\Models;
+namespace Venusian\Tests\Pagination\Fixtures\Models;
 
 use Voyager\Database\Instrument\Model;
 

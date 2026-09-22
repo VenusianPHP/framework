@@ -1,103 +1,75 @@
 <?php
-
+declare(strict_types=1);
 namespace Voyager\Sketches;
 
+use Voyager\Config\Repository;
+use Voyager\Contracts\IOPools\Loop;
 use Voyager\Contracts\Sketches\Sketch;
 use Voyager\Contracts\Sketches\SketchExitStatus;
 use Voyager\Contracts\Sketches\SketchLoopResult;
-use Throwable;
 
 class SketchRunner
 {
-    /**
-     * Indicates whether a cooperative stop has been requested.
-     */
-    protected bool $shouldStop = false;
+    public const string RATE_KEY = 'sketches.refresh_rate';
+    public const float MIN_HZ = 1.0;
 
-    /**
-     * Indicates whether shutdown() has already been invoked for the active run.
-     */
-    protected bool $shutdownInvoked = false;
+    protected bool $shutdown_invoked = false;
 
-    /**
-     * Boot once, tick loop() until STOP or stop(), then shutdown exactly once.
-     *
-     * @throws Throwable
-     */
+    public function __construct(
+        protected Loop $loop,
+        protected Repository $config,
+    ) {}
+
     public function run(Sketch $sketch): int
     {
-        $this->shouldStop = false;
-        $this->shutdownInvoked = false;
+        $this->shutdown_invoked = false;
 
-        $this->listenForSignals();
+        if (! is_null($hz = $sketch->refreshRate())) {
+            $this->config->set(self::RATE_KEY, $hz);
+        }
+
+        // the loop's finally covers stop()/signals/tick throws; the outer finally covers boot()
+        $this->loop->onStop(fn () => $this->shutdownOnce($sketch));
 
         try {
             $sketch->boot();
+            $this->arm($sketch);
 
-            while (! $this->shouldStop) {
-                if ($sketch->loop() === SketchLoopResult::STOP) {
-                    break;
-                }
-            }
-
-            return SketchExitStatus::SUCCESS->value;
+            return $this->loop->run();
         } finally {
             $this->shutdownOnce($sketch);
         }
     }
 
-    /**
-     * Request a cooperative stop after the current loop tick.
-     */
-    public function stop(): void
+    public function stop(int $status = 0): void
     {
-        $this->shouldStop = true;
+        $this->loop->stop($status);
     }
 
-    /**
-     * Determine whether a cooperative stop has been requested.
-     */
-    public function shouldStop(): bool
+    protected function arm(Sketch $sketch): void
     {
-        return $this->shouldStop;
+        $this->loop->at($this->period(), function () use ($sketch): void {
+            if ($sketch->loop() === SketchLoopResult::STOP) {
+                $this->loop->stop(SketchExitStatus::SUCCESS->value);
+                return;
+            }
+            $this->arm($sketch);
+        });
     }
 
-    /**
-     * Invoke shutdown exactly once for the active run.
-     */
+    protected function period(): float
+    {
+        $hz = (float) $this->config->get(self::RATE_KEY, 60);
+
+        return 1 / max($hz, self::MIN_HZ);
+    }
+
     protected function shutdownOnce(Sketch $sketch): void
     {
-        if ($this->shutdownInvoked) {
+        if ($this->shutdown_invoked) {
             return;
         }
-
-        $this->shutdownInvoked = true;
+        $this->shutdown_invoked = true;
         $sketch->shutdown();
-    }
-
-    /**
-     * Listen for process termination signals when available.
-     */
-    protected function listenForSignals(): void
-    {
-        if (! $this->supportsSignals()) {
-            return;
-        }
-
-        pcntl_async_signals(true);
-
-        foreach ([SIGINT, SIGTERM] as $signal) {
-            pcntl_signal($signal, function (): void {
-                $this->stop();
-            });
-        }
-    }
-
-    /**
-     * Determine whether async signal handling is available.
-     */
-    protected function supportsSignals(): bool
-    {
-        return extension_loaded('pcntl');
     }
 }

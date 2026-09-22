@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Closure;
 use Exception;

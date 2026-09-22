@@ -4,15 +4,15 @@ use Voyager\Cache\ArrayStore;
 use Voyager\Cache\CacheManager;
 use Voyager\Cache\NullStore;
 use Voyager\Config\Repository;
-use Voyager\Vessel\Vessel as Container;
-use Voyager\Contracts\Events\Dispatcher;
-use Voyager\Events\Dispatcher as Event;
+use Voyager\Vessel\ControlPanel as Container;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
+use Voyager\Signals\SignalDispatcher as Event;
 
 /** A container bound with the given user cache config. */
 function containerWithCacheConfig(array $userConfig): Container
 {
     $app = new Container;
-    $app->singleton('config', fn () => new Repository($userConfig));
+    $app->registerSingleton('config', fn () => new Repository($userConfig));
 
     return $app;
 }
@@ -85,7 +85,7 @@ test('it makes a repository when the container has no dispatcher', function () {
     ];
 
     $app = containerWithCacheConfig($userConfig);
-    expect($app->bound(Dispatcher::class))->toBeFalse();
+    expect($app->isBound(Dispatcher::class))->toBeFalse();
 
     $cacheManager = new CacheManager($app);
     $repo = $cacheManager->repository($theStore = new NullStore);

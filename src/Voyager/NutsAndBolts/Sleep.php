@@ -81,9 +81,9 @@ class Sleep
     /**
      * Create a new class instance.
      *
-     * @param  int|float|\DateInterval  $duration
+     * @param \DateInterval|float|int $duration
      */
-    public function __construct($duration)
+    public function __construct(DateInterval|float|int $duration)
     {
         $this->duration($duration);
     }
@@ -91,10 +91,10 @@ class Sleep
     /**
      * Sleep for the given duration.
      *
-     * @param  \DateInterval|int|float  $duration
+     * @param \DateInterval|float|int $duration
      * @return static
      */
-    public static function for($duration)
+    public static function for(DateInterval|float|int $duration): static
     {
         return new static($duration);
     }
@@ -102,10 +102,10 @@ class Sleep
     /**
      * Sleep until the given timestamp.
      *
-     * @param  \DateTimeInterface|int|float|numeric-string  $timestamp
+     * @param float|\DateTimeInterface|int|numeric-string $timestamp
      * @return static
      */
-    public static function until($timestamp)
+    public static function until(float|\DateTimeInterface|int|string $timestamp): static
     {
         if (is_numeric($timestamp)) {
             $timestamp = Carbon::createFromTimestamp($timestamp, date_default_timezone_get());
@@ -117,32 +117,32 @@ class Sleep
     /**
      * Sleep for the given number of microseconds.
      *
-     * @param  int  $duration
+     * @param int $duration
      * @return static
      */
-    public static function usleep($duration)
+    public static function usleep(int $duration): static
     {
-        return (new static($duration))->microseconds();
+        return new static($duration)->microseconds();
     }
 
     /**
      * Sleep for the given number of seconds.
      *
-     * @param  int|float  $duration
+     * @param float|int $duration
      * @return static
      */
-    public static function sleep($duration)
+    public static function sleep(float|int $duration): static
     {
-        return (new static($duration))->seconds();
+        return new static($duration)->seconds();
     }
 
     /**
      * Sleep for the given duration. Replaces any previously defined duration.
      *
-     * @param  \DateInterval|int|float  $duration
+     * @param \DateInterval|float|int $duration
      * @return $this
      */
-    protected function duration($duration)
+    protected function duration(DateInterval|float|int $duration): static
     {
         if (! $duration instanceof DateInterval) {
             $this->duration = CarbonInterval::microsecond(0);
@@ -167,7 +167,7 @@ class Sleep
      *
      * @return $this
      */
-    public function minutes()
+    public function minutes(): static
     {
         $this->duration->add('minutes', $this->pullPending());
 
@@ -179,7 +179,7 @@ class Sleep
      *
      * @return $this
      */
-    public function minute()
+    public function minute(): static
     {
         return $this->minutes();
     }
@@ -189,7 +189,7 @@ class Sleep
      *
      * @return $this
      */
-    public function seconds()
+    public function seconds(): static
     {
         $this->duration->add('seconds', $this->pullPending());
 
@@ -201,7 +201,7 @@ class Sleep
      *
      * @return $this
      */
-    public function second()
+    public function second(): static
     {
         return $this->seconds();
     }
@@ -211,7 +211,7 @@ class Sleep
      *
      * @return $this
      */
-    public function milliseconds()
+    public function milliseconds(): static
     {
         $this->duration->add('milliseconds', $this->pullPending());
 
@@ -223,7 +223,7 @@ class Sleep
      *
      * @return $this
      */
-    public function millisecond()
+    public function millisecond(): static
     {
         return $this->milliseconds();
     }
@@ -233,7 +233,7 @@ class Sleep
      *
      * @return $this
      */
-    public function microseconds()
+    public function microseconds(): static
     {
         $this->duration->add('microseconds', $this->pullPending());
 
@@ -245,7 +245,7 @@ class Sleep
      *
      * @return $this
      */
-    public function microsecond()
+    public function microsecond(): static
     {
         return $this->microseconds();
     }
@@ -253,10 +253,10 @@ class Sleep
     /**
      * Add additional time to sleep for.
      *
-     * @param  int|float  $duration
+     * @param float|int $duration
      * @return $this
      */
-    public function and($duration)
+    public function and(float|int $duration): static
     {
         $this->pending = $duration;
 
@@ -269,7 +269,7 @@ class Sleep
      * @param  \Closure  $callback
      * @return $this
      */
-    public function while(Closure $callback)
+    public function while(Closure $callback): static
     {
         $this->while = $callback;
 
@@ -282,7 +282,7 @@ class Sleep
      * @param  callable  $then
      * @return mixed
      */
-    public function then(callable $then)
+    public function then(callable $then): mixed
     {
         $this->goodnight();
 
@@ -306,7 +306,7 @@ class Sleep
      *
      * @return void
      */
-    protected function goodnight()
+    protected function goodnight(): void
     {
         if ($this->alreadySlept || ! $this->shouldSleep) {
             return;
@@ -360,7 +360,7 @@ class Sleep
      *
      * @return int|float
      */
-    protected function pullPending()
+    protected function pullPending(): float|int
     {
         if ($this->pending === null) {
             $this->shouldNotSleep();
@@ -380,11 +380,11 @@ class Sleep
     /**
      * Stay awake and capture any attempts to sleep.
      *
-     * @param  bool  $value
-     * @param  bool  $syncWithCarbon
+     * @param bool $value
+     * @param bool $syncWithCarbon
      * @return void
      */
-    public static function fake($value = true, $syncWithCarbon = false)
+    public static function fake(bool $value = true, bool $syncWithCarbon = false): void
     {
         static::$fake = $value;
 
@@ -396,13 +396,13 @@ class Sleep
     /**
      * Assert a given amount of sleeping occurred a specific number of times.
      *
-     * @param  \Closure  $expected
-     * @param  int  $times
+     * @param \Closure $expected
+     * @param int $times
      * @return void
      */
-    public static function assertSlept($expected, $times = 1)
+    public static function assertSlept(Closure $expected, int $times = 1): void
     {
-        $count = (new Collection(static::$sequence))->filter($expected)->count();
+        $count = new Collection(static::$sequence)->filter($expected)->count();
 
         PHPUnit::assertSame(
             $times,
@@ -414,10 +414,10 @@ class Sleep
     /**
      * Assert sleeping occurred a given number of times.
      *
-     * @param  int  $expected
+     * @param int $expected
      * @return void
      */
-    public static function assertSleptTimes($expected)
+    public static function assertSleptTimes(int $expected): void
     {
         PHPUnit::assertSame($expected, $count = count(static::$sequence), "Expected [{$expected}] sleeps but found [{$count}].");
     }
@@ -425,15 +425,15 @@ class Sleep
     /**
      * Assert the given sleep sequence was encountered.
      *
-     * @param  array  $sequence
+     * @param array $sequence
      * @return void
      */
-    public static function assertSequence($sequence)
+    public static function assertSequence(array $sequence): void
     {
         try {
             static::assertSleptTimes(count($sequence));
 
-            (new Collection($sequence))
+            new Collection($sequence)
                 ->zip(static::$sequence)
                 ->eachSpread(function (?Sleep $expected, CarbonInterval $actual) {
                     if ($expected === null) {
@@ -468,7 +468,7 @@ class Sleep
      *
      * @return void
      */
-    public static function assertNeverSlept()
+    public static function assertNeverSlept(): void
     {
         static::assertSleptTimes(0);
     }
@@ -478,7 +478,7 @@ class Sleep
      *
      * @return void
      */
-    public static function assertInsomniac()
+    public static function assertInsomniac(): void
     {
         if (static::$sequence === []) {
             PHPUnit::assertTrue(true);
@@ -499,7 +499,7 @@ class Sleep
      *
      * @return $this
      */
-    protected function shouldNotSleep()
+    protected function shouldNotSleep(): static
     {
         $this->shouldSleep = false;
 
@@ -509,10 +509,10 @@ class Sleep
     /**
      * Only sleep when the given condition is true.
      *
-     * @param  (\Closure($this): bool)|bool  $condition
+     * @param bool|(\Closure($this): bool) $condition
      * @return $this
      */
-    public function when($condition)
+    public function when(bool|Closure $condition): static
     {
         $this->shouldSleep = (bool) value($condition, $this);
 
@@ -522,10 +522,10 @@ class Sleep
     /**
      * Don't sleep when the given condition is true.
      *
-     * @param  (\Closure($this): bool)|bool  $condition
+     * @param bool|(\Closure($this): bool) $condition
      * @return $this
      */
-    public function unless($condition)
+    public function unless(bool|Closure $condition): static
     {
         return $this->when(! value($condition, $this));
     }
@@ -533,10 +533,10 @@ class Sleep
     /**
      * Specify a callback that should be invoked when faking sleep within a test.
      *
-     * @param  callable  $callback
+     * @param callable $callback
      * @return void
      */
-    public static function whenFakingSleep($callback)
+    public static function whenFakingSleep(callable $callback): void
     {
         static::$fakeSleepCallbacks[] = $callback;
     }
@@ -546,7 +546,7 @@ class Sleep
      *
      * @return void
      */
-    public static function syncWithCarbon($value = true)
+    public static function syncWithCarbon($value = true): void
     {
         static::$syncWithCarbon = $value;
     }

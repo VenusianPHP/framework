@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Log\Fixtures;
+namespace Venusian\Tests\Log\Fixtures;
 
 use Monolog\LogRecord;
 use Voyager\Contracts\Log\ContextLogProcessor;

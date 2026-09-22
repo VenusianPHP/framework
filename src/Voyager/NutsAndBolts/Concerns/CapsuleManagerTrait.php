@@ -2,7 +2,7 @@
 
 namespace Voyager\NutsAndBolts\Concerns;
 
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\NutsAndBolts\Fluent;
 
 trait CapsuleManagerTrait
@@ -17,22 +17,22 @@ trait CapsuleManagerTrait
     /**
      * The container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
-    protected ?Vessel $vessel = null;
+    protected ?TheServiceContainer $vessel = null;
 
     /**
      * Setup the IoC container instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $vessel
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $vessel
      * @return void
      */
-    protected function setupContainer(Vessel $vessel): void
+    protected function setupContainer(TheServiceContainer $vessel): void
     {
         $this->vessel = $vessel;
 
-        if (! $this->vessel->bound('config')) {
-            $this->vessel->instance('config', new Fluent);
+        if (! $this->vessel->isBound('config')) {
+            $this->vessel->registerInstance('config', new Fluent);
         }
     }
 
@@ -49,9 +49,9 @@ trait CapsuleManagerTrait
     /**
      * Get the IoC container instance.
      *
-     * @return \Voyager\Contracts\Vessel\Vessel
+     * @return \Voyager\Contracts\Vessel\TheServiceContainer
      */
-    public function getContainer(): Vessel
+    public function getContainer(): TheServiceContainer
     {
         return $this->vessel;
     }
@@ -59,10 +59,10 @@ trait CapsuleManagerTrait
     /**
      * Set the IoC container instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $vessel
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $vessel
      * @return void
      */
-    public function setContainer(Vessel $vessel): void
+    public function setContainer(TheServiceContainer $vessel): void
     {
         $this->vessel = $vessel;
     }

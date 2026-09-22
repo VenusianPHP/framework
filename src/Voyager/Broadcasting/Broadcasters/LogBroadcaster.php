@@ -23,14 +23,10 @@ class LogBroadcaster extends Broadcaster
         $this->logger = $logger;
     }
 
-    // Laravel authenticates an incoming request for a channel here.
-    // Receiving requests is out of scope for this port, so the auth surface
-    // is cut and only the broadcast path remains.
-
     /**
      * {@inheritdoc}
      */
-    public function broadcast(array $channels, $event, array $payload = [])
+    public function broadcast(array $channels, string $event, array $payload = []): void
     {
         $channels = implode(', ', $this->formatChannels($channels));
 

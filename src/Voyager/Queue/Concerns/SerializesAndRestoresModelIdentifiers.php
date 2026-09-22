@@ -6,6 +6,7 @@ use Voyager\Contracts\Database\ModelIdentifier;
 use Voyager\Contracts\Queue\QueueableCollection;
 use Voyager\Contracts\Queue\QueueableEntity;
 use Voyager\Database\Instrument\Collection as InstrumentCollection;
+use Voyager\Database\Instrument\Model as TModel;
 use Voyager\Database\Instrument\Relations\Concerns\AsPivot;
 use Voyager\Database\Instrument\Relations\Pivot;
 use Voyager\NutsAndBolts\Collection;

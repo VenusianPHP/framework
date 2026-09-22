@@ -2,6 +2,7 @@
     "name": "venusian-voyager/sketches",
     "description": "The Voyager Sketches package.",
     "license": "MIT",
+    "version": "0.9.0",
     "authors": [
         {
             "name": "Angel Gonzalez",
@@ -10,12 +11,12 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "symfony/console": "^7.2.0",
-        "symfony/finder": "^7.2.0",
-        "voyager/console": "^0.8.0",
-        "voyager/contracts": "^0.8.0",
-        "voyager/nuts-and-bolts": "^0.8.0",
-        "voyager/pipeline": "^0.8.0"
+        "symfony/console": "^8.0.0",
+        "symfony/finder": "^8.0.0",
+        "venusian-voyager/console": "^0.9.0",
+        "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/io-pools": "^0.9.0",
+        "venusian-voyager/nuts-and-bolts": "^0.9.0"
     },
     "autoload": {
         "psr-4": {
@@ -24,13 +25,9 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.8.x-dev"
+            "dev-main": "0.9.x-dev"
         },
-        "venusian": {
-            "upstream": "ScrapyardIO/framework",
-            "upstream-path": "src/Fabricate/Sketches",
-            "ported-at": "2026-08-22"
-        }
+        "ported-at": "2026-09-22"
     },
     "config": {
         "sort-packages": true

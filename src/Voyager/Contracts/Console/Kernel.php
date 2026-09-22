@@ -2,6 +2,9 @@
 
 namespace Voyager\Contracts\Console;
 
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
 interface Kernel
 {
     /**
@@ -9,56 +12,42 @@ interface Kernel
      *
      * @return void
      */
-    public function bootstrap();
+    public function bootstrap(): void;
 
     /**
      * Handle an incoming console command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface|null  $output
+     * @param  InputInterface  $input
+     * @param  OutputInterface|null  $output
      * @return int
      */
-    public function handle(\Symfony\Component\Console\Input\InputInterface $input, ?\Symfony\Component\Console\Output\OutputInterface $output = null);
-
-    /**
-     * Run a Computer console command by name.
-     *
-     * @param  string  $command
-     * @param  array  $parameters
-     * @param  \Symfony\Component\Console\Output\OutputInterface|null  $outputBuffer
-     * @return int
-     */
-    public function call(string $command, array $parameters = [], ?\Symfony\Component\Console\Output\OutputInterface $outputBuffer = null);
-
-    /**
-     * Queue a Computer console command by name.
-     *
-     * @param  string  $command
-     * @param  array  $parameters
-     * @return \Voyager\System\Bus\PendingDispatch
-     */
-    public function queue(string $command, array $parameters = []);
-
-    /**
-     * Get every command registered with the console.
-     *
-     * @return array
-     */
-    public function all();
-
-    /**
-     * Get the output for the last run command.
-     *
-     * @return string
-     */
-    public function output();
+    public function handle(InputInterface $input, ?OutputInterface $output = null): int;
 
     /**
      * Terminate the application.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param InputInterface $input
      * @param  int  $status
      * @return void
      */
-    public function terminate(\Symfony\Component\Console\Input\InputInterface $input, int $status);
+    public function terminate(InputInterface $input, int $status): void;
+
+
+    /**
+     * Set the Computer commands provided by the application.
+     *
+     * @param  array  $commands
+     * @return $this
+     */
+    public function addCommands(array $commands): static;
+
+    /**
+     * Set the paths that should have their Computer commands automatically discovered.
+     *
+     * @param  array  $paths
+     * @return $this
+     */
+    public function addCommandPaths(array $paths): static;
+
+
 }

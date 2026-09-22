@@ -1,22 +1,22 @@
 <?php
 
 use Voyager\Cache\ArrayStore;
-use Voyager\Cache\Events\CacheFlushed;
-use Voyager\Cache\Events\CacheFlushFailed;
-use Voyager\Cache\Events\CacheFlushing;
-use Voyager\Cache\Events\CacheHit;
-use Voyager\Cache\Events\CacheMissed;
-use Voyager\Cache\Events\ForgettingKey;
-use Voyager\Cache\Events\KeyForgetFailed;
-use Voyager\Cache\Events\KeyForgotten;
-use Voyager\Cache\Events\KeyWritten;
-use Voyager\Cache\Events\RetrievingKey;
-use Voyager\Cache\Events\RetrievingManyKeys;
-use Voyager\Cache\Events\WritingKey;
-use Voyager\Cache\Events\WritingManyKeys;
+use Voyager\Cache\Signals\CacheFlushed;
+use Voyager\Cache\Signals\CacheFlushFailed;
+use Voyager\Cache\Signals\CacheFlushing;
+use Voyager\Cache\Signals\CacheHit;
+use Voyager\Cache\Signals\CacheMissed;
+use Voyager\Cache\Signals\ForgettingKey;
+use Voyager\Cache\Signals\KeyForgetFailed;
+use Voyager\Cache\Signals\KeyForgotten;
+use Voyager\Cache\Signals\KeyWritten;
+use Voyager\Cache\Signals\RetrievingKey;
+use Voyager\Cache\Signals\RetrievingManyKeys;
+use Voyager\Cache\Signals\WritingKey;
+use Voyager\Cache\Signals\WritingManyKeys;
 use Voyager\Cache\Repository;
 use Voyager\Contracts\Cache\Store;
-use Voyager\Events\Dispatcher;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
 
 /** A Mockery argument matcher for a dispatched event of the given class and property values. */
 function eventMatching($eventClass, $properties = [])

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Concurrency\Fixtures;
+namespace Venusian\Tests\Concurrency\Fixtures;
 
 use Exception;
 

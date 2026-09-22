@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Middleware;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Redis\Factory as Redis;
 use Voyager\Redis\Limiters\DurationLimiter;
 use Voyager\NutsAndBolts\Concerns\InteractsWithTime;
@@ -68,7 +68,7 @@ class RateLimitedWithRedis extends RateLimited
      */
     protected function tooManyAttempts($key, $maxAttempts, $decaySeconds)
     {
-        $redis = Vessel::getInstance()
+        $redis = ControlPanel::getInstance()
             ->make(Redis::class)
             ->connection($this->connectionName);
 

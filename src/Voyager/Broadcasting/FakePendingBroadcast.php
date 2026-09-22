@@ -24,11 +24,14 @@ class FakePendingBroadcast extends PendingBroadcast
     }
 
     /**
-     * Broadcast the event to everyone except the current user.
+     * Broadcast the event to everyone except the given socket.
      *
+     * Pusher/Reverb-only exclusion; Redis only passes the field through.
+     *
+     * @param  string  $socket
      * @return $this
      */
-    public function toOthers()
+    public function toOthers(string $socket)
     {
         return $this;
     }

@@ -12,10 +12,11 @@ class PipelineServiceProvider extends ServiceProvider implements DeferrableProvi
      * Register the service provider.
      *
      * @return void
+     * @throws \ReflectionException
      */
     public function register(): void
     {
-        $this->app->singleton(
+        $this->app->registerSingleton(
             PipelineHubContract::class,
             Hub::class
         );

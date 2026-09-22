@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Capsule;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Queue\QueueManager;
 use Voyager\Queue\QueueServiceProvider;
 use Voyager\NutsAndBolts\Concerns\CapsuleManagerTrait;
@@ -27,9 +27,9 @@ class Manager
      *
      * @param  \Voyager\Vessel\Vessel|null  $container
      */
-    public function __construct(?Vessel $container = null)
+    public function __construct(?ControlPanel $container = null)
     {
-        $this->setupContainer($container ?: new Vessel);
+        $this->setupContainer($container ?: new ControlPanel);
 
         // Once we have the container setup, we will set up the default configuration
         // options in the container "config" bindings. This'll just make the queue

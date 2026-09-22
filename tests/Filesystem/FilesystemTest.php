@@ -3,7 +3,7 @@
 use Voyager\Contracts\Filesystem\FileNotFoundException;
 use Voyager\Filesystem\Filesystem;
 use Voyager\NutsAndBolts\LazyCollection;
-use Voyager\Testing\Assert;
+use PHPUnit\Framework\Assert;
 use Mockery as m;
 
 /**

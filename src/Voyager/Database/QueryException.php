@@ -2,7 +2,6 @@
 
 namespace Voyager\Database;
 
-use Voyager\NutsAndBolts\MagicAliases\DB;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use PDOException;
 use Throwable;
@@ -143,7 +142,7 @@ class QueryException extends PDOException
      */
     public function getRawSql(): string
     {
-        return DB::connection($this->getConnectionName())
+        return app('db')->connection($this->getConnectionName())
             ->getQueryGrammar()
             ->substituteBindingsIntoRawSql($this->getSql(), $this->getBindings());
     }

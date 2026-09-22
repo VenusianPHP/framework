@@ -21,18 +21,6 @@ test('channel name normalization special case', function () {
     );
 });
 
-test('channel name pattern matching', function () {
-    $broadcaster = new FakeBroadcasterUsingPusherChannelsNames;
-
-    $this->assertEquals(
-        0,
-        $broadcaster->testChannelNameMatchesPattern(
-            'TestChannel',
-            'Test.{id}'
-        )
-    );
-});
-
 test('is guarded channel', function ($requestChannelName, $normalizedName, $guarded) {
     $broadcaster = new FakeBroadcasterUsingPusherChannelsNames;
 
@@ -89,23 +77,8 @@ class FakeBroadcasterUsingPusherChannelsNames extends Broadcaster
 {
     use UsePusherChannelConventions;
 
-    public function auth($request)
+    public function broadcast(array $channels, string $event, array $payload = []): void
     {
         //
-    }
-
-    public function validAuthenticationResponse($request, $result)
-    {
-        //
-    }
-
-    public function broadcast(array $channels, $event, array $payload = [])
-    {
-        //
-    }
-
-    public function testChannelNameMatchesPattern($channel, $pattern)
-    {
-        return $this->channelNameMatchesPattern($channel, $pattern);
     }
 }

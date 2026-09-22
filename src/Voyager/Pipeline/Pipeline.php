@@ -3,7 +3,7 @@
 namespace Voyager\Pipeline;
 
 use Closure;
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer as Vessel;
 use Voyager\Contracts\Pipeline\Pipeline as PipelineContract;
 use Voyager\NutsAndBolts\Concerns\Conditionable;
 use Voyager\NutsAndBolts\Concerns\Macroable;

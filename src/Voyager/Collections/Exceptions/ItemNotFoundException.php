@@ -3,7 +3,7 @@
 namespace Voyager\NutsAndBolts\Exceptions;
 
 use RuntimeException;
-use Voyager\Contracts\System\VenusianFrameworkException;
+use Voyager\Contracts\Core\VenusianFrameworkException;
 
 class ItemNotFoundException extends VenusianFrameworkException
 {

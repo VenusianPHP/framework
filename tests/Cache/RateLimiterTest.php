@@ -1,7 +1,7 @@
 <?php
 
-use Tests\Cache\Fixtures\BackedEnumNamedRateLimiter;
-use Tests\Cache\Fixtures\UnitEnumNamedRateLimiter;
+use Venusian\Tests\Cache\Fixtures\BackedEnumNamedRateLimiter;
+use Venusian\Tests\Cache\Fixtures\UnitEnumNamedRateLimiter;
 use Voyager\Cache\ArrayStore;
 use Voyager\Cache\RateLimiter;
 use Voyager\Cache\RateLimiting\Limit;

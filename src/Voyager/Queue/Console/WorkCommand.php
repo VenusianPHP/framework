@@ -5,10 +5,10 @@ namespace Voyager\Queue\Console;
 use Voyager\Console\Command;
 use Voyager\Contracts\Cache\Repository as Cache;
 use Voyager\Contracts\Queue\Job;
-use Voyager\Queue\Events\JobFailed;
-use Voyager\Queue\Events\JobProcessed;
-use Voyager\Queue\Events\JobProcessing;
-use Voyager\Queue\Events\JobReleasedAfterException;
+use Voyager\Queue\Signals\JobFailed;
+use Voyager\Queue\Signals\JobProcessed;
+use Voyager\Queue\Signals\JobProcessing;
+use Voyager\Queue\Signals\JobReleasedAfterException;
 use Voyager\Queue\Worker;
 use Voyager\Queue\WorkerOptions;
 use Voyager\NutsAndBolts\DataObjects\Carbon;
@@ -185,19 +185,19 @@ class WorkCommand extends Command
             return;
         }
 
-        $this->venusian['events']->listen(JobProcessing::class, function ($event) {
+        $this->venusian['signals']->listen(JobProcessing::class, function ($event) {
             $this->writeOutput($event->job, 'starting');
         });
 
-        $this->venusian['events']->listen(JobProcessed::class, function ($event) {
+        $this->venusian['signals']->listen(JobProcessed::class, function ($event) {
             $this->writeOutput($event->job, 'success');
         });
 
-        $this->venusian['events']->listen(JobReleasedAfterException::class, function ($event) {
+        $this->venusian['signals']->listen(JobReleasedAfterException::class, function ($event) {
             $this->writeOutput($event->job, 'released_after_exception');
         });
 
-        $this->venusian['events']->listen(JobFailed::class, function ($event) {
+        $this->venusian['signals']->listen(JobFailed::class, function ($event) {
             $this->writeOutput($event->job, 'failed', $event->exception);
 
             $this->logFailedJob($event);
@@ -332,13 +332,13 @@ class WorkCommand extends Command
     /**
      * Store a failed job event.
      *
-     * @param  \Voyager\Queue\Events\JobFailed  $event
+     * @param  \Voyager\Queue\Signals\JobFailed  $event
      * @return void
      */
     protected function logFailedJob(JobFailed $event)
     {
         $this->venusian['queue.failer']->log(
-            $event->connectionName,
+            $event->connection_name,
             $event->job->getQueue(),
             $event->job->getRawBody(),
             $event->exception
@@ -365,7 +365,7 @@ class WorkCommand extends Command
      */
     protected function downForMaintenance()
     {
-        return $this->option('force') ? false : $this->venusian->isDownForMaintenance();
+        return false;      // no maintenance mode in 0.9; --force has nothing to override
     }
 
     /**

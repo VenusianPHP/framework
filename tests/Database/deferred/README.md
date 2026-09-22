@@ -1,10 +1,7 @@
 # Cut upstream tests
 
-Nothing lives in this directory as a standalone file yet — the one cut so far
-was small enough to remove in place, the same way `QueueSyncQueueTest`'s
-after-commit tests were handled in `tests/Queue/deferred/README.md`. This
-README exists so the reason is recorded somewhere obvious, and so this
-directory is ready if a future wave needs to move a whole file here.
+Cuts that are not a whole file stay noted here. Whole files that cannot run
+on 0.9 live beside this README.
 
 ## `testRouteKeyIsPrimaryKey` / `testRouteNameIsPrimaryKeyName`
 
@@ -19,3 +16,18 @@ implemented for it. See the comment above `getForeignKey()` in
 `src/Voyager/Database/Instrument/Model.php`: routing is receiving-HTTP, and
 HTTP request/response handling is out of scope for this port (same boundary
 as Auth, Mail, and `Http\Resources`).
+
+# Facade-bound tests
+
+`DatabaseQueryExceptionTest`, `DatabaseSchemaBuilderIntegrationTest`,
+`DatabaseInstrumentIntegrationTest`, `DatabaseSQLiteBuilderTest`,
+`DatabaseMigratorIntegrationTest` and the `migrations/` fixtures they load
+drive the toolkit through `DB::` / `Schema::` (`MagicAliases`), which 0.9
+does not have. Their subjects are covered by the unit tests here; restore
+them with Testing.
+
+## `dirty on casted uri`
+
+Cut from `DatabaseInstrumentModelTest`. `AsUri` casts through
+`Voyager\NutsAndBolts\Uri`, which needs `league/uri`. That package is not a
+0.9 dependency, so the cast cannot run here.

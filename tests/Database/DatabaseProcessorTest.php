@@ -4,7 +4,6 @@ use Voyager\Database\Connection;
 use Voyager\Database\Query\Builder;
 use Voyager\Database\Query\Processors\Processor;
 use Mockery as m;
-use PDO;
 
 test('insert get id processing', function () {
     $pdo = $this->createMock(ProcessorTestPDOStub::class);

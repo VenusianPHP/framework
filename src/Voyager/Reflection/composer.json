@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": "^8.4|^8.5",
-    "venusian-voyager/collections": "^0.8"
+    "venusian-voyager/collections": "^0.9"
   },
   "minimum-stability": "dev",
   "autoload": {
@@ -29,7 +29,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "0.8.x-dev"
+      "dev-main": "0.9.x-dev"
     }
   }
 }

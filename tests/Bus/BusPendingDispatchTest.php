@@ -1,6 +1,6 @@
 <?php
 
-use Tests\Bus\Fixtures\PendingDispatchWithoutDestructor;
+use Venusian\Tests\Bus\Fixtures\PendingDispatchWithoutDestructor;
 
 beforeEach(function () {
     $this->job = Mockery::mock(stdClass::class);

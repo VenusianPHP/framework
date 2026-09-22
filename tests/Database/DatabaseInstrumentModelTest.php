@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use DateTime;
 use DateTimeImmutable;
@@ -10,7 +10,7 @@ use Foo\Bar\InstrumentModelNamespacedStub;
 use Voyager\Contracts\Database\Instrument\Castable;
 use Voyager\Contracts\Database\Instrument\CastsAttributes;
 use Voyager\Contracts\Database\Instrument\CastsInboundAttributes;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\Connection;
 use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Database\ConnectionResolverInterface as Resolver;
@@ -28,7 +28,6 @@ use Voyager\Database\Instrument\Casts\AsEnumCollection;
 use Voyager\Database\Instrument\Casts\AsFluent;
 use Voyager\Database\Instrument\Casts\AsHtmlString;
 use Voyager\Database\Instrument\Casts\AsStringable;
-use Voyager\Database\Instrument\Casts\AsUri;
 use Voyager\Database\Instrument\Casts\Attribute;
 use Voyager\Database\Instrument\Collection;
 use Voyager\Database\Instrument\Concerns\HasUlids;
@@ -50,9 +49,8 @@ use Voyager\NutsAndBolts\Fluent;
 use Voyager\NutsAndBolts\HtmlString;
 use Voyager\NutsAndBolts\Concerns\InteractsWithTime;
 use Voyager\NutsAndBolts\DataObjects\Stringable;
-use Voyager\NutsAndBolts\Uri;
-use Tests\Database\stubs\TestCast;
-use Tests\Database\stubs\TestValueObject;
+use Venusian\Tests\Database\stubs\TestCast;
+use Venusian\Tests\Database\stubs\TestValueObject;
 use InvalidArgumentException;
 use LogicException;
 use Mockery as m;
@@ -278,23 +276,6 @@ test('dirty on casted html string', function () {
 
     $model->asHtmlStringAttribute = new Stringable('<div>foo baz</div>');
     $this->assertTrue($model->isDirty('asHtmlStringAttribute'));
-});
-
-test('dirty on casted uri', function () {
-    $model = new InstrumentModelCastingStub;
-    $model->setRawAttributes([
-        'asUriAttribute' => 'https://www.example.com:1234?query=param&another=value',
-    ]);
-    $model->syncOriginal();
-
-    $this->assertInstanceOf(Uri::class, $model->asUriAttribute);
-    $this->assertFalse($model->isDirty('asUriAttribute'));
-
-    $model->asUriAttribute = new Uri('https://www.example.com:1234?query=param&another=value');
-    $this->assertFalse($model->isDirty('asUriAttribute'));
-
-    $model->asUriAttribute = new Uri('https://www.updated.com:1234?query=param&another=value');
-    $this->assertTrue($model->isDirty('asUriAttribute'));
 });
 
 test('dirty on casted fluent', function () {
@@ -820,7 +801,7 @@ test('from date time', function () {
 });
 
 test('from date time milliseconds', function () {
-    $model = $this->getMockBuilder('Tests\Database\InstrumentDateModelStub')->onlyMethods(['getDateFormat'])->getMock();
+    $model = $this->getMockBuilder('Venusian\Tests\Database\InstrumentDateModelStub')->onlyMethods(['getDateFormat'])->getMock();
     $model->expects($this->any())->method('getDateFormat')->willReturn('Y-m-d H:s.vi');
     $model->setRawAttributes([
         'created_at' => '2012-12-04 22:59.32130',
@@ -1941,8 +1922,8 @@ test('clone model makes a fresh copy of the model when model has ulid', function
 
 test('model observers can be attached to models', function () {
     InstrumentModelStub::setEventDispatcher($events = m::mock(Dispatcher::class));
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelStub::observe(new InstrumentTestObserverStub);
     InstrumentModelStub::flushEventListeners();
@@ -1950,8 +1931,8 @@ test('model observers can be attached to models', function () {
 
 test('model observers can be attached to models with string', function () {
     InstrumentModelStub::setEventDispatcher($events = m::mock(Dispatcher::class));
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelStub::observe(InstrumentTestObserverStub::class);
     InstrumentModelStub::flushEventListeners();
@@ -1959,8 +1940,8 @@ test('model observers can be attached to models with string', function () {
 
 test('model observers can be attached to models through an array', function () {
     InstrumentModelStub::setEventDispatcher($events = m::mock(Dispatcher::class));
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelStub::observe([InstrumentTestObserverStub::class]);
     InstrumentModelStub::flushEventListeners();
@@ -1969,8 +1950,8 @@ test('model observers can be attached to models through an array', function () {
 test('model observers can be attached to models with string using attribute', function () {
     InstrumentModelWithObserveAttributeStub::setEventDispatcher($events = m::mock(Dispatcher::class));
     $events->shouldReceive('dispatch');
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelWithObserveAttributeStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelWithObserveAttributeStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelWithObserveAttributeStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelWithObserveAttributeStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelWithObserveAttributeStub::flushEventListeners();
 });
@@ -1978,8 +1959,8 @@ test('model observers can be attached to models with string using attribute', fu
 test('model observers can be attached to models through an array using attribute', function () {
     InstrumentModelWithObserveAttributeUsingArrayStub::setEventDispatcher($events = m::mock(Dispatcher::class));
     $events->shouldReceive('dispatch');
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelWithObserveAttributeUsingArrayStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelWithObserveAttributeUsingArrayStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelWithObserveAttributeUsingArrayStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelWithObserveAttributeUsingArrayStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelWithObserveAttributeUsingArrayStub::flushEventListeners();
 });
@@ -1987,12 +1968,12 @@ test('model observers can be attached to models through an array using attribute
 test('model observers can be attached to models through attributes on parent classes', function () {
     InstrumentModelWithObserveAttributeGrandchildStub::setEventDispatcher($events = m::mock(Dispatcher::class));
     $events->shouldReceive('dispatch');
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestObserverStub::class.'@saved');
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestAnotherObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestAnotherObserverStub::class.'@saved');
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestThirdObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestThirdObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestAnotherObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestAnotherObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestThirdObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelWithObserveAttributeGrandchildStub', InstrumentTestThirdObserverStub::class.'@saved');
     $events->shouldReceive('forget');
     InstrumentModelWithObserveAttributeGrandchildStub::flushEventListeners();
 });
@@ -2007,11 +1988,11 @@ test('throw exception on attaching not exists model observers through an array',
 
 test('model observers can be attached to models through calling observe method only once', function () {
     InstrumentModelStub::setEventDispatcher($events = m::mock(Dispatcher::class));
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestObserverStub::class.'@saved');
 
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelStub', InstrumentTestAnotherObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelStub', InstrumentTestAnotherObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestAnotherObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelStub', InstrumentTestAnotherObserverStub::class.'@saved');
 
     $events->shouldReceive('forget');
 
@@ -2025,8 +2006,8 @@ test('model observers can be attached to models through calling observe method o
 
 test('without event dispatcher', function () {
     InstrumentModelSaveStub::setEventDispatcher($events = m::mock(Dispatcher::class));
-    $events->shouldReceive('listen')->once()->with('instrument.creating: Tests\Database\InstrumentModelSaveStub', InstrumentTestObserverStub::class.'@creating');
-    $events->shouldReceive('listen')->once()->with('instrument.saved: Tests\Database\InstrumentModelSaveStub', InstrumentTestObserverStub::class.'@saved');
+    $events->shouldReceive('listen')->once()->with('instrument.creating: Venusian\Tests\Database\InstrumentModelSaveStub', InstrumentTestObserverStub::class.'@creating');
+    $events->shouldReceive('listen')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelSaveStub', InstrumentTestObserverStub::class.'@saved');
     $events->shouldNotReceive('until');
     $events->shouldNotReceive('dispatch');
     $events->shouldReceive('forget');
@@ -2044,8 +2025,8 @@ test('without event dispatcher', function () {
         $model->save();
     });
 
-    $events->shouldReceive('until')->once()->with('instrument.saving: Tests\Database\InstrumentModelSaveStub', $model);
-    $events->shouldReceive('dispatch')->once()->with('instrument.saved: Tests\Database\InstrumentModelSaveStub', $model);
+    $events->shouldReceive('until')->once()->with('instrument.saving: Venusian\Tests\Database\InstrumentModelSaveStub', $model);
+    $events->shouldReceive('dispatch')->once()->with('instrument.saved: Venusian\Tests\Database\InstrumentModelSaveStub', $model);
 
     $model->last_name = 'Otwell';
     $model->save();
@@ -2095,7 +2076,7 @@ test('remove multiple observable events', function () {
 test('get model attribute method throws exception if not relation', function () {
     $model = new InstrumentModelStub;
     $model->incorrectRelationStub;
-})->throws(LogicException::class, 'Tests\Database\InstrumentModelStub::incorrectRelationStub must return a relationship instance.');
+})->throws(LogicException::class, 'Venusian\Tests\Database\InstrumentModelStub::incorrectRelationStub must return a relationship instance.');
 
 test('model is booted on unserialize', function () {
     $model = new InstrumentModelBootingTestStub;
@@ -2508,21 +2489,21 @@ test('model attribute casting fails on unencodable data', function () {
     $model->arrayAttribute = $obj;
 
     $model->getAttributes();
-})->throws(JsonEncodingException::class, 'Unable to encode attribute [objectAttribute] for model [Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
+})->throws(JsonEncodingException::class, 'Unable to encode attribute [objectAttribute] for model [Venusian\Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
 
 test('model json casting fails on unencodable data', function () {
     $model = new InstrumentModelCastingStub;
     $model->jsonAttribute = ['foo' => "b\xF8r"];
 
     $model->getAttributes();
-})->throws(JsonEncodingException::class, 'Unable to encode attribute [jsonAttribute] for model [Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
+})->throws(JsonEncodingException::class, 'Unable to encode attribute [jsonAttribute] for model [Venusian\Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
 
 test('model attribute casting fails on unencodable data with unicode', function () {
     $model = new InstrumentModelCastingStub;
     $model->jsonAttributeWithUnicode = ['foo' => "b\xF8r"];
 
     $model->getAttributes();
-})->throws(JsonEncodingException::class, 'Unable to encode attribute [jsonAttributeWithUnicode] for model [Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
+})->throws(JsonEncodingException::class, 'Unable to encode attribute [jsonAttributeWithUnicode] for model [Venusian\Tests\Database\InstrumentModelCastingStub] to JSON: Malformed UTF-8 characters, possibly incorrectly encoded.');
 
 test('json casting respects unicode option', function () {
     $data = ['こんにちは' => '世界'];
@@ -3614,7 +3595,6 @@ class InstrumentModelCastingStub extends Model
             'asarrayobjectAttribute' => AsArrayObject::class,
             'asStringableAttribute' => AsStringable::class,
             'asHtmlStringAttribute' => AsHtmlString::class,
-            'asUriAttribute' => AsUri::class,
             'asFluentAttribute' => AsFluent::class,
             'asCustomCollectionAttribute' => AsCollection::using(CustomCollection::class),
             'asEncryptedArrayObjectAttribute' => AsEncryptedArrayObject::class,

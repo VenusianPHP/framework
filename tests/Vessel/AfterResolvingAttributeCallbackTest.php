@@ -1,20 +1,20 @@
 <?php
 
-use Tests\Vessel\Fixtures\ContainerTestBootable;
-use Tests\Vessel\Fixtures\ContainerTestConfiguresClass;
-use Tests\Vessel\Fixtures\ContainerTestHasBootable;
-use Tests\Vessel\Fixtures\ContainerTestHasSelfConfiguringAttributeAndConstructor;
-use Tests\Vessel\Fixtures\ContainerTestHasTenantImplPropertyWithTenantA;
-use Tests\Vessel\Fixtures\ContainerTestHasTenantImplPropertyWithTenantB;
-use Tests\Vessel\Fixtures\ContainerTestOnTenant;
-use Tests\Vessel\Fixtures\HasTenantImpl;
-use Tests\Vessel\Fixtures\Tenant;
-use Voyager\Vessel\Vessel;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestBootable;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestConfiguresClass;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestHasBootable;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestHasSelfConfiguringAttributeAndConstructor;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestHasTenantImplPropertyWithTenantA;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestHasTenantImplPropertyWithTenantB;
+use Venusian\Tests\Vessel\Fixtures\ContainerTestOnTenant;
+use Venusian\Tests\Vessel\Fixtures\HasTenantImpl;
+use Venusian\Tests\Vessel\Fixtures\Tenant;
+use Voyager\Vessel\ControlPanel;
 
 test('the callback runs after a dependency carrying the attribute is resolved', function () {
-    $vessel = new Vessel;
+    $vessel = new ControlPanel;
 
-    $vessel->afterResolvingAttribute(ContainerTestOnTenant::class, function (ContainerTestOnTenant $attribute, HasTenantImpl $hasTenantImpl, Vessel $vessel) {
+    $vessel->afterResolvingAttribute(ContainerTestOnTenant::class, function (ContainerTestOnTenant $attribute, HasTenantImpl $hasTenantImpl, ControlPanel $vessel) {
         $hasTenantImpl->onTenant($attribute->tenant);
     });
 
@@ -30,11 +30,11 @@ test('the callback runs after a dependency carrying the attribute is resolved', 
 });
 
 test('the callback runs after a class carrying the attribute is resolved', function () {
-    $vessel = new Vessel;
+    $vessel = new ControlPanel;
 
     $vessel->afterResolvingAttribute(
         ContainerTestBootable::class,
-        fn ($_, $instance, Vessel $vessel) => method_exists($instance, 'booting') && $vessel->call([$instance, 'booting'])
+        fn ($_, $instance, ControlPanel $vessel) => method_exists($instance, 'booting') && $vessel->call([$instance, 'booting'])
     );
 
     $instance = $vessel->make(ContainerTestHasBootable::class);
@@ -44,7 +44,7 @@ test('the callback runs after a class carrying the attribute is resolved', funct
 });
 
 test('the callback wins over contextual binding for a class with a constructor', function () {
-    $vessel = new Vessel;
+    $vessel = new ControlPanel;
 
     $vessel->afterResolvingAttribute(ContainerTestConfiguresClass::class, function (ContainerTestConfiguresClass $attribute, $class) {
         $class->value = $attribute->value;
@@ -61,9 +61,9 @@ test('the callback wins over contextual binding for a class with a constructor',
 });
 
 test('the callback runs for attributes on a called closure', function () {
-    $vessel = new Vessel;
+    $vessel = new ControlPanel;
 
-    $vessel->afterResolvingAttribute(ContainerTestOnTenant::class, function (ContainerTestOnTenant $attribute, HasTenantImpl $hasTenantImpl, Vessel $vessel) {
+    $vessel->afterResolvingAttribute(ContainerTestOnTenant::class, function (ContainerTestOnTenant $attribute, HasTenantImpl $hasTenantImpl, ControlPanel $vessel) {
         $hasTenantImpl->onTenant($attribute->tenant);
     });
 

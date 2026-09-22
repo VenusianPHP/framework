@@ -8,7 +8,7 @@ use Voyager\Database\Schema\Blueprint;
 use Voyager\Database\Schema\ForeignIdColumnDefinition;
 use Voyager\Database\Schema\Grammars\SQLiteGrammar;
 use Voyager\Database\Schema\SQLiteBuilder;
-use Tests\Database\Fixtures\Enums\Foo;
+use Venusian\Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 
 /**

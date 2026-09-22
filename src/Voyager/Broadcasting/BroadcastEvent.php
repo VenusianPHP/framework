@@ -75,11 +75,12 @@ class BroadcastEvent implements ShouldQueue
     /**
      * Handle the queued job.
      *
-     * @param  \Voyager\Contracts\Broadcasting\Factory  $manager
-     * @return void
+     * ShouldQueue is Handleable: handle() takes nothing. The factory comes from the container.
      */
-    public function handle(BroadcastingFactory $manager)
+    public function handle(): mixed
     {
+        $manager = app(BroadcastingFactory::class);
+
         $name = method_exists($this->event, 'broadcastAs')
             ? $this->event->broadcastAs()
             : get_class($this->event);
@@ -87,7 +88,7 @@ class BroadcastEvent implements ShouldQueue
         $channels = Arr::wrap($this->event->broadcastOn());
 
         if (empty($channels)) {
-            return;
+            return null;
         }
 
         $connections = method_exists($this->event, 'broadcastConnections')
@@ -103,6 +104,8 @@ class BroadcastEvent implements ShouldQueue
                 $this->getConnectionPayload($payload, $connection)
             );
         }
+
+        return null;
     }
 
     /**

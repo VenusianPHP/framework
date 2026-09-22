@@ -2,6 +2,7 @@
 
 namespace Voyager\Database\Instrument;
 
+use Voyager\Broadcasting\Channel;
 use Voyager\Broadcasting\InteractsWithSockets;
 use Voyager\Broadcasting\PrivateChannel;
 use Voyager\Contracts\Broadcasting\ShouldBroadcast;
@@ -71,7 +72,7 @@ class BroadcastableModelEventOccurred implements ShouldBroadcast
      *
      * @return array
      */
-    public function broadcastOn()
+    public function broadcastOn(): Channel|array|string
     {
         $channels = empty($this->channels)
             ? ($this->model->broadcastOn($this->event) ?: [])

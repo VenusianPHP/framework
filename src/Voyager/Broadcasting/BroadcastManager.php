@@ -9,6 +9,7 @@ use Voyager\Broadcasting\Broadcasters\NullBroadcaster;
 use Voyager\Broadcasting\Broadcasters\PusherBroadcaster;
 use Voyager\Broadcasting\Broadcasters\RedisBroadcaster;
 use Voyager\Bus\UniqueLock;
+use Voyager\Contracts\Broadcasting\Broadcaster as BroadcasterContract;
 use Voyager\Contracts\Broadcasting\Factory as FactoryContract;
 use Voyager\Contracts\Broadcasting\ShouldBeUnique;
 use Voyager\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -20,6 +21,7 @@ use Psr\Log\LoggerInterface;
 use Pusher\Pusher;
 use RuntimeException;
 use Throwable;
+use Voyager\Vessel\ControlPanel;
 
 /**
  * @mixin \Voyager\Contracts\Broadcasting\Broadcaster
@@ -28,10 +30,8 @@ class BroadcastManager implements FactoryContract
 {
     /**
      * The application instance.
-     *
-     * @var \Voyager\Contracts\Vessel\Vessel
      */
-    protected $app;
+    protected ControlPanel $app;
 
     /**
      * The array of resolved broadcast drivers.
@@ -49,10 +49,8 @@ class BroadcastManager implements FactoryContract
 
     /**
      * Create a new manager instance.
-     *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $app
      */
-    public function __construct($app)
+    public function __construct(ControlPanel $app)
     {
         $this->app = $app;
     }
@@ -93,7 +91,7 @@ class BroadcastManager implements FactoryContract
      */
     public function event($event = null)
     {
-        return new PendingBroadcast($this->app->make('events'), $event);
+        return new PendingBroadcast($this->app->make('signals'), $event);
     }
 
     /**
@@ -159,11 +157,8 @@ class BroadcastManager implements FactoryContract
 
     /**
      * Get a driver instance.
-     *
-     * @param  string|null  $driver
-     * @return mixed
      */
-    public function connection($driver = null)
+    public function connection(?string $driver = null): BroadcasterContract
     {
         return $this->driver($driver);
     }
@@ -218,6 +213,10 @@ class BroadcastManager implements FactoryContract
             throw new InvalidArgumentException("Driver [{$config['driver']}] is not supported.");
         }
 
+        if (in_array($config['driver'], ['pusher', 'reverb'], true) && ! class_exists(Pusher::class)) {
+            throw new RuntimeException('Please install the "pusher/pusher-php-server" Composer package in order to use the "'.$config['driver'].'" broadcast driver.');
+        }
+
         try {
             return $this->{$driverMethod}($config);
         } catch (Throwable $e) {
@@ -255,7 +254,7 @@ class BroadcastManager implements FactoryContract
      */
     protected function createPusherDriver(array $config)
     {
-        return new PusherBroadcaster($this->pusher($config), $config['jsonp'] ?? false);
+        return new PusherBroadcaster($this->pusher($config));
     }
 
     /**
@@ -266,6 +265,10 @@ class BroadcastManager implements FactoryContract
      */
     public function pusher(array $config)
     {
+        if (! class_exists(Pusher::class)) {
+            throw new RuntimeException('Please install the "pusher/pusher-php-server" Composer package in order to use the Pusher broadcast driver.');
+        }
+
         $guzzleClient = new GuzzleClient(
             array_merge(
                 [
@@ -413,21 +416,16 @@ class BroadcastManager implements FactoryContract
 
     /**
      * Get the application instance used by the manager.
-     *
-     * @return \Voyager\Contracts\System\Application
      */
-    public function getApplication()
+    public function getApplication(): ControlPanel
     {
         return $this->app;
     }
 
     /**
      * Set the application instance used by the manager.
-     *
-     * @param  \Voyager\Contracts\System\Application  $app
-     * @return $this
      */
-    public function setApplication($app)
+    public function setApplication(ControlPanel $app): static
     {
         $this->app = $app;
 

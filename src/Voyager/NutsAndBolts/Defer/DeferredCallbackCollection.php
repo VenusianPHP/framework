@@ -2,9 +2,11 @@
 
 namespace Voyager\NutsAndBolts\Defer;
 
-use ArrayAccess;
 use Closure;
 use Countable;
+use ArrayAccess;
+use ReflectionException;
+use Throwable;
 use Voyager\NutsAndBolts\Collection;
 
 class DeferredCallbackCollection implements ArrayAccess, Countable
@@ -21,7 +23,7 @@ class DeferredCallbackCollection implements ArrayAccess, Countable
      *
      * @return callable
      */
-    public function first()
+    public function first(): callable
     {
         return array_values($this->callbacks)[0];
     }
@@ -39,8 +41,10 @@ class DeferredCallbackCollection implements ArrayAccess, Countable
     /**
      * Invoke the deferred callbacks if the given truth test evaluates to true.
      *
-     * @param  \Closure|null  $when
+     * @param Closure|null $when
      * @return void
+     * @throws ReflectionException
+     * @throws Throwable
      */
     public function invokeWhen(?Closure $when = null): void
     {
@@ -65,7 +69,7 @@ class DeferredCallbackCollection implements ArrayAccess, Countable
      */
     public function forget(string $name): void
     {
-        $this->callbacks = (new Collection($this->callbacks))
+        $this->callbacks = new Collection($this->callbacks)
             ->reject(fn ($callback) => $callback->name === $name)
             ->values()
             ->all();
@@ -78,7 +82,7 @@ class DeferredCallbackCollection implements ArrayAccess, Countable
      */
     protected function forgetDuplicates(): static
     {
-        $this->callbacks = (new Collection($this->callbacks))
+        $this->callbacks = new Collection($this->callbacks)
             ->reverse()
             ->unique(fn ($c) => $c->name)
             ->reverse()

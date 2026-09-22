@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\Fixtures\Factories\Money;
+namespace Venusian\Tests\Database\Fixtures\Factories\Money;
 
 use Voyager\Database\Instrument\Factories\Factory;
 

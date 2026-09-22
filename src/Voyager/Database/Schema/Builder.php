@@ -3,7 +3,7 @@
 namespace Voyager\Database\Schema;
 
 use Closure;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Database\Connection;
 use Voyager\Database\PostgresConnection;
 use Voyager\NutsAndBolts\Concerns\Macroable;
@@ -701,7 +701,7 @@ class Builder
             return call_user_func($this->resolver, $connection, $table, $callback);
         }
 
-        return Vessel::getInstance()->make(Blueprint::class, compact('connection', 'table', 'callback'));
+        return ControlPanel::getInstance()->make(Blueprint::class, compact('connection', 'table', 'callback'));
     }
 
     /**

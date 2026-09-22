@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\stubs;
+namespace Venusian\Tests\Database\stubs;
 
 class TestValueObject
 {

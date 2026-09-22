@@ -1,0 +1,16 @@
+<?php
+
+namespace {{ namespace }};
+
+use Voyager\Contracts\IOPools\ShouldPool;
+
+class {{ class }} implements ShouldPool
+{
+    /**
+     * Run the gig inside a pool worker.
+     */
+    public function handle(): mixed
+    {
+        //
+    }
+}

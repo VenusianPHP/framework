@@ -2,6 +2,7 @@
     "name": "venusian-voyager/hashing",
     "description": "The Voyager Hashing package.",
     "license": "MIT",
+    "version": "0.9.0",
     "authors": [
         {
             "name": "Angel Gonzalez",
@@ -13,8 +14,8 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "venusian-voyager/contracts": "^0.8.0",
-        "venusian-voyager/nuts-and-bolts": "^0.8.0"
+        "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/nuts-and-bolts": "^0.9.0"
     },
     "autoload": {
         "psr-4": {
@@ -23,7 +24,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.8.x-dev"
+            "dev-main": "0.9.x-dev"
         },
         "venusian": {
             "upstream": "laravel/framework",

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Builder;
@@ -271,7 +271,7 @@ test('find or fail finds many models by id', function () {
     expect($c->findOrFail([1, 2]))->toHaveCount(2);
 
     $c->findOrFail([1, 2, 3]);
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\TestInstrumentCollectionModel] 3');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\TestInstrumentCollectionModel] 3');
 
 test('find or fail throws exception with message when other models are present', function () {
     $model = (new TestInstrumentCollectionModel)->forceFill(['id' => 1]);
@@ -279,7 +279,7 @@ test('find or fail throws exception with message when other models are present',
     $c = new Collection([$model]);
 
     $c->findOrFail(2);
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\TestInstrumentCollectionModel] 2');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\TestInstrumentCollectionModel] 2');
 
 test('find or fail throws exception without message when other models are not present', function () {
     $c = new Collection();

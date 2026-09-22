@@ -5,11 +5,11 @@ use Voyager\Hashing\Argon2IdHasher;
 use Voyager\Hashing\ArgonHasher;
 use Voyager\Hashing\BcryptHasher;
 use Voyager\Hashing\HashManager;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 
 beforeEach(function () {
-    $vessel = Vessel::setInstance(new Vessel);
-    $vessel->singleton('config', fn () => new Config());
+    $vessel = new ControlPanel;
+    $vessel->registerInstance('config', new Config([]));
 
     $this->hashManager = new HashManager($vessel);
 });

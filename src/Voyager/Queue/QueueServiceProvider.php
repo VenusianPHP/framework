@@ -3,10 +3,9 @@
 namespace Voyager\Queue;
 
 use Voyager\Contracts\Debug\ExceptionHandler;
-use Voyager\Contracts\Events\Dispatcher as EventDispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as EventDispatcher;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\Queue\Connectors\BackgroundConnector;
-use Voyager\Queue\Connectors\DatabaseConnector;
 use Voyager\Queue\Connectors\DeferredConnector;
 use Voyager\Queue\Connectors\FailoverConnector;
 use Voyager\Queue\Connectors\NullConnector;
@@ -73,7 +72,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     protected function registerManager()
     {
-        $this->app->singleton('queue', function ($app) {
+        $this->app->registerSingleton('queue', function ($app) {
             // Once we have an instance of the queue manager, we will register the various
             // resolvers for the queue connectors. These connectors are responsible for
             // creating the classes that accept queue configs and instantiate queues.
@@ -90,7 +89,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     protected function registerConnection()
     {
-        $this->app->singleton('queue.connection', function ($app) {
+        $this->app->registerSingleton('queue.connection', function ($app) {
             return $app['queue']->connection();
         });
     }
@@ -104,7 +103,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
     public function registerConnectors($manager)
     {
         // Beanstalkd and SQS are dropped by the driver policy, along with the rest of AWS bar S3.
-        foreach (['Null', 'Sync', 'Deferred', 'Background', 'Failover', 'Database', 'Redis'] as $connector) {
+        foreach (['Null', 'Sync', 'Deferred', 'Background', 'Failover', 'Redis'] as $connector) {
             $this->{"register{$connector}Connector"}($manager);
         }
     }
@@ -183,12 +182,6 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      * @param  \Voyager\Queue\QueueManager  $manager
      * @return void
      */
-    protected function registerDatabaseConnector($manager)
-    {
-        $manager->addConnector('database', function () {
-            return new DatabaseConnector($this->app['db']);
-        });
-    }
 
     /**
      * Register the Redis queue connector.
@@ -210,10 +203,9 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     protected function registerWorker()
     {
-        $this->app->singleton('queue.worker', function ($app) {
-            $isDownForMaintenance = function () {
-                return $this->app->isDownForMaintenance();
-            };
+        $this->app->registerSingleton('queue.worker', function ($app) {
+            // no maintenance mode in 0.9: a desktop or device app is never "down"
+            $isDownForMaintenance = fn () => false;
 
             $resetScope = function () use ($app) {
                 if (method_exists($app['log'], 'flushSharedContext')) {
@@ -240,7 +232,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
 
             return new Worker(
                 $app['queue'],
-                $app['events'],
+                $app['signals'],
                 $app[ExceptionHandler::class],
                 $isDownForMaintenance,
                 $resetScope
@@ -255,7 +247,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     protected function registerListener()
     {
-        $this->app->singleton('queue.listener', function ($app) {
+        $this->app->registerSingleton('queue.listener', function ($app) {
             return new Listener($app->basePath());
         });
     }
@@ -267,7 +259,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      */
     protected function registerFailedJobServices()
     {
-        $this->app->singleton('queue.failer', function ($app) {
+        $this->app->registerSingleton('queue.failer', function ($app) {
             $config = $app['config']['queue.failed'];
 
             if (array_key_exists('driver', $config) &&
@@ -322,7 +314,7 @@ class QueueServiceProvider extends ServiceProvider implements DeferrableProvider
      *
      * @return array
      */
-    public function provides()
+    public function provides(): array
     {
         return [
             'queue',

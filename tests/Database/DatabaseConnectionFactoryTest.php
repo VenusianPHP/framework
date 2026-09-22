@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Connectors\ConnectionFactory;
 use InvalidArgumentException;
@@ -104,19 +104,19 @@ test('read write connection sets read pdo config', function () {
 });
 
 test('if driver isnt set exception is thrown', function () {
-    $factory = new ConnectionFactory($container = m::mock(Vessel::class));
+    $factory = new ConnectionFactory($container = m::mock(ControlPanel::class));
     $factory->createConnector(['foo']);
 })->throws(InvalidArgumentException::class, 'A driver must be specified.');
 
 test('exception is thrown on unsupported driver', function () {
-    $factory = new ConnectionFactory($container = m::mock(Vessel::class));
-    $container->shouldReceive('bound')->once()->andReturn(false);
+    $factory = new ConnectionFactory($container = m::mock(ControlPanel::class));
+    $container->shouldReceive('isBound')->once()->andReturn(false);
     $factory->createConnector(['driver' => 'foo']);
 })->throws(InvalidArgumentException::class, 'Unsupported driver [foo]');
 
 test('custom connectors can be resolved via container', function () {
-    $factory = new ConnectionFactory($container = m::mock(Vessel::class));
-    $container->shouldReceive('bound')->once()->with('db.connector.foo')->andReturn(true);
+    $factory = new ConnectionFactory($container = m::mock(ControlPanel::class));
+    $container->shouldReceive('isBound')->once()->with('db.connector.foo')->andReturn(true);
     $container->shouldReceive('make')->once()->with('db.connector.foo')->andReturn('connector');
 
     expect($factory->createConnector(['driver' => 'foo']))->toBe('connector');

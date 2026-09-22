@@ -27,7 +27,7 @@ class DatabaseManager implements ConnectionResolverInterface
     /**
      * The application instance.
      *
-     * @var \Voyager\Contracts\System\Application
+     * @var \Voyager\Contracts\Core\FrameworkCore
      */
     protected $app;
 
@@ -69,7 +69,7 @@ class DatabaseManager implements ConnectionResolverInterface
     /**
      * Create a new database manager instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @param  \Voyager\Database\Connectors\ConnectionFactory  $factory
      */
     public function __construct($app, ConnectionFactory $factory)
@@ -239,11 +239,11 @@ class DatabaseManager implements ConnectionResolverInterface
         // First we'll set the fetch mode and a few other dependencies of the database
         // connection. This method basically just configures and prepares it to get
         // used by the application. Once we're finished we'll return it back out.
-        if ($this->app->bound('events')) {
-            $connection->setEventDispatcher($this->app['events']);
+        if ($this->app->isBound('signals')) {
+            $connection->setEventDispatcher($this->app['signals']);
         }
 
-        if ($this->app->bound('db.transactions')) {
+        if ($this->app->isBound('db.transactions')) {
             $connection->setTransactionManager($this->app['db.transactions']);
         }
 
@@ -263,11 +263,11 @@ class DatabaseManager implements ConnectionResolverInterface
      */
     protected function dispatchConnectionEstablishedEvent(Connection $connection)
     {
-        if (! $this->app->bound('events')) {
+        if (! $this->app->isBound('signals')) {
             return;
         }
 
-        $this->app['events']->dispatch(
+        $this->app['signals']->dispatch(
             new ConnectionEstablished($connection)
         );
     }
@@ -465,7 +465,7 @@ class DatabaseManager implements ConnectionResolverInterface
     /**
      * Set the application instance used by the manager.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @return $this
      */
     public function setApplication($app)

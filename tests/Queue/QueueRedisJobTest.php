@@ -1,6 +1,6 @@
 <?php
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel as Vessel;
 use Voyager\Queue\Jobs\RedisJob;
 use Voyager\Queue\RedisQueue;
 use Mockery as m;

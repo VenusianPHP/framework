@@ -1,8 +1,8 @@
 <?php
 
-use Voyager\Contracts\NutsAndBolts\Arrayable;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\DataObjects\Arr;
+use Voyager\Contracts\NutsAndBolts\Arrayable;
 
 if (! function_exists('collect')) {
     /**

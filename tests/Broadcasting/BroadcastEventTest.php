@@ -4,7 +4,19 @@ use Voyager\Broadcasting\BroadcastEvent;
 use Voyager\Broadcasting\InteractsWithBroadcasting;
 use Voyager\Contracts\Broadcasting\Broadcaster;
 use Voyager\Contracts\Broadcasting\Factory as BroadcastingFactory;
+use Voyager\Vessel\ControlPanel;
 use Mockery as m;
+
+beforeEach(fn () => ControlPanel::setInstance(new ControlPanel));
+afterEach(function () {
+    ControlPanel::setInstance(null);
+    m::close();
+});
+
+function bindBroadcastManager(BroadcastingFactory $manager): void
+{
+    app()->registerInstance(BroadcastingFactory::class, $manager);
+}
 
 test('basic event broadcast parameter formatting', function () {
     $broadcaster = m::mock(Broadcaster::class);
@@ -19,7 +31,8 @@ test('basic event broadcast parameter formatting', function () {
 
     $event = new TestBroadcastEvent;
 
-    (new BroadcastEvent($event))->handle($manager);
+    bindBroadcastManager($manager);
+    (new BroadcastEvent($event))->handle();
 });
 
 test('manual parameter specification', function () {
@@ -35,7 +48,8 @@ test('manual parameter specification', function () {
 
     $event = new TestBroadcastEventWithManualData;
 
-    (new BroadcastEvent($event))->handle($manager);
+    bindBroadcastManager($manager);
+    (new BroadcastEvent($event))->handle();
 });
 
 test('specific broadcaster given', function () {
@@ -49,7 +63,8 @@ test('specific broadcaster given', function () {
 
     $event = new TestBroadcastEventWithSpecificBroadcaster;
 
-    (new BroadcastEvent($event))->handle($manager);
+    bindBroadcastManager($manager);
+    (new BroadcastEvent($event))->handle();
 });
 
 test('specific channels per connection', function () {
@@ -70,7 +85,8 @@ test('specific channels per connection', function () {
 
     $event = new TestBroadcastEventWithChannelsPerConnection;
 
-    (new BroadcastEvent($event))->handle($manager);
+    bindBroadcastManager($manager);
+    (new BroadcastEvent($event))->handle();
 });
 
 test('middleware proxies middleware from underlying event', function () {

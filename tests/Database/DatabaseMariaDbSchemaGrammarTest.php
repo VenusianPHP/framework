@@ -6,7 +6,7 @@ use Voyager\Database\Schema\Blueprint;
 use Voyager\Database\Schema\ForeignIdColumnDefinition;
 use Voyager\Database\Schema\Grammars\MariaDbGrammar;
 use Voyager\Database\Schema\MariaDbBuilder;
-use Tests\Database\Fixtures\Enums\Foo;
+use Venusian\Tests\Database\Fixtures\Enums\Foo;
 use Mockery as m;
 
 function mariaDbSchemaConnection(

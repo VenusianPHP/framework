@@ -4,7 +4,7 @@ namespace Voyager\Queue\Middleware;
 
 use Voyager\Cache\RateLimiter;
 use Voyager\Cache\RateLimiting\Unlimited;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\NutsAndBolts\Collection;
 
 use function Voyager\NutsAndBolts\Helpers\enum_value;
@@ -46,7 +46,7 @@ class RateLimited
      */
     public function __construct($limiterName)
     {
-        $this->limiter = Vessel::getInstance()->make(RateLimiter::class);
+        $this->limiter = ControlPanel::getInstance()->make(RateLimiter::class);
 
         $this->limiterName = (string) enum_value($limiterName);
     }
@@ -162,6 +162,6 @@ class RateLimited
      */
     public function __wakeup()
     {
-        $this->limiter = Vessel::getInstance()->make(RateLimiter::class);
+        $this->limiter = ControlPanel::getInstance()->make(RateLimiter::class);
     }
 }

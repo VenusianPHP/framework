@@ -2,6 +2,8 @@
 
 namespace Voyager\NutsAndBolts;
 
+use Voyager\Contracts\Config\Repository;
+use Voyager\Contracts\Core\FrameworkCore;
 use Voyager\NutsAndBolts\DataObjects\Str;
 
 use Closure;
@@ -13,44 +15,44 @@ abstract class MultipleInstanceManager
     /**
      * The application instance.
      *
-     * @var \Voyager\Contracts\System\Application
+     * @var FrameworkCore
      */
-    protected $app;
+    protected FrameworkCore $app;
 
     /**
      * The configuration repository instance.
      *
-     * @var \Voyager\Contracts\Config\Repository
+     * @var Repository
      */
-    protected $config;
+    protected Repository $config;
 
     /**
      * The array of resolved instances.
      *
      * @var array
      */
-    protected $instances = [];
+    protected array $instances = [];
 
     /**
      * The registered custom instance creators.
      *
      * @var array
      */
-    protected $customCreators = [];
+    protected array $custom_creators = [];
 
     /**
      * The key name of the "driver" equivalent configuration option.
      *
      * @var string
      */
-    protected $driverKey = 'driver';
+    protected string $driver_key = 'driver';
 
     /**
      * Create a new manager instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param FrameworkCore $app
      */
-    public function __construct($app)
+    public function __construct(FrameworkCore $app)
     {
         $this->app = $app;
         $this->config = $app->make('config');
@@ -61,31 +63,31 @@ abstract class MultipleInstanceManager
      *
      * @return string
      */
-    abstract public function getDefaultInstance();
+    abstract public function getDefaultInstance(): string;
 
     /**
      * Set the default instance name.
      *
-     * @param  string  $name
+     * @param string $name
      * @return void
      */
-    abstract public function setDefaultInstance($name);
+    abstract public function setDefaultInstance(string $name): void;
 
     /**
      * Get the instance specific configuration.
      *
-     * @param  string  $name
+     * @param string $name
      * @return array
      */
-    abstract public function getInstanceConfig($name);
+    abstract public function getInstanceConfig(string $name): array;
 
     /**
      * Get an instance by name.
      *
-     * @param  string|null  $name
+     * @param string|null $name
      * @return mixed
      */
-    public function instance($name = null)
+    public function instance(?string $name = null): mixed
     {
         $name = $name ?: $this->getDefaultInstance();
 
@@ -95,10 +97,10 @@ abstract class MultipleInstanceManager
     /**
      * Attempt to get an instance from the local cache.
      *
-     * @param  string  $name
+     * @param string $name
      * @return mixed
      */
-    protected function get($name)
+    protected function get(string $name): mixed
     {
         return $this->instances[$name] ?? $this->resolve($name);
     }
@@ -106,13 +108,13 @@ abstract class MultipleInstanceManager
     /**
      * Resolve the given instance.
      *
-     * @param  string  $name
+     * @param string $name
      * @return mixed
      *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    protected function resolve($name)
+    protected function resolve(string $name): mixed
     {
         $config = $this->getInstanceConfig($name);
 
@@ -120,28 +122,28 @@ abstract class MultipleInstanceManager
             throw new InvalidArgumentException("Instance [{$name}] is not defined.");
         }
 
-        if (! array_key_exists($this->driverKey, $config)) {
-            throw new RuntimeException("Instance [{$name}] does not specify a {$this->driverKey}.");
+        if (! array_key_exists($this->driver_key, $config)) {
+            throw new RuntimeException("Instance [{$name}] does not specify a {$this->driver_key}.");
         }
 
-        $driverName = $config[$this->driverKey];
+        $driverName = $config[$this->driver_key];
 
-        if (isset($this->customCreators[$driverName])) {
+        if (isset($this->custom_creators[$driverName])) {
             return $this->callCustomCreator($config);
         } else {
-            $createMethod = 'create'.ucfirst($driverName).ucfirst($this->driverKey);
+            $createMethod = 'create'.ucfirst($driverName).ucfirst($this->driver_key);
 
             if (method_exists($this, $createMethod)) {
                 return $this->{$createMethod}($config);
             }
 
-            $createMethod = 'create'.Str::studly($driverName).ucfirst($this->driverKey);
+            $createMethod = 'create'.Str::studly($driverName).ucfirst($this->driver_key);
 
             if (method_exists($this, $createMethod)) {
                 return $this->{$createMethod}($config);
             }
 
-            throw new InvalidArgumentException("Instance {$this->driverKey} [{$config[$this->driverKey]}] is not supported.");
+            throw new InvalidArgumentException("Instance {$this->driver_key} [{$config[$this->driver_key]}] is not supported.");
         }
     }
 
@@ -151,18 +153,18 @@ abstract class MultipleInstanceManager
      * @param  array  $config
      * @return mixed
      */
-    protected function callCustomCreator(array $config)
+    protected function callCustomCreator(array $config): mixed
     {
-        return $this->customCreators[$config[$this->driverKey]]($this->app, $config);
+        return $this->custom_creators[$config[$this->driver_key]]($this->app, $config);
     }
 
     /**
      * Unset the given instances.
      *
-     * @param  array|string|null  $name
+     * @param array|string|null $name
      * @return $this
      */
-    public function forgetInstance($name = null)
+    public function forgetInstance(array|string|null $name = null): static
     {
         $name ??= $this->getDefaultInstance();
 
@@ -178,10 +180,10 @@ abstract class MultipleInstanceManager
     /**
      * Disconnect the given instance and remove from local cache.
      *
-     * @param  string|null  $name
+     * @param string|null $name
      * @return void
      */
-    public function purge($name = null)
+    public function purge(?string $name = null): void
     {
         $name ??= $this->getDefaultInstance();
 
@@ -191,16 +193,16 @@ abstract class MultipleInstanceManager
     /**
      * Register a custom instance creator Closure.
      *
-     * @param  string  $name
+     * @param string $name
      * @param  \Closure  $callback
      *
      * @param-closure-this  $this  $callback
      *
      * @return $this
      */
-    public function extend($name, Closure $callback)
+    public function extend(string $name, Closure $callback): static
     {
-        $this->customCreators[$name] = $callback->bindTo($this, $this);
+        $this->custom_creators[$name] = $callback->bindTo($this, $this);
 
         return $this;
     }
@@ -208,10 +210,10 @@ abstract class MultipleInstanceManager
     /**
      * Set the application instance used by the manager.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
-     * @return $this
+     * @param FrameworkCore $app
+     * @return static
      */
-    public function setApplication($app)
+    public function setApplication(FrameworkCore $app): static
     {
         $this->app = $app;
 
@@ -221,11 +223,11 @@ abstract class MultipleInstanceManager
     /**
      * Dynamically call the default instance.
      *
-     * @param  string  $method
-     * @param  array  $parameters
+     * @param string $method
+     * @param array $parameters
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters)
     {
         return $this->instance()->$method(...$parameters);
     }

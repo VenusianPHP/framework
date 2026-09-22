@@ -1,14 +1,15 @@
 <?php
 
+
 use Voyager\Bus\Dispatcher;
 use Voyager\Bus\Queueable;
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\System\Bus\Dispatchable;
+use Voyager\Core\Bus\Dispatchable;
 use Voyager\Queue\CallQueuedHandler;
 use Voyager\Queue\InteractsWithQueue;
 use Voyager\Queue\Jobs\FakeJob;
 use Voyager\Queue\Middleware\FailOnException;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel as Vessel;
 
 beforeEach(function () {
     // Laravel runs this against a Testbench application. The middleware only
@@ -93,7 +94,7 @@ class FailOnExceptionMiddlewareTestJob implements ShouldQueue
     {
     }
 
-    public function handle()
+    public function handle(): mixed
     {
         throw new $this->throws;
     }

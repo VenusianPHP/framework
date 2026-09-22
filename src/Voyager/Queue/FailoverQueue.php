@@ -2,9 +2,12 @@
 
 namespace Voyager\Queue;
 
-use Voyager\Contracts\Events\Dispatcher as EventDispatcher;
+use DateTimeInterface;
+use DateInterval;
+use Voyager\Contracts\Queue\Job;
+use Voyager\Contracts\Signals\SignalDispatcher as EventDispatcher;
 use Voyager\Contracts\Queue\Queue as QueueContract;
-use Voyager\Queue\Events\QueueFailedOver;
+use Voyager\Queue\Signals\QueueFailedOver;
 use RuntimeException;
 use Throwable;
 
@@ -33,7 +36,7 @@ class FailoverQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return int
      */
-    public function size($queue = null)
+    public function size(?string $queue = null): int
     {
         return $this->manager->connection($this->connections[0])->size($queue);
     }
@@ -92,7 +95,7 @@ class FailoverQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function push($job, $data = '', $queue = null)
+    public function push(object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         return $this->attemptOnAllConnections(__FUNCTION__, func_get_args(), $job);
     }
@@ -104,7 +107,7 @@ class FailoverQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function pushRaw($payload, $queue = null, array $options = [])
+    public function pushRaw(string $payload, ?string $queue = null, array $options = []): mixed
     {
         return $this->attemptOnAllConnections(__FUNCTION__, func_get_args());
     }
@@ -118,7 +121,7 @@ class FailoverQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return mixed
      */
-    public function later($delay, $job, $data = '', $queue = null)
+    public function later(DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = '', ?string $queue = null): mixed
     {
         return $this->attemptOnAllConnections(__FUNCTION__, func_get_args(), $job);
     }
@@ -129,7 +132,7 @@ class FailoverQueue extends Queue implements QueueContract
      * @param  string|null  $queue
      * @return \Voyager\Contracts\Queue\Job|null
      */
-    public function pop($queue = null)
+    public function pop(?string $queue = null): ?Job
     {
         return $this->manager->connection($this->connections[0])->pop($queue);
     }

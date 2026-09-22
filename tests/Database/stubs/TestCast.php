@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\stubs;
+namespace Venusian\Tests\Database\stubs;
 
 use Voyager\Contracts\Database\Instrument\CastsAttributes;
 use Voyager\Database\Instrument\Model;

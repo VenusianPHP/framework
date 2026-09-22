@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Cache\Fixtures;
+namespace Venusian\Tests\Cache\Fixtures;
 
 use Voyager\Cache\Console\ClearCommand;
 

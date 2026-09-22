@@ -2,7 +2,7 @@
 
 use Voyager\Database\Console\Migrations\MigrateMakeCommand;
 use Voyager\Database\Migrations\MigrationCreator;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Voyager\NutsAndBolts\Composer;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -18,7 +18,7 @@ test('basic create dumps autoload', function () {
         $creator = m::mock(MigrationCreator::class),
         $composer = m::mock(Composer::class)
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $app->useDatabasePath(__DIR__);
     $command->setVenusian($app);
     $creator->shouldReceive('create')->once()
@@ -33,7 +33,7 @@ test('basic create gives creator proper arguments', function () {
         $creator = m::mock(MigrationCreator::class),
         m::mock(Composer::class)->shouldIgnoreMissing()
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $app->useDatabasePath(__DIR__);
     $command->setVenusian($app);
     $creator->shouldReceive('create')->once()
@@ -48,7 +48,7 @@ test('basic create gives creator proper arguments when name is studly case', fun
         $creator = m::mock(MigrationCreator::class),
         m::mock(Composer::class)->shouldIgnoreMissing()
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $app->useDatabasePath(__DIR__);
     $command->setVenusian($app);
     $creator->shouldReceive('create')->once()
@@ -63,7 +63,7 @@ test('basic create gives creator proper arguments when table is set', function (
         $creator = m::mock(MigrationCreator::class),
         m::mock(Composer::class)->shouldIgnoreMissing()
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $app->useDatabasePath(__DIR__);
     $command->setVenusian($app);
     $creator->shouldReceive('create')->once()
@@ -78,7 +78,7 @@ test('basic create gives creator proper arguments when create table pattern is f
         $creator = m::mock(MigrationCreator::class),
         m::mock(Composer::class)->shouldIgnoreMissing()
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $app->useDatabasePath(__DIR__);
     $command->setVenusian($app);
     $creator->shouldReceive('create')->once()
@@ -93,7 +93,7 @@ test('can specify path to create migrations in', function () {
         $creator = m::mock(MigrationCreator::class),
         m::mock(Composer::class)->shouldIgnoreMissing()
     );
-    $app = new Application;
+    $app = new RenderedInstance;
     $command->setVenusian($app);
     $app->setBasePath('/home/laravel');
     $creator->shouldReceive('create')->once()

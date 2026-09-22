@@ -1,16 +1,16 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Closure;
-use Voyager\Contracts\Events\Dispatcher as DispatcherContract;
+use Voyager\Contracts\Signals\SignalDispatcher as DispatcherContract;
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Console\PruneCommand;
 use Voyager\Database\Events\ModelPruningFinished;
 use Voyager\Database\Events\ModelPruningStarting;
 use Voyager\Database\Events\ModelsPruned;
-use Voyager\Events\Dispatcher;
-use Voyager\System\Application;
+use Voyager\Signals\SignalDispatcher as Dispatcher;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -21,32 +21,32 @@ function pruneCommandArtisan($arguments)
     $output = new BufferedOutput;
 
     tap(new PruneCommand())
-        ->setVenusian(Application::getInstance())
+        ->setVenusian(RenderedInstance::getInstance())
         ->run($input, $output);
 
     return $output;
 }
 
 beforeEach(function () {
-    Application::setInstance($container = new Application(__DIR__.'/Pruning'));
+    RenderedInstance::setInstance($container = new RenderedInstance(__DIR__.'/Pruning'));
 
     Closure::bind(
-        fn () => $this->namespace = 'Voyager\\Tests\\Database\\Pruning\\',
+        fn () => $this->namespace = 'Venusian\\Tests\\Database\\Pruning\\',
         $container,
-        Application::class,
+        RenderedInstance::class,
     )();
 
     $container->useAppPath(__DIR__.'/Pruning');
 
-    $container->singleton(DispatcherContract::class, function () {
+    $container->registerSingleton(DispatcherContract::class, function () {
         return new Dispatcher();
     });
 
-    $container->alias(DispatcherContract::class, 'events');
+    $container->alias(DispatcherContract::class, 'signals');
 });
 
 afterEach(function () {
-    Application::setInstance(null);
+    RenderedInstance::setInstance(null);
 });
 
 test('prunable model and except with each other', function () {
@@ -62,7 +62,7 @@ test('prunable model with prunable records', function () {
     $output = $output->fetch();
 
     $this->assertStringContainsString(
-        'Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords',
+        'Venusian\Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords',
         $output,
     );
 
@@ -72,7 +72,7 @@ test('prunable model with prunable records', function () {
     );
 
     $this->assertStringContainsString(
-        'Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords',
+        'Venusian\Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords',
         $output,
     );
 
@@ -86,7 +86,7 @@ test('prunable test model without prunable records', function () {
     $output = pruneCommandArtisan(['--model' => Pruning\Models\PrunableTestModelWithoutPrunableRecords::class]);
 
     $this->assertStringContainsString(
-        'No prunable [Tests\Database\Pruning\Models\PrunableTestModelWithoutPrunableRecords] records found.',
+        'No prunable [Venusian\Tests\Database\Pruning\Models\PrunableTestModelWithoutPrunableRecords] records found.',
         $output->fetch()
     );
 });
@@ -115,7 +115,7 @@ test('prunable soft deleted model with prunable records', function () {
     $output = $output->fetch();
 
     $this->assertStringContainsString(
-        'Tests\Database\Pruning\Models\PrunableTestSoftDeletedModelWithPrunableRecords',
+        'Venusian\Tests\Database\Pruning\Models\PrunableTestSoftDeletedModelWithPrunableRecords',
         $output,
     );
 
@@ -131,7 +131,7 @@ test('non prunable test', function () {
     $output = pruneCommandArtisan(['--model' => Pruning\Models\NonPrunableTestModel::class]);
 
     $this->assertStringContainsString(
-        'No prunable [Tests\Database\Pruning\Models\NonPrunableTestModel] records found.',
+        'No prunable [Venusian\Tests\Database\Pruning\Models\NonPrunableTestModel] records found.',
         $output->fetch(),
     );
 });
@@ -151,17 +151,17 @@ test('non model files are ignored test', function () {
     $output = $output->fetch();
 
     $this->assertStringNotContainsString(
-        'No prunable [Tests\Database\Pruning\Models\AbstractPrunableModel] records found.',
+        'No prunable [Venusian\Tests\Database\Pruning\Models\AbstractPrunableModel] records found.',
         $output,
     );
 
     $this->assertStringNotContainsString(
-        'No prunable [Tests\Database\Pruning\Models\SomeClass] records found.',
+        'No prunable [Venusian\Tests\Database\Pruning\Models\SomeClass] records found.',
         $output,
     );
 
     $this->assertStringNotContainsString(
-        'No prunable [Tests\Database\Pruning\Models\SomeEnum] records found.',
+        'No prunable [Venusian\Tests\Database\Pruning\Models\SomeEnum] records found.',
         $output,
     );
 });
@@ -192,7 +192,7 @@ test('the command may be pretended', function () {
     ]);
 
     $this->assertStringContainsString(
-        '3 [Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords] records will be pruned.',
+        '3 [Venusian\Tests\Database\Pruning\Models\PrunableTestModelWithPrunableRecords] records will be pruned.',
         $output->fetch(),
     );
 
@@ -224,7 +224,7 @@ test('the command may be pretended on soft deleted model', function () {
     ]);
 
     $this->assertStringContainsString(
-        '2 [Tests\Database\Pruning\Models\PrunableTestSoftDeletedModelWithPrunableRecords] records will be pruned.',
+        '2 [Venusian\Tests\Database\Pruning\Models\PrunableTestSoftDeletedModelWithPrunableRecords] records will be pruned.',
         $output->fetch(),
     );
 
@@ -239,14 +239,14 @@ test('the command dispatches events', function () {
             $event->models === [Pruning\Models\PrunableTestModelWithPrunableRecords::class];
     });
     $dispatcher->shouldReceive('listen')->once()->with(ModelsPruned::class, m::type(Closure::class));
-    $dispatcher->shouldReceive('dispatch')->twice()->with(m::type(ModelsPruned::class));
+    $dispatcher->shouldReceive('dispatch')->twice()->withArgs(fn ($event) => $event instanceof ModelsPruned);
     $dispatcher->shouldReceive('dispatch')->once()->withArgs(function ($event) {
         return get_class($event) === ModelPruningFinished::class &&
             $event->models === [Pruning\Models\PrunableTestModelWithPrunableRecords::class];
     });
     $dispatcher->shouldReceive('forget')->once()->with(ModelsPruned::class);
 
-    Application::getInstance()->instance(DispatcherContract::class, $dispatcher);
+    RenderedInstance::getInstance()->registerInstance(DispatcherContract::class, $dispatcher);
 
     pruneCommandArtisan(['--model' => Pruning\Models\PrunableTestModelWithPrunableRecords::class]);
 });

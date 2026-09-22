@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\Queue\Fixtures;
+namespace Venusian\Tests\Queue\Fixtures;
 
 class MyTestJob
 {
-    public function handle()
+    public function handle(): mixed
     {
         // ...
     }

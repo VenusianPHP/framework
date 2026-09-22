@@ -1,7 +1,7 @@
 <?php
 
-use Voyager\Vessel\Vessel;
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Vessel\ControlPanel as Vessel;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Contracts\Queue\QueueableEntity;
 use Voyager\Contracts\Queue\ShouldBeUnique;
 use Voyager\Contracts\Queue\ShouldQueue;
@@ -35,8 +35,8 @@ test('failed job gets handled when an exception is thrown', function () {
     Vessel::setInstance($container);
     $events = m::mock(Dispatcher::class);
     $events->shouldReceive('dispatch')->times(4);
-    $container->instance('events', $events);
-    $container->instance(Dispatcher::class, $events);
+    $container->registerInstance('signals', $events);
+    $container->registerInstance(Dispatcher::class, $events);
     $sync->setContainer($container);
 
     try {
@@ -53,9 +53,9 @@ test('failed job has access to job instance', function () {
 
     $sync = new SyncQueue;
     $container = new Vessel;
-    $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Signals\SignalDispatcher::class, \Voyager\Signals\SignalDispatcher::class);
     $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
-    $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
+    $container->bind(\Voyager\Contracts\Vessel\TheServiceContainer::class, \Voyager\Vessel\ControlPanel::class);
     $sync->setContainer($container);
 
     SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
@@ -72,9 +72,9 @@ test('failed job has access to job instance', function () {
 test('creates payload object', function () {
     $sync = new SyncQueue;
     $container = new Vessel;
-    $container->bind(\Voyager\Contracts\Events\Dispatcher::class, \Voyager\Events\Dispatcher::class);
+    $container->bind(\Voyager\Contracts\Signals\SignalDispatcher::class, \Voyager\Signals\SignalDispatcher::class);
     $container->bind(\Voyager\Contracts\Bus\Dispatcher::class, \Voyager\Bus\Dispatcher::class);
-    $container->bind(\Voyager\Contracts\Vessel\Vessel::class, \Voyager\Vessel\Vessel::class);
+    $container->bind(\Voyager\Contracts\Vessel\TheServiceContainer::class, \Voyager\Vessel\ControlPanel::class);
     $sync->setContainer($container);
 
     SyncQueue::createPayloadUsing(function ($connection, $queue, $payload) {
@@ -135,7 +135,7 @@ class FailingSyncQueueJob implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    public function handle()
+    public function handle(): mixed
     {
         throw new LogicException();
     }
@@ -152,7 +152,7 @@ class SyncQueueJob implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    public function handle()
+    public function handle(): mixed
     {
         throw new LogicException($this->getValueFromJob('extra'));
     }
@@ -171,7 +171,7 @@ class SyncQueueAfterCommitJob
 
     public $afterCommit = true;
 
-    public function handle()
+    public function handle(): mixed
     {
     }
 }
@@ -180,7 +180,7 @@ class SyncQueueAfterCommitInterfaceJob implements ShouldQueueAfterCommit
 {
     use InteractsWithQueue;
 
-    public function handle()
+    public function handle(): mixed
     {
     }
 }
@@ -191,7 +191,7 @@ class SyncQueueAfterCommitUniqueJob implements ShouldBeUnique
 
     public $afterCommit = true;
 
-    public function handle()
+    public function handle(): mixed
     {
     }
 }
@@ -200,7 +200,7 @@ class SyncQueueAfterCommitInterfaceUniqueJob implements ShouldBeUnique, ShouldQu
 {
     use InteractsWithQueue;
 
-    public function handle()
+    public function handle(): mixed
     {
     }
 }

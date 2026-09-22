@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Connectors;
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Queue\FailoverQueue;
 use Voyager\Queue\QueueManager;
 

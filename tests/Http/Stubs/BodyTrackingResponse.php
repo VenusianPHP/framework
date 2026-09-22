@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Http\Stubs;
+namespace Venusian\Tests\Http\Stubs;
 
 use Voyager\Http\Client\Response;
 

@@ -2,7 +2,7 @@
 
 namespace Voyager\Database\Connectors;
 
-use Voyager\Contracts\Vessel\Vessel;
+use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\Database\Connection;
 use Voyager\Database\MariaDbConnection;
 use Voyager\Database\MySqlConnection;
@@ -18,16 +18,16 @@ class ConnectionFactory
     /**
      * The IoC container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
     protected $container;
 
     /**
      * Create a new connection factory instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $container
+     * @param  \Voyager\Contracts\Vessel\TheServiceContainer  $container
      */
-    public function __construct(Vessel $container)
+    public function __construct(TheServiceContainer $container)
     {
         $this->container = $container;
     }
@@ -239,7 +239,7 @@ class ConnectionFactory
             throw new InvalidArgumentException('A driver must be specified.');
         }
 
-        if ($this->container->bound($key = "db.connector.{$config['driver']}")) {
+        if ($this->container->isBound($key = "db.connector.{$config['driver']}")) {
             return $this->container->make($key);
         }
 

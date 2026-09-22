@@ -13,38 +13,38 @@ class Composer
     /**
      * The filesystem instance.
      *
-     * @var \Voyager\Filesystem\Filesystem
+     * @var Filesystem
      */
-    protected $files;
+    protected Filesystem $files;
 
     /**
      * The working path to regenerate from.
      *
      * @var string|null
      */
-    protected $workingPath;
+    protected ?string $working_path;
 
     /**
      * Create a new Composer manager instance.
      *
-     * @param  \Voyager\Filesystem\Filesystem  $files
-     * @param  string|null  $workingPath
+     * @param Filesystem $files
+     * @param string|null $workingPath
      */
-    public function __construct(Filesystem $files, $workingPath = null)
+    public function __construct(Filesystem $files, ?string $working_path = null)
     {
         $this->files = $files;
-        $this->workingPath = $workingPath;
+        $this->working_path = $working_path;
     }
 
     /**
      * Determine if the given Composer package is installed.
      *
-     * @param  string  $package
+     * @param string $package
      * @return bool
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    public function hasPackage($package)
+    public function hasPackage(string $package): bool
     {
         $composer = json_decode(file_get_contents($this->findComposerFile()), true);
 
@@ -61,13 +61,13 @@ class Composer
      * @param  string|null  $composerBinary
      * @return bool
      */
-    public function requirePackages(array $packages, bool $dev = false, Closure|OutputInterface|null $output = null, $composerBinary = null)
+    public function requirePackages(array $packages, bool $dev = false, Closure|OutputInterface|null $output = null, $composerBinary = null): bool
     {
-        $command = (new Collection([
+        $command = new Collection([
             ...$this->findComposer($composerBinary),
             'require',
             ...$packages,
-        ]))
+        ])
             ->when($dev, function ($command) {
                 $command->push('--dev');
             })->all();
@@ -90,13 +90,13 @@ class Composer
      * @param  string|null  $composerBinary
      * @return bool
      */
-    public function removePackages(array $packages, bool $dev = false, Closure|OutputInterface|null $output = null, $composerBinary = null)
+    public function removePackages(array $packages, bool $dev = false, Closure|OutputInterface|null $output = null, $composerBinary = null): bool
     {
-        $command = (new Collection([
+        $command = new Collection([
             ...$this->findComposer($composerBinary),
             'remove',
             ...$packages,
-        ]))
+        ])
             ->when($dev, function ($command) {
                 $command->push('--dev');
             })->all();
@@ -113,10 +113,11 @@ class Composer
     /**
      * Modify the "composer.json" file contents using the given callback.
      *
-     * @param  callable(array):array  $callback
+     * @param callable(array):array $callback
      * @return void
      *
      * @throws \RuntimeException
+     * @throws \JsonException
      */
     public function modify(callable $callback)
     {
@@ -136,11 +137,11 @@ class Composer
     /**
      * Regenerate the Composer autoloader files.
      *
-     * @param  string|array  $extra
-     * @param  string|null  $composerBinary
+     * @param array|string $extra
+     * @param string|null $composerBinary
      * @return int
      */
-    public function dumpAutoloads($extra = '', $composerBinary = null)
+    public function dumpAutoloads(array|string $extra = '', ?string $composerBinary = null): int
     {
         $extra = $extra ? (array) $extra : [];
 
@@ -152,10 +153,10 @@ class Composer
     /**
      * Regenerate the optimized Composer autoloader files.
      *
-     * @param  string|null  $composerBinary
+     * @param string|null $composerBinary
      * @return int
      */
-    public function dumpOptimized($composerBinary = null)
+    public function dumpOptimized(?string $composerBinary = null): int
     {
         return $this->dumpAutoloads('--optimize', $composerBinary);
     }
@@ -163,10 +164,10 @@ class Composer
     /**
      * Get the Composer binary / command for the environment.
      *
-     * @param  string|null  $composerBinary
+     * @param string|null $composerBinary
      * @return array
      */
-    public function findComposer($composerBinary = null)
+    public function findComposer(?string $composerBinary = null): array
     {
         if (! is_null($composerBinary) && $this->files->exists($composerBinary)) {
             return [$this->phpBinary(), $composerBinary];
@@ -184,7 +185,7 @@ class Composer
      *
      * @throws \RuntimeException
      */
-    protected function findComposerFile()
+    protected function findComposerFile(): string
     {
         $composerFile = "{$this->workingPath}/composer.json";
 
@@ -200,7 +201,7 @@ class Composer
      *
      * @return string
      */
-    protected function phpBinary()
+    protected function phpBinary(): string
     {
         return php_binary();
     }
@@ -212,18 +213,18 @@ class Composer
      * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
-    protected function getProcess(array $command, array $env = [])
+    protected function getProcess(array $command, array $env = []): Process
     {
-        return (new Process($command, $this->workingPath, $env))->setTimeout(null);
+        return new Process($command, $this->workingPath, $env)->setTimeout(null);
     }
 
     /**
      * Set the working path used by the class.
      *
-     * @param  string  $path
+     * @param string $path
      * @return $this
      */
-    public function setWorkingPath($path)
+    public function setWorkingPath(string $path): static
     {
         $this->workingPath = realpath($path);
 
@@ -235,7 +236,7 @@ class Composer
      *
      * @return string|null
      */
-    public function getVersion()
+    public function getVersion(): ?string
     {
         $command = array_merge($this->findComposer(), ['-V', '--no-ansi']);
 

@@ -1,9 +1,9 @@
 <?php
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Redis\Connections\PhpRedisConnection;
-use Voyager\Redis\Events\CommandExecuted;
-use Voyager\Redis\Events\CommandFailed;
+use Voyager\Redis\Signals\CommandExecuted;
+use Voyager\Redis\Signals\CommandFailed;
 use Mockery as m;
 
 test('command failed event is dispatched', function () {

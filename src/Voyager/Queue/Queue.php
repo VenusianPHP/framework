@@ -2,18 +2,20 @@
 
 namespace Voyager\Queue;
 
+use DateInterval;
+use Voyager\Contracts\Queue\Job;
 use Carbon\Carbon;
 use Closure;
 use DateTimeInterface;
 use Voyager\Bus\UniqueLock;
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Cache\Repository as Cache;
 use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\Contracts\Queue\ShouldBeEncrypted;
 use Voyager\Contracts\Queue\ShouldBeUnique;
 use Voyager\Contracts\Queue\ShouldQueueAfterCommit;
-use Voyager\Queue\Events\JobQueued;
-use Voyager\Queue\Events\JobQueueing;
+use Voyager\Queue\Signals\JobQueued;
+use Voyager\Queue\Signals\JobQueueing;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\Concerns\InteractsWithTime;
 use Voyager\NutsAndBolts\DataObjects\Str;
@@ -27,7 +29,7 @@ abstract class Queue
     /**
      * The IoC container instance.
      *
-     * @var \Voyager\Vessel\Vessel
+     * @var \Voyager\Vessel\ControlPanel
      */
     protected $container;
 
@@ -36,7 +38,7 @@ abstract class Queue
      *
      * @var string
      */
-    protected $connectionName;
+    protected $connectionName = '';
 
     /**
      * The original configuration for the queue.
@@ -67,7 +69,7 @@ abstract class Queue
      * @param  mixed  $data
      * @return mixed
      */
-    public function pushOn($queue, $job, $data = '')
+    public function pushOn(string $queue, object|string $job, mixed $data = ''): mixed
     {
         return $this->push($job, $data, $queue);
     }
@@ -81,7 +83,7 @@ abstract class Queue
      * @param  mixed  $data
      * @return mixed
      */
-    public function laterOn($queue, $delay, $job, $data = '')
+    public function laterOn(string $queue, DateInterval|DateTimeInterface|int $delay, object|string $job, mixed $data = ''): mixed
     {
         return $this->later($delay, $job, $data, $queue);
     }
@@ -94,7 +96,7 @@ abstract class Queue
      * @param  string|null  $queue
      * @return void
      */
-    public function bulk($jobs, $data = '', $queue = null)
+    public function bulk(array $jobs, mixed $data = '', ?string $queue = null): mixed
     {
         foreach ((array) $jobs as $job) {
             $this->push($job, $data, $queue);
@@ -178,7 +180,7 @@ abstract class Queue
         ]);
 
         try {
-            $command = $this->jobShouldBeEncrypted($job) && $this->container->bound(Encrypter::class)
+            $command = $this->jobShouldBeEncrypted($job) && $this->container->isBound(Encrypter::class)
                 ? $this->container[Encrypter::class]->encrypt(serialize(clone $job))
                 : serialize(clone $job);
         } catch (Throwable $e) {
@@ -354,7 +356,7 @@ abstract class Queue
     protected function enqueueUsing($job, $payload, $queue, $delay, $callback)
     {
         if ($this->shouldDispatchAfterCommit($job) &&
-            $this->container->bound('db.transactions')) {
+            $this->container->isBound('db.transactions')) {
             if ($job instanceof ShouldBeUnique) {
                 $this->container->make('db.transactions')->addCallbackForRollback(
                     function () use ($job) {
@@ -411,10 +413,10 @@ abstract class Queue
      */
     protected function raiseJobQueueingEvent($queue, $job, $payload, $delay)
     {
-        if ($this->container->bound('events')) {
+        if ($this->container->isBound('signals')) {
             $delay = ! is_null($delay) ? $this->secondsUntil($delay) : $delay;
 
-            $this->container['events']->dispatch(new JobQueueing($this->connectionName, $queue, $job, $payload, $delay));
+            $this->container['signals']->dispatch(new JobQueueing($this->connectionName, $queue, $job, $payload, $delay));
         }
     }
 
@@ -430,10 +432,10 @@ abstract class Queue
      */
     protected function raiseJobQueuedEvent($queue, $jobId, $job, $payload, $delay)
     {
-        if ($this->container->bound('events')) {
+        if ($this->container->isBound('signals')) {
             $delay = ! is_null($delay) ? $this->secondsUntil($delay) : $delay;
 
-            $this->container['events']->dispatch(new JobQueued($this->connectionName, $queue, $jobId, $job, $payload, $delay));
+            $this->container['signals']->dispatch(new JobQueued($this->connectionName, $queue, $jobId, $job, $payload, $delay));
         }
     }
 
@@ -442,7 +444,7 @@ abstract class Queue
      *
      * @return string
      */
-    public function getConnectionName()
+    public function getConnectionName(): string
     {
         return $this->connectionName;
     }
@@ -453,7 +455,7 @@ abstract class Queue
      * @param  string  $name
      * @return $this
      */
-    public function setConnectionName($name)
+    public function setConnectionName(string $name): static
     {
         $this->connectionName = $name;
 
@@ -486,7 +488,7 @@ abstract class Queue
     /**
      * Get the container instance being used by the connection.
      *
-     * @return \Voyager\Vessel\Vessel
+     * @return \Voyager\Vessel\ControlPanel
      */
     public function getContainer()
     {
@@ -496,10 +498,10 @@ abstract class Queue
     /**
      * Set the IoC container instance.
      *
-     * @param  \Voyager\Vessel\Vessel  $container
+     * @param  \Voyager\Vessel\ControlPanel  $container
      * @return void
      */
-    public function setContainer(Vessel $container)
+    public function setContainer(ControlPanel $container)
     {
         $this->container = $container;
     }

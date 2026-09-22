@@ -2,7 +2,7 @@
 
 namespace Voyager\Queue\Jobs;
 
-use Voyager\Vessel\Vessel;
+use Voyager\Vessel\ControlPanel;
 use Voyager\Contracts\Queue\Job as JobContract;
 
 class SyncJob extends Job implements JobContract
@@ -29,7 +29,7 @@ class SyncJob extends Job implements JobContract
      * @param  string  $connectionName
      * @param  string  $queue
      */
-    public function __construct(Vessel $container, $payload, $connectionName, $queue)
+    public function __construct(ControlPanel $container, $payload, $connectionName, $queue)
     {
         $this->queue = $queue;
         $this->payload = $payload;
@@ -73,7 +73,7 @@ class SyncJob extends Job implements JobContract
      *
      * @return string
      */
-    public function getRawBody()
+    public function getRawBody(): string
     {
         return $this->payload;
     }
@@ -83,7 +83,7 @@ class SyncJob extends Job implements JobContract
      *
      * @return string
      */
-    public function getQueue()
+    public function getQueue(): string
     {
         return 'sync';
     }

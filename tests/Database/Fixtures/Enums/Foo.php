@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database\Fixtures\Enums;
+namespace Venusian\Tests\Database\Fixtures\Enums;
 
 enum Foo: string
 {

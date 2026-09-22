@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Instrument\Builder;
 use Voyager\Database\Instrument\Model;
 use Voyager\Database\Instrument\Relations\MorphTo;
-use Tests\Database\stubs\TestEnum;
+use Venusian\Tests\Database\stubs\TestEnum;
 use Mockery as m;
 
 function dbMorphToGetRelationAssociate($parent)

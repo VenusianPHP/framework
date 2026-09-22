@@ -2,13 +2,14 @@
 
 namespace Voyager\NutsAndBolts\Concerns;
 
+use BackedEnum as TDefault;
 use function Voyager\NutsAndBolts\Helpers\enum_value;
 
 use Carbon\CarbonInterval;
 use Carbon\Unit;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\NutsAndBolts\MagicAliases\Date;
+use Voyager\NutsAndBolts\DataObjects\Carbon as Date;
 use Voyager\NutsAndBolts\DataObjects\Number;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use stdClass;
@@ -355,12 +356,12 @@ trait InteractsWithData
      * Retrieve data from the instance as an enum.
      *
      * @template TEnum of \BackedEnum
-     * @template TDefault of TEnum|null
+     * @template TDefault of TDefault|null
      *
      * @param  string  $key
      * @param  class-string<TEnum>  $enumClass
      * @param  TDefault  $default
-     * @return TEnum|TDefault
+     * @return TDefault|TDefault
      */
     public function enum($key, $enumClass, $default = null)
     {
@@ -378,7 +379,7 @@ trait InteractsWithData
      *
      * @param  string  $key
      * @param  class-string<TEnum>  $enumClass
-     * @return TEnum[]
+     * @return TDefault
      */
     public function enums($key, $enumClass)
     {

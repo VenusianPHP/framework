@@ -4,13 +4,12 @@ namespace Voyager\Broadcasting;
 
 use Voyager\Contracts\Broadcasting\ShouldBroadcast;
 use Voyager\Contracts\NutsAndBolts\Arrayable;
-use Voyager\System\Events\Dispatchable;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 
 class AnonymousEvent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets;
+    use InteractsWithBroadcasting, InteractsWithSockets;
 
     /**
      * The connection the event should be broadcast on.
@@ -80,11 +79,12 @@ class AnonymousEvent implements ShouldBroadcast
     }
 
     /**
-     * Broadcast the event to everyone except the current user.
+     * Broadcast the event to everyone except the given socket.
      */
-    public function toOthers(): static
+    public function toOthers(string $socket): static
     {
         $this->includeCurrentUser = false;
+        $this->dontBroadcastToCurrentUser($socket);
 
         return $this;
     }
@@ -106,8 +106,8 @@ class AnonymousEvent implements ShouldBroadcast
     {
         $broadcast = broadcast($this)->via($this->connection);
 
-        if (! $this->includeCurrentUser) {
-            $broadcast->toOthers();
+        if (! $this->includeCurrentUser && ! is_null($this->socket)) {
+            $broadcast->toOthers($this->socket);
         }
     }
 

@@ -2,7 +2,7 @@
 
 use Voyager\Database\Console\Migrations\RollbackCommand;
 use Voyager\Database\Migrations\Migrator;
-use Voyager\System\Application;
+use Voyager\Core\RenderedInstance;
 use Mockery as m;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -72,12 +72,12 @@ test('rollback command can be pretended with step option', function () {
     migrationRollbackRunCommand($command, ['--pretend' => true, '--database' => 'foo', '--step' => 2]);
 });
 
-class ApplicationDatabaseRollbackStub extends Application
+class ApplicationDatabaseRollbackStub extends RenderedInstance
 {
     public function __construct(array $data = [])
     {
         foreach ($data as $abstract => $instance) {
-            $this->instance($abstract, $instance);
+            $this->registerInstance($abstract, $instance);
         }
     }
 

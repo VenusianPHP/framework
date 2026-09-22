@@ -2,7 +2,7 @@
 
 namespace Voyager\Database\Console;
 
-use Voyager\Contracts\Events\Dispatcher;
+use Voyager\Contracts\Signals\SignalDispatcher as Dispatcher;
 use Voyager\Database\ConnectionResolverInterface;
 use Voyager\Database\Events\DatabaseBusy;
 use Voyager\NutsAndBolts\Collection;
@@ -37,7 +37,7 @@ class MonitorCommand extends DatabaseInspectionCommand
     /**
      * The events dispatcher instance.
      *
-     * @var \Voyager\Contracts\Events\Dispatcher
+     * @var \Voyager\Contracts\Signals\SignalDispatcher
      */
     protected $events;
 
@@ -45,7 +45,7 @@ class MonitorCommand extends DatabaseInspectionCommand
      * Create a new command instance.
      *
      * @param  \Voyager\Database\ConnectionResolverInterface  $connection
-     * @param  \Voyager\Contracts\Events\Dispatcher  $events
+     * @param  \Voyager\Contracts\Signals\SignalDispatcher  $events
      */
     public function __construct(ConnectionResolverInterface $connection, Dispatcher $events)
     {

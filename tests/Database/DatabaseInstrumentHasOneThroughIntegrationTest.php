@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Capsule\Manager as DB;
 use Voyager\Database\Instrument\Model as Instrument;
@@ -188,7 +188,7 @@ test('first or fail throws an exception', function () {
         ->user()->create(['id' => 1, 'email' => 'taylorotwell@gmail.com', 'position_short' => 'ps']);
 
     HasOneThroughTestPosition::first()->contract()->firstOrFail();
-})->throws(ModelNotFoundException::class, 'No query results for model [Tests\Database\HasOneThroughTestContract].');
+})->throws(ModelNotFoundException::class, 'No query results for model [Venusian\Tests\Database\HasOneThroughTestContract].');
 
 test('find or fail throws an exception', function () {
     HasOneThroughTestPosition::create(['id' => 1, 'name' => 'President', 'shortname' => 'ps'])

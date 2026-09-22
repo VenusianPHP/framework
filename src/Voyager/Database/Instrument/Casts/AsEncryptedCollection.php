@@ -4,8 +4,8 @@ namespace Voyager\Database\Instrument\Casts;
 
 use Voyager\Contracts\Database\Instrument\Castable;
 use Voyager\Contracts\Database\Instrument\CastsAttributes;
+use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\NutsAndBolts\Collection;
-use Voyager\NutsAndBolts\MagicAliases\Crypt;
 use Voyager\NutsAndBolts\DataObjects\Str;
 use InvalidArgumentException;
 
@@ -38,7 +38,7 @@ class AsEncryptedCollection implements Castable
                     return null;
                 }
 
-                $instance = new $collectionClass(Json::decode(Crypt::decryptString($attributes[$key])));
+                $instance = new $collectionClass(Json::decode(app(Encrypter::class)->decryptString($attributes[$key])));
 
                 if (! isset($this->arguments[1]) || ! $this->arguments[1]) {
                     return $instance;
@@ -56,7 +56,7 @@ class AsEncryptedCollection implements Castable
             public function set($model, $key, $value, $attributes)
             {
                 if (! is_null($value)) {
-                    return [$key => Crypt::encryptString(Json::encode($value))];
+                    return [$key => app(Encrypter::class)->encryptString(Json::encode($value))];
                 }
 
                 return null;

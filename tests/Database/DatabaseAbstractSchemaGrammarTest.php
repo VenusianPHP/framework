@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Database;
+namespace Venusian\Tests\Database;
 
 use Voyager\Database\Connection;
 use Voyager\Database\Schema\Grammars\Grammar;

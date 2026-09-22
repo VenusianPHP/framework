@@ -2,6 +2,7 @@
 
 namespace Voyager\Queue;
 
+use Voyager\Contracts\Queue\Queue as QueueContract;
 use Closure;
 use Voyager\Contracts\Queue\Factory as FactoryContract;
 use Voyager\Contracts\Queue\Monitor as MonitorContract;
@@ -51,7 +52,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function before($callback)
     {
-        $this->app['events']->listen(Events\JobProcessing::class, $callback);
+        $this->app['signals']->listen(Events\JobProcessing::class, $callback);
     }
 
     /**
@@ -62,7 +63,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function after($callback)
     {
-        $this->app['events']->listen(Events\JobProcessed::class, $callback);
+        $this->app['signals']->listen(Events\JobProcessed::class, $callback);
     }
 
     /**
@@ -73,7 +74,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function exceptionOccurred($callback)
     {
-        $this->app['events']->listen(Events\JobExceptionOccurred::class, $callback);
+        $this->app['signals']->listen(Events\JobExceptionOccurred::class, $callback);
     }
 
     /**
@@ -84,7 +85,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function looping($callback)
     {
-        $this->app['events']->listen(Events\Looping::class, $callback);
+        $this->app['signals']->listen(Events\Looping::class, $callback);
     }
 
     /**
@@ -95,7 +96,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function failing($callback)
     {
-        $this->app['events']->listen(Events\JobFailed::class, $callback);
+        $this->app['signals']->listen(Events\JobFailed::class, $callback);
     }
 
     /**
@@ -106,7 +107,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function starting($callback)
     {
-        $this->app['events']->listen(Events\WorkerStarting::class, $callback);
+        $this->app['signals']->listen(Events\WorkerStarting::class, $callback);
     }
 
     /**
@@ -117,7 +118,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function stopping($callback)
     {
-        $this->app['events']->listen(Events\WorkerStopping::class, $callback);
+        $this->app['signals']->listen(Events\WorkerStopping::class, $callback);
     }
 
     /**
@@ -137,7 +138,7 @@ class QueueManager implements FactoryContract, MonitorContract
      * @param  string|null  $name
      * @return \Voyager\Contracts\Queue\Queue
      */
-    public function connection($name = null)
+    public function connection(?string $name = null): QueueContract
     {
         $name = $name ?: $this->getDefaultDriver();
 
@@ -210,8 +211,8 @@ class QueueManager implements FactoryContract, MonitorContract
             ->store()
             ->forever("illuminate:queue:paused:{$connection}:{$queue}", true);
 
-        $this->app['events']->dispatch(
-            new Events\QueuePaused($connection, $queue)
+        $this->app['signals']->dispatch(
+            new Signals\QueuePaused($connection, $queue)
         );
     }
 
@@ -229,8 +230,8 @@ class QueueManager implements FactoryContract, MonitorContract
             ->store()
             ->put("illuminate:queue:paused:{$connection}:{$queue}", true, $ttl);
 
-        $this->app['events']->dispatch(
-            new Events\QueuePaused($connection, $queue, $ttl)
+        $this->app['signals']->dispatch(
+            new Signals\QueuePaused($connection, $queue, $ttl)
         );
     }
 
@@ -247,8 +248,8 @@ class QueueManager implements FactoryContract, MonitorContract
             ->store()
             ->forget("illuminate:queue:paused:{$connection}:{$queue}");
 
-        $this->app['events']->dispatch(
-            new Events\QueueResumed($connection, $queue)
+        $this->app['signals']->dispatch(
+            new Signals\QueueResumed($connection, $queue)
         );
     }
 
