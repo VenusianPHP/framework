@@ -4,7 +4,8 @@ title: Work targets
 description: "One run(ShouldPool): Promise contract with five homes — sync, defer, pool, concurrency, queue."
 resource: src/Voyager/IOPools/WorkTargetManager.php
 tags: [iopools, work-target, filesystem]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T22:10:00Z }
 sources:
   - id: contract
@@ -31,7 +32,7 @@ sources:
 | `defer` | next loop turn, main thread | the return |
 | `pool` | `WorkerPool::submit()` | the return |
 | `concurrency` | `ConcurrencyManager->driver()->run()` — blocks | the return |
-| `queue` | `QueueFactory::connection()->push($gig)` | the job id |
+| `queue` | `QueueFactory::connection()->push($gig)` | whatever `push()` returns (often a job id; the sync connection returns `0`) |
 
 `concurrency` is isolation, not overlap. `queue` is fire-and-forget; nothing carries `handle()`'s return back.[^manager]
 

@@ -4,7 +4,8 @@ title: Outbound broadcasting
 description: Send-only BroadcastManager. Queue wraps the send. Socket id is explicit. Receive is not this module.
 resource: src/Voyager/Broadcasting
 tags: [broadcasting, queue, redis, pusher]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: cursor-grok-4.6, at: 2026-09-22T18:45:00Z }
 sources:
   - id: manager

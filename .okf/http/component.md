@@ -4,7 +4,8 @@ title: Http client
 description: Guzzle client behind app('http'). Sync sends stay blocking. No facade.
 resource: src/Voyager/Http/Client/Factory.php
 tags: [http, guzzle, client]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T19:50:00Z }
 sources:
   - id: factory
@@ -18,23 +19,23 @@ sources:
     title: http config
   - id: dispatcher
     resource: src/Voyager/Contracts/Events/Dispatcher.php
-    title: Dispatcher shim
+    title: Dispatcher interface
   - id: forwards
     resource: src/Voyager/NutsAndBolts/Concerns/ForwardsCalls.php
-    title: ForwardsCalls shim
+    title: ForwardsCalls
 ---
 
 # Overview
 
 `app('http')` is a `Factory`. `app('http.async')` is the `HttpAsyncManager` the factory uses for async sends. There is no `Http` facade.[^factory][^provider]
 
-A sync send is the 0.8 path: Guzzle, blocking, no loop driver. `async()` with a bound loop returns `Loop::adopt()` of the Guzzle promise. `Pool` and `Batch` keep that Guzzle promise via `getPromise()` so their concurrency cap still applies. `fake()` never registers a driver on the loop.[^factory]
+A sync send is the 0.8 path: Guzzle, blocking, no loop driver. `async()` with a bound loop returns `Loop::adopt()` of the Guzzle promise when no handler was handed in. `Pool` and `Batch` set their own handler and keep a `LazyPromise` so their concurrency cap still applies. `fake()` never registers a driver on the loop; an unstubbed URL can still hit the real handler.[^factory]
 
 # Wiring
 
 `HttpServiceProvider` implements `DeferrableProvider` and is on `DefaultProviders`. It merges `src/Voyager/Http/config/http.php` under `http` and provides `http` and `http.async`. The computer also has `config/http.php`.[^provider][^config]
 
-The client type-hints `Voyager\Contracts\Events\Dispatcher`. That interface is a shim copied so the 0.8 client compiles; this package does not boot an events dispatcher. `ForwardsCalls` is the same kind of shim, used by the fluent promise.[^dispatcher][^forwards]
+The client type-hints `Voyager\Contracts\Events\Dispatcher`. `HttpServiceProvider` constructs the `Factory` with `null`, so this package does not boot an events dispatcher. `ForwardsCalls` is the NutsAndBolts trait; the fluent promise uses it.[^dispatcher][^forwards]
 
 # Async config
 
@@ -43,5 +44,5 @@ The client type-hints `Voyager\Contracts\Events\Dispatcher`. That interface is a
 [^factory]: Factory
 [^provider]: HttpServiceProvider
 [^config]: http config
-[^dispatcher]: Dispatcher shim
-[^forwards]: ForwardsCalls shim
+[^dispatcher]: Dispatcher interface
+[^forwards]: ForwardsCalls

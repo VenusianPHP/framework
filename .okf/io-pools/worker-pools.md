@@ -4,7 +4,8 @@ title: Worker pools
 description: "One submit(): Promise API with a process driver and a ZTS thread driver."
 resource: src/Voyager/IOPools/WorkerPoolManager.php
 tags: [iopools, pool, process, thread]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: okf-documentation-generator/cursor, at: 2026-09-22T13:48:00Z }
 sources:
   - id: manager
@@ -28,7 +29,7 @@ sources:
 
 `WorkerPool::submit(ShouldPool): Promise` is the same call for both drivers. `process` is the default. `thread` needs `ext-parallel` on a ZTS build and refuses to start while Xdebug's mode is not `off`.[^config][^thread]
 
-`Pool` owns the queue, idle pick, recycle, shutdown, and `warm()`. `ProcessPool` and `ThreadPool` only differ in `spawn()`.[^thread]
+`Pool` owns the queue, idle pick, recycle, shutdown, and `warm()`. `ProcessPool` and `ThreadPool` implement `spawn()`. `ThreadPool` also owns the unix socket and the sweep timer (`shutDown`, `afterAssign`, `afterSettle`). `ProcessPool` adds `pids()`.[^thread]
 
 # Crossing the boundary
 
@@ -38,7 +39,7 @@ Both drivers move a gig as a serialized string and settle the promise from one e
 
 Both entry points run `VenusianVoyager::launch($base_path)` and then the console kernel's `bootstrap()`. `launch()` alone only builds the container, so before that call no gig could resolve a provider's binding — `app('hash')` threw `Target class [hash] does not exist`. `RegisterProviders` writes the package manifest, so a worker's `base_path` needs a writable `bootstrap/cache`.[^worker][^thread-runtime]
 
-A thread has no stdout pipe. It writes `!` on a unix socket the loop already selects. The worker's name arrives as `name\n` at accept. `exit()` inside a gig does not ring that socket. A sweep that exists only while a thread is busy notices `Future::done()` and replaces the runtime.
+A thread has no stdout pipe. It writes `!` on a unix socket the loop already selects. The worker's name arrives as `name\n` at accept. `exit()` inside a gig does not ring that socket. A sweep that exists only while a thread is busy notices `Future::done()` and calls `died()`. `died()` replaces the runtime only when the waiting queue is not empty.
 
 # Config
 

@@ -4,7 +4,8 @@ title: Hashing
 description: bcrypt, argon2i, and argon2id behind HashManager, plus HashGig for the worker pool.
 resource: src/Voyager/Hashing/HashManager.php
 tags: [hashing, bcrypt, argon, pool]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T15:45:00Z }
 sources:
   - id: manager

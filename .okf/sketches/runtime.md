@@ -4,7 +4,8 @@ title: Sketch runtime
 description: Sketch base, a runner that re-arms a one-shot timer on the event loop, and a class-from-path registry.
 resource: src/Voyager/Sketches/SketchRunner.php
 tags: [sketches, event-loop, registry]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T21:30:00Z }
 sources:
   - id: runner

@@ -4,7 +4,8 @@ title: Storage facade
 description: An object with methods over disks, via(), fakes, and stream(); reached through storage(), not a static proxy.
 resource: src/Voyager/Filesystem/Storage.php
 tags: [filesystem, storage, facade]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: cursor-grok-4.6, at: 2026-09-22T17:50:00Z }
 sources:
   - id: storage

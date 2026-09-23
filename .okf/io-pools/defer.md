@@ -4,7 +4,8 @@ title: Defer
 description: $loop->defer() runs a closure on the next turn and settles a promise.
 resource: src/Voyager/IOPools/Deferrals.php
 tags: [iopools, defer]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: okf-documentation-generator/cursor, at: 2026-09-22T13:48:00Z }
 sources:
   - id: deferrals
