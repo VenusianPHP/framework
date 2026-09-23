@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [8.4, 8.5]
+        php: ['8.4', '8.5']
 
     name: PHP ${{ matrix.php }}
 
@@ -24,9 +24,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          # intl is required by Voyager\NutsAndBolts\DataObjects\Number
-          # pdo_sqlite is required by Database integration tests (:memory:)
-          extensions: dom, curl, libxml, mbstring, intl, zip, pdo, pdo_sqlite, pdo_mysql, gmp
+          extensions: curl, dom, gmp, intl, libxml, mbstring, pcntl, pdo_sqlite, zip
           coverage: none
 
       - name: Install Composer dependencies
