@@ -4,6 +4,18 @@ use Venusian\Tests\TestCase;
 use Voyager\IOPools\EventLoop;
 use Voyager\Workflows\Runtimes\LoopRuntime;
 
+// Process-pool workers boot this repo as an app. PackageManifest::write() needs
+// bootstrap/cache; FileStream / PoolCrossing write under storage/app. Those dirs
+// belong in the Venusian app skeleton, not this package — create them here so a
+// clean clone's Pest run (CI or local) has them before any child is spawned.
+foreach (['bootstrap/cache', 'storage/app'] as $relative) {
+    $path = dirname(__DIR__).'/'.$relative;
+
+    if (! is_dir($path)) {
+        mkdir($path, 0777, true);
+    }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
