@@ -25,11 +25,12 @@ it('resolves a request on the loop and leaves when idle', function () {
 
 it('runs two slow requests concurrently', function () {
     $t = microtime(true);
-    $a = ($this->handler)(new Request('GET', $this->server->url('/slow?ms=300')), []);
-    $b = ($this->handler)(new Request('GET', $this->server->url('/slow?ms=300')), []);
+    $a = ($this->handler)(new Request('GET', $this->server->url('/slow?ms=500')), []);
+    $b = ($this->handler)(new Request('GET', $this->server->url('/slow?ms=500')), []);
     $this->loop->adopt($a)->wait();
     $this->loop->adopt($b)->wait();
-    expect(microtime(true) - $t)->toBeLessThan(0.55);
+    // back to back would take at least 1.0s; the slack is for a slow CI runner
+    expect(microtime(true) - $t)->toBeLessThan(0.9);
 });
 
 it('rejects a refused connection', function () {
