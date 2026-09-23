@@ -1,9 +1,6 @@
 vendor/
-bootstrap/cache/*
-!bootstrap/cache/.gitkeep
+/bootstrap/
 .idea/
 .phpunit.cache/
 .phpunit.result.cache
-storage/*
-!storage/app/
-!storage/app/.gitkeep
+/storage/

@@ -31,7 +31,7 @@ it('runs two slow requests concurrently', function () {
     $this->loop->adopt($b)->wait();
     // back to back would take at least 1.0s; the slack is for a slow CI runner
     expect(microtime(true) - $t)->toBeLessThan(0.9);
-});
+})->group('loop-curl-concurrency');
 
 it('rejects a refused connection', function () {
     $p = ($this->handler)(new Request('GET', 'http://127.0.0.1:1/'), []);

@@ -2,6 +2,8 @@
 
 ## 2026-09-23
 
+* **Update**: [Worker pools](io-pools/worker-pools.md) — clean CI checkouts had no `bootstrap/cache`, so process workers died during `PackageManifest::write()`. The exception went to stdout (`HandleExceptions` → `ConsoleOutput`), so `DeadWorkerException` quoted an empty stderr tail. `tests/Pest.php` mkdir's `bootstrap/cache` and `storage/app` at test time (app-skeleton paths, not shipped). `pool-worker` writes a bootstrap failure to stderr.
+
 * **Update**: [Async drivers](http/async-drivers.md) — adopt unwraps `FluentPromise`. [Event loop](io-pools/event-loop.md) — `until()` flushes before giving up; `then()` second callable. Both back to `draft` pending re-verify.
 
 * **Update**: [Event loop](io-pools/event-loop.md) — `then()` takes an optional second callable so a foreign `then($resolve, $reject)` reject handler reaches the chain. Back to `draft` pending re-verify.
