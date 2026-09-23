@@ -25,12 +25,6 @@
     "extra": {
         "branch-alias": {
             "dev-main": "0.9.x-dev"
-        },
-        "venusian": {
-            "upstream": "laravel/framework",
-            "upstream-ref": "v12.67.0",
-            "upstream-path": "src/Illuminate/Hashing",
-            "ported-at": "2026-08-19"
         }
     },
     "config": {

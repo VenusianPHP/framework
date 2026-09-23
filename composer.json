@@ -53,7 +53,9 @@
     "replace": {
         "venusian-voyager/broadcasting": "self.version",
         "venusian-voyager/bus": "self.version",
+        "venusian-voyager/cache": "self.version",
         "venusian-voyager/collections": "self.version",
+        "venusian-voyager/concurrency": "self.version",
         "venusian-voyager/conditionable": "self.version",
         "venusian-voyager/config": "self.version",
         "venusian-voyager/console": "self.version",
@@ -70,6 +72,7 @@
         "venusian-voyager/pagination": "self.version",
         "venusian-voyager/pipeline": "self.version",
         "venusian-voyager/queue": "self.version",
+        "venusian-voyager/redis": "self.version",
         "venusian-voyager/reflection": "self.version",
         "venusian-voyager/signals": "self.version",
         "venusian-voyager/sketches": "self.version",
