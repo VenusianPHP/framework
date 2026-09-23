@@ -37,7 +37,7 @@ Both drivers move a gig as a serialized string and settle the promise from one e
 
 # What a worker boots
 
-Both entry points run `VenusianVoyager::launch($base_path)` and then the console kernel's `bootstrap()`. `launch()` alone only builds the container, so before that call no gig could resolve a provider's binding — `app('hash')` threw `Target class [hash] does not exist`. `RegisterProviders` writes the package manifest, so a worker's `base_path` needs a writable `bootstrap/cache`.[^worker][^thread-runtime]
+Both entry points run `VenusianVoyager::launch($base_path)` and then the console kernel's `bootstrap()`. `launch()` alone only builds the container, so before that call no gig could resolve a provider's binding — `app('hash')` threw `Target class [hash] does not exist`. `RegisterProviders` writes the package manifest, so a worker's `base_path` needs a writable `bootstrap/cache`. This package keeps `bootstrap/cache/.gitkeep` (and `storage/app/.gitkeep`) because the suite boots the repo root as that app. A missing cache dir throws from `PackageManifest::write()`. `pool-worker` catches a bootstrap failure and writes the message to stderr — stdout is the frame protocol, and `HandleExceptions` would otherwise render onto it, leaving `DeadWorkerException` with an empty tail.[^worker][^thread-runtime]
 
 A thread has no stdout pipe. It writes `!` on a unix socket the loop already selects. The worker's name arrives as `name\n` at accept. `exit()` inside a gig does not ring that socket. A sweep that exists only while a thread is busy notices `Future::done()` and calls `died()`. `died()` replaces the runtime only when the waiting queue is not empty.
 
