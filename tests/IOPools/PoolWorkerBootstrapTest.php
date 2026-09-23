@@ -16,10 +16,11 @@ it('writes a bootstrap failure to stderr, not the protocol pipe', function () {
 
     $stdout = stream_get_contents($pipes[1]);
     $stderr = stream_get_contents($pipes[2]);
-    proc_close($proc);
+    $exitCode = proc_close($proc);
 
     expect($stderr)->toContain('bootstrap/cache')
-        ->and($stdout)->not->toContain('bootstrap/cache');
+        ->and($stdout)->not->toContain('bootstrap/cache')
+        ->and($exitCode)->toBe(1);
 
     @rmdir($root);
 });
