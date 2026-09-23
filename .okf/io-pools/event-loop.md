@@ -4,7 +4,8 @@ title: Event loop
 description: The loop that waits on timers, streams, and tickables, and how until() borrows it.
 resource: src/Voyager/IOPools/EventLoop.php
 tags: [iopools, loop]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: okf-documentation-generator/cursor, at: 2026-09-22T13:48:00Z }
 sources:
   - id: loop
@@ -17,15 +18,15 @@ sources:
 
 # Overview
 
-`Voyager\IOPools\EventLoop` implements `Voyager\Contracts\IOPools\Loop`. `run()` turns until nothing is due and no resource is registered. `until(Closure)` turns quietly until the closure returns true. Mail stays in the bag during `until()`.[^loop]
+`Voyager\IOPools\EventLoop` implements `Voyager\Contracts\IOPools\Loop`. `run()` turns until nothing is due and no resource is registered, or until `stop()`. `until(Closure)` on the main stack turns quietly until the closure returns true; mail stays in the bag during those quiet turns. Inside a fiber `async()` started, `until()` suspends; the outer `run()` is not quiet, so mail can hand off while that fiber is parked.[^loop]
 
-`adopt(object $thenable)` wraps a foreign thenable (a Guzzle promise included) as a `Voyager\Contracts\IOPools\Promise`. `wait()` on that promise borrows the loop with `until()` until the wrap has settled. The Http drivers rely on this; see [async drivers](/http/async-drivers.md).[^loop]
+`adopt(object $thenable)` wraps a foreign thenable (a Guzzle promise included) as a `Voyager\Contracts\IOPools\Promise`. `wait()` on that promise calls `until()` until the wrap has settled. On the main stack that borrows the loop; inside a scheduler-owned fiber it suspends. The Http drivers rely on this; see [async drivers](/http/async-drivers.md).[^loop]
 
 A `Tickable` registered through `resource()` counts as work. `hasResources()` does not count a `Resumable`. The fiber scheduler is a `Resumable` named `fibers` and stays registered for the life of the loop.[^loop]
 
 # What a turn does
 
-1. Wait on the next timer or on streams.
+1. Wait: a `Sleepable` owns the sleep when one is registered; otherwise wait on the next timer or on streams; with neither, sleep the fallback tick budget.
 2. Read ready streams, fire due timers, tick tickables.
 3. Flush the promise engine, then `resume()` resumables, repeating until a pass does nothing.
 4. Pump mail. If the turn is not quiet, hand the mail to the mail handler.

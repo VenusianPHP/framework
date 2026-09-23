@@ -4,7 +4,8 @@ title: Concurrency drivers
 description: sync, process and fork behind one run()/defer(), and what 0.9 had to grow for them.
 resource: src/Voyager/Concurrency/ConcurrencyManager.php
 tags: [concurrency, process, defer]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 verified: { by: claude-opus-5, at: 2026-09-22 }
 sources:
   - id: manager
@@ -28,9 +29,9 @@ sources:
 
 `ConcurrencyManager` is a `MultipleInstanceManager`. `driver($name)` gives `sync`, `process` or `fork`; each answers `run(Closure|array): array` and `defer(Closure|array): DeferredCallback`. `config/concurrency.php` picks the default, `process`.[^manager]
 
-`process` serializes each closure into `VENUSIAN_INVOKABLE_CLOSURE`, then runs `php computer invoke-serialized-closure` once per task through a `Process\Pool`. The child writes one JSON line to stdout; the parent maps it back onto the task's key, and rebuilds a child exception from its constructor parameters when it has them.[^process][^command]
+`process` serializes each closure into `VENUSIAN_INVOKABLE_CLOSURE`, then runs `php computer invoke-serialized-closure` once per task through a `Process\Pool`. The child writes one JSON blob to stdout; the parent maps it back onto the task's key, and rebuilds a child exception from its constructor parameters when it has them.[^process][^command]
 
-`fork` needs `spatie/fork`, which is a suggest, not a require. It has no console guard: every Venusian app is console.[^manager]
+`fork` needs `spatie/fork`, which is a suggest of the concurrency package, not a require. The driver has no console guard. `config/concurrency.php` still says fork may only be used from the console; the code does not enforce that. `runningInConsole()` is gone: every Venusian app is console.[^manager]
 
 # What 0.9 had to grow
 
@@ -42,4 +43,4 @@ sources:
 
 # Trap
 
-Two closures on one source line serialize to the same closure. `laravel/serializable-closure` locates a closure by file and line, so `run(['a' => fn () => 1, 'b' => fn () => 2])` written on one line runs the first task twice. Reproduced against `SerializableClosure` alone; it is upstream, not ours. Give each task its own line.
+Two closures on one source line serialize to the same closure. `laravel/serializable-closure` locates a closure by file and line, so `run(['a' => fn () => 1, 'b' => fn () => 2])` written on one line runs the first task twice. That is upstream, not ours. Give each task its own line.

@@ -4,7 +4,8 @@ title: Pagination
 description: Paginator, LengthAwarePaginator, and CursorPaginator. Resolved through the container. No HTTP request.
 resource: src/Voyager/Database/Concerns/BuildsQueries.php
 tags: [pagination, paginator]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T21:10:00Z }
 sources:
   - id: queries
@@ -27,7 +28,7 @@ Three paginators: `Paginator`, `LengthAwarePaginator`, `CursorPaginator`.[^lengt
 
 `BuildsQueries` resolves them through `ControlPanel::getInstance()->make(Class, params)`. The parameter array is compact constructor args, not positional.[^queries]
 
-`Paginator::currentPageResolver`, `currentPathResolver`, and `queryStringResolver` are static hooks. 0.9 has no HTTP request behind them.[^paginator]
+`Paginator::currentPageResolver`, `currentPathResolver`, and `queryStringResolver` are static hooks. `CursorPaginator` uses a separate `currentCursorResolver`. 0.9 has no HTTP request behind them.[^paginator]
 
 Not on the loop.
 

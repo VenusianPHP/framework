@@ -4,7 +4,7 @@ okf_version: "0.2"
 
 # Venusian framework
 
-* [Framework](orientation/framework.md) - PHP 8.4 framework package `venusian/framework` at 0.9.0, and which providers actually boot.
+* [Framework](orientation/framework.md) - PHP 8.4 framework package `venusian/framework` at 0.9.0, the `replace` map, and which providers actually boot.
 
 # IOPools
 
@@ -18,7 +18,7 @@ okf_version: "0.2"
 
 * [Deferred log channel](log/deferred-channel.md) - A log channel that buffers records and flushes once per loop turn.
 * [Cache stores](cache/stores.md) - Array, file, null, and Redis stores, plus `cache:clear` and `cache:forget`.
-* [Cache defer](cache/defer.md) - `Cache::defer()` queues every call on the loop.
+* [Cache defer](cache/defer.md) - `Repository::defer()` queues a listed set of calls on the loop.
 * [Redis component](redis/component.md) - Connections, manager, and the provider that boots Redis.
 * [Redis push/pop](redis/push-pop.md) - A loop resource that pushes events and pops them back as mail.
 

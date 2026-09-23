@@ -4,7 +4,8 @@ title: Redis push/pop
 description: A loop resource that pushes events and pops them back as mail.
 resource: src/Voyager/Redis/RedisQueueResource.php
 tags: [redis, iopools]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: okf-documentation-generator/cursor, at: 2026-09-22T13:48:00Z }
 sources:
   - id: resource
@@ -20,6 +21,6 @@ sources:
 
 # How it waits
 
-phpredis does not expose its socket, so the polling resource calls `LPOP` on each tick. Predis can join `select`: the watched resource blocks in `BLPOP` on a dedicated connection, because that call occupies the connection it runs on.[^resource]
+phpredis does not expose its socket, so the polling resource calls `LPOP` on each tick. Predis can join `select`: the watched resource arms `BLPOP` on the connection you pass in. That call occupies that connection; the resource does not open a second one.[^resource]
 
 [^resource]: RedisQueueResource

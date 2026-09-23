@@ -4,7 +4,8 @@ title: Sketch runner
 description: Rocket kernel runs a sketch on a re-armed one-shot timer. php rocket hands off to it. php computer does not.
 resource: src/Voyager/Core/Sketches/Kernel.php
 tags: [sketches, rocket, event-loop, kernel]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T21:45:00Z }
 sources:
   - id: runner
@@ -41,7 +42,7 @@ One-shot timer. After each tick the runner calls `$loop->at(1 / hz, tick)`. Hz i
 
 # Binaries
 
-`php computer` → Console kernel. `php rocket` → Sketches kernel. A sketch name is not a computer command.[^tests]
+`php computer` → Console kernel. `php rocket` → Sketches kernel. This package has no `computer` or `rocket` script; `handleInquiry()` / `handleSketch()` are the two doors. A sketch name is not a computer command.[^tests]
 
 # Not in 0.9
 

@@ -4,7 +4,8 @@ title: Http async drivers
 description: curl and pcurl loop handlers behind one Guzzle promise bridge.
 resource: src/Voyager/Http/Async/HttpAsyncManager.php
 tags: [http, async, curl, pcurl, loop]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T19:50:00Z }
 sources:
   - id: manager
@@ -29,13 +30,13 @@ sources:
 
 # Overview
 
-`HttpAsyncManager` reads `http.async.default`. `handler()` is null when no loop is bound, and then `Pool` / `Batch` use Guzzle's own handler. With a loop, `curl` builds a `LoopCurlHandler` and `pcurl` builds a `LoopPcurlHandler`. `pcurl` throws `HttpClientException` when ext-pcurl is not loaded. ext-pcurl itself needs ext-curl loaded first.[^manager]
+`HttpAsyncManager` reads `http.async.default`. `handler()` is null when no loop is bound, and then `Pool` / `Batch` use Guzzle's own handler. With a loop, `curl` builds a `LoopCurlHandler` and `pcurl` builds a `LoopPcurlHandler`. `pcurl` throws `HttpClientException` when ext-pcurl is not loaded. The handler still calls `curl_multi_init`, so ext-curl has to be loaded too.[^manager]
 
 Resource names are `AsyncResource`: `CURL = http.curl`, `PCURL = http.pcurl`.[^names]
 
 # Bridge
 
-Both handlers are Guzzle handlers. The promise they return waits with `$loop->until()` until that transfer leaves the in-flight map, and cancels by removing the easy handle. `CurlFactory::finish()` runs from `harvest()` inside `tick()` (or from the pcurl timer) and resolves or rejects that promise. `PendingRequest::send()` on a bound loop returns `$loop->adopt()` of it, a `Voyager\Contracts\IOPools\Promise`. `getPromise()` keeps the Guzzle promise for `Pool` and `Batch`.[^inflight][^loop]
+Both handlers are Guzzle handlers. The promise they return waits with `$loop->until()` until that transfer leaves the in-flight map, and cancels by removing the easy handle. `CurlFactory::finish()` runs from `harvest()` inside `tick()` (or from the pcurl timer) and resolves or rejects that promise. `PendingRequest::send()` on a bound loop returns `$loop->adopt()` of the Guzzle promise when no handler was handed in. `Pool` and `Batch` set their own handler and keep a `LazyPromise` so their concurrency cap still applies; `getPromise()` returns that `LazyPromise`.[^inflight][^loop]
 
 The handler calls `resource()` on the first in-flight request and `forget()` as soon as nothing is in flight.[^inflight]
 
@@ -53,7 +54,7 @@ ext-pcurl is 1:1 libcurl and defines no constants. Callbacks are `Pcurl\Multi::c
 
 libcurl's poll, select, and socket values are the int enums `PcurlPoll`, `PcurlSelect`, and `PcurlSocket`. Compare and pass them with `->value`.[^pcurl]
 
-**Trap.** The loop's `stream_select` watches reads. A socket curl marks `PcurlPoll::OUT` or `INOUT` is not writable-visible to that select, and curl then replaces a `0` ms timer with the connect timeout. The handler services that socket on the next turn with `PcurlSelect::OUT` (or `IN|OUT`). Without that, a later request on the same multi sits until cURL error 28.[^pcurl][^loop]
+**Trap.** The loop's `stream_select` watches reads. A socket curl marks `PcurlPoll::OUT` or `INOUT` is not writable-visible to that select, and curl then replaces a `0` ms timer with the connect timeout. The handler services that socket on the next turn with `PcurlSelect::OUT` (or `IN|OUT`). Without that, a later request on the same multi sits until curl's connect timeout (cURL error 28).[^pcurl][^loop]
 
 [^manager]: HttpAsyncManager
 [^curl]: LoopCurlHandler

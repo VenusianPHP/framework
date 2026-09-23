@@ -4,7 +4,8 @@ title: File stream as mail
 description: A file read in chunks by pool workers; each slice arrives as a FileChunk event, in offset order.
 resource: src/Voyager/Filesystem/FileStreamResource.php
 tags: [filesystem, stream, iopools, mail]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: cursor-grok-4.6, at: 2026-09-22T17:50:00Z }
 sources:
   - id: resource
@@ -26,7 +27,7 @@ sources:
 
 # Last chunk vs done()
 
-The last `FileChunk` is queued in the same call that resolves `done()`. `pump()` runs after `flush()`, and `until()`/`await()` turns are quiet, so a `done()->then()` fires before the mail handler sees that chunk. Consumers that need the bytes listen for `last === true`, not the promise. The promise is the byte count and the failure. Drive a loud `run()` if the handler must see the mail.
+The last `FileChunk` is queued in the same call that resolves `done()`. `forget()` on a `Pumpable` also pumps remaining mail into the notebook bag. `pump()` on a later turn is then empty. `until()`/`await()` turns are quiet, so a `done()->then()` fires before the mail handler sees that chunk. Consumers that need the bytes listen for `last === true`, not the promise. The promise is the byte count and the failure. Drive a loud `run()` if the handler must see the mail.
 
 [^resource]: FileStreamResource
 [^chunk]: FileChunk

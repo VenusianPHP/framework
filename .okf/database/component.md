@@ -1,10 +1,11 @@
 ---
 type: Module
 title: Database
-description: Illuminate toolkit. Eloquent is Instrument. Bindings behind app('db'). No facade. On the loop via via() and stream().
+description: Illuminate toolkit. Eloquent lives under Instrument. Bindings behind app('db'). No facade. On the loop via via() and stream().
 resource: src/Voyager/Database/DatabaseServiceProvider.php
 tags: [database, instrument, sqlite, migrations]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T22:10:00Z }
 sources:
   - id: provider
@@ -26,7 +27,7 @@ sources:
 
 # Overview
 
-Illuminate database toolkit. Eloquent is `Instrument`.[^provider]
+Illuminate database toolkit. Eloquent lives under `Voyager\Database\Instrument`. The model class is still `Model`.[^provider]
 
 Bindings: `db`, `db.factory`, `db.connection`, `db.schema`, `db.transactions`, `migrator`, `migration.repository`, `migration.creator`. `db` is a lazy singleton. Boot with the sqlite default and no `DB_DATABASE` does not open a file.[^provider][^config]
 
@@ -34,11 +35,11 @@ Dispatcher is `Contracts\Signals\SignalDispatcher`. `Model::withoutEvents()` wra
 
 No facades. Calls go through `app('db')`. Migration stubs use `app('db.schema')`.[^stubs]
 
-Drivers: sqlite, mysql, mariadb, pgsql, sqlsrv. The suite exercises sqlite only.[^config]
+Drivers: sqlite, mysql, mariadb, pgsql, sqlsrv. The suite's default connection is sqlite. Some unit tests build mysql config and exception messages without opening MySQL.[^config]
 
 `DatabaseQueryExceptionTest`, `DatabaseSchemaBuilderIntegrationTest`, `DatabaseInstrumentIntegrationTest`, `DatabaseSQLiteBuilderTest`, `DatabaseMigratorIntegrationTest`, and `tests/Database/migrations/` sit in `tests/Database/deferred/`. They drive `DB::` / `Schema::`. 0.9 has no `MagicAliases`. Restore them with Testing.
 
-`MigrationServiceProvider` is deferred. It registers the migrator, repository, creator, and `migrate:*` commands. A migrator with a null dispatcher does not fatal.[^migrations]
+`MigrationServiceProvider` is deferred. It registers the migrator, repository, creator, `migrate:*`, and `make:migration`. A migrator with a null dispatcher does not fatal.[^migrations]
 
 On the loop: [Database on the loop](loop.md). `via()` promises, `stream()` mail.
 

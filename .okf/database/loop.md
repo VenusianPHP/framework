@@ -4,7 +4,8 @@ title: Database on the loop
 description: via() returns a promise of the blocking result. stream() delivers keyed pages as ModelChunk mail.
 resource: src/Voyager/Database/IOPools/OffloadedQuery.php
 tags: [database, iopools, via, stream]
-status: draft
+status: stable
+verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
 generated: { by: grok-4.7/cursor, at: 2026-09-22T22:10:00Z }
 sources:
   - id: via
@@ -31,13 +32,13 @@ sources:
 
 `via($target)` on `Query\Builder` or `Instrument\Builder` returns an `OffloadedQuery`. Every terminal is a promise of what the blocking call returns. The builder stays blocking. Target is a work-target name; omitted means the default (`sync` in tests, `pool` in the app).[^via][^offloaded]
 
-Builders serialize by connection name. The worker re-attaches `app('db')->connection($name)`. An unnamed connection throws `LogicException` at the call. Closures the builder stores (eager loads, scopes, before/after query callbacks) wrap in `SerializableClosure`. `$onDelete`, local macros, clone callbacks, and property passthrough do not cross. `via()` refuses the terminals that would need them.[^gig][^via]
+Builders serialize by connection name. The worker re-attaches `app('db')->connection($name)`. An unnamed connection throws `LogicException` at the call. Closures the builder stores (eager loads, scopes, before/after query callbacks) wrap in `SerializableClosure`. `$onDelete`, local macros, and clone callbacks do not cross. `propertyPassthru` is only `from`, and that lives on the query builder, which does serialize. `via()` refuses the terminals that would need a callback the worker would run, or that yield.[^gig][^via]
 
 Refused, `BadMethodCallException`, point at `stream()`: `cursor`, `lazy`, `lazyById`, `lazyByIdDesc`, `chunk`, `chunkById`, `chunkByIdDesc`, `chunkMap`, `each`, `eachById`, `tap`, `when`, `unless`. They take a callback the worker would run, or they yield. Neither crosses back. `stream()` is the loop form.[^offloaded]
 
 # Arrival
 
-`OffloadedQuery::__call` returns `$promise->then(Arrived::models(...))`. `retrieved` fires once per model on the caller's dispatcher, including eager models, never on the worker (`QueryGig` wraps the terminal in `Model::withoutRetrieved`). Scalars, arrays, and base collections pass through. Nothing else differs from the blocking result. Bad SQL rejects with `RemoteException`.[^arrived][^gig]
+`OffloadedQuery::__call` returns `$promise->then(Arrived::models(...))`. `retrieved` fires once per model on the caller's dispatcher, including eager models, never on the worker (`QueryGig` wraps the terminal in `Model::withoutRetrieved`). Scalars, arrays, and base collections pass through. Nothing else differs from the blocking result. A pool failure rejects with `RemoteException`. A sync target rejects with the original throwable.[^arrived][^gig]
 
 # stream()
 

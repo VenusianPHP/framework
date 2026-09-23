@@ -1,5 +1,18 @@
 # Update Log
 
+## 2026-09-23
+
+* **Audit**: Whole `.okf` tree checked against `0.9.x` tip `5fb34e76550303f5c6cfeb757c63576b5e84bb94`. Every concept is `status: stable` with `verification_key: agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94`.
+* **Correction**: [Framework](orientation/framework.md) — boot table reordered to match `DefaultProviders`. Root `replace` map listed. Migration row includes `make:migration`. `neo4j_connection()` throw path clarified.
+* **Correction**: [Computer](console/computer.md) — `make:job` is not commented because the queue provider is missing; `QueueServiceProvider` boots and `queue:*` is registered. Loader maps `|` in `AsCommand` name, not the aliases list.
+* **Correction**: [Workflow graph](workflows/graph.md) — parallel-batch fans through `LoopRuntime::all()`, not `WorkerPool::submit()`. `all()` rejects the promise; `await()` throws.
+* **Correction**: [Cache stores](cache/stores.md) — no `Cache` facade. Tags are array/null/redis only. `cache:clear` / `cache:forget` exist as classes and are not registered.
+* **Correction**: [Cache defer](cache/defer.md) — `Repository::defer()`; listed methods only; no `__call`.
+* **Correction**: [Deferred log channel](log/deferred-channel.md) — no `DeferredFlush::stop()`; shutdown flush is `$loop->onStop()`.
+* **Correction**: [Redis push/pop](redis/push-pop.md) — watched `BLPOP` occupies the connection you pass in; it does not open a second one.
+* **Correction**: [Async](io-pools/async.md) — wrapping a `Task` as a foreign thenable throws `ArgumentCountError` in `adopt()`, it does not spin `until()`.
+* **Correction**: [Event loop](io-pools/event-loop.md), [Worker pools](io-pools/worker-pools.md), [Work targets](io-pools/work-targets.md), [Http async drivers](http/async-drivers.md), [Http client](http/component.md), [Database](database/component.md), [Database on the loop](database/loop.md), [Graph](graph/component.md), [Concurrency drivers](concurrency/drivers.md), [Sketch runner](sketches/runner.md) — claims tightened to the code.
+
 ## 2026-09-22
 
 * **Addition**: [Database on the loop](database/loop.md) — `via()` promises of the blocking result. Builders serialize by connection name. `stream()` is keyed `ModelChunk` mail, one page in flight. `retrieved` fires on the caller. `Connection::via()` allow-lists raw statements.
