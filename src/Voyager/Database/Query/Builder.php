@@ -4455,6 +4455,48 @@ class Builder implements BuilderContract
     }
 
     /**
+     * Run a terminal on a work target and get a promise. Only a named connection can be offloaded: the worker finds it by name.
+     *
+     * @param  string|null  $target
+     * @return \Voyager\Database\IOPools\OffloadedQuery
+     *
+     * @throws \LogicException
+     */
+    public function via($target = null)
+    {
+        if (is_null($this->connection->getName())) {
+            throw new \LogicException('This builder is not on a named connection, so a worker could not find it. Build it through the database manager to offload it.');
+        }
+
+        return new \Voyager\Database\IOPools\OffloadedQuery($this, app('work-targets')->driver($target));
+    }
+
+    /**
+     * The rows as ModelChunk mail on the loop: keyed pages from a work target. done() settles with the row count.
+     *
+     * @param  int  $chunk
+     * @param  string|null  $column
+     * @param  string|null  $target
+     * @return \Voyager\Database\IOPools\QueryStreamResource
+     *
+     * @throws \LogicException
+     */
+    public function stream($chunk = 1000, $column = null, $target = null)
+    {
+        if (is_null($this->connection->getName())) {
+            throw new \LogicException('This builder is not on a named connection, so a worker could not find it. Build it through the database manager to offload it.');
+        }
+
+        return new \Voyager\Database\IOPools\QueryStreamResource(
+            app(\Voyager\Contracts\IOPools\Loop::class),
+            app('work-targets')->driver($target),
+            $this,
+            $chunk,
+            $column,
+        );
+    }
+
+    /**
      * Create a new query instance for a sub-query.
      *
      * @return \Voyager\Database\Query\Builder
@@ -4766,6 +4808,65 @@ class Builder implements BuilderContract
                 $clone->bindings[$type] = [];
             }
         });
+    }
+
+    /**
+     * Cross a worker: keep the connection's name, drop the live connection, grammar, and processor.
+     *
+     * @return array
+     */
+    public function __serialize()
+    {
+        $vars = get_object_vars($this);
+
+        unset($vars['connection'], $vars['grammar'], $vars['processor']);
+
+        $vars['__connection_name'] = $this->connection->getName();
+        $vars['beforeQueryCallbacks'] = array_map([$this, 'wrapForSerialization'], $this->beforeQueryCallbacks);
+        $vars['afterQueryCallbacks'] = array_map([$this, 'wrapForSerialization'], $this->afterQueryCallbacks);
+
+        return $vars;
+    }
+
+    /**
+     * Re-attach to the named connection on this side.
+     *
+     * @param  array  $vars
+     * @return void
+     */
+    public function __unserialize(array $vars)
+    {
+        $name = $vars['__connection_name'];
+        unset($vars['__connection_name']);
+
+        foreach ($vars as $key => $value) {
+            $this->{$key} = $value;
+        }
+
+        $this->beforeQueryCallbacks = array_map([$this, 'unwrapFromSerialization'], $this->beforeQueryCallbacks);
+        $this->afterQueryCallbacks = array_map([$this, 'unwrapFromSerialization'], $this->afterQueryCallbacks);
+
+        $this->connection = app('db')->connection($name);
+        $this->grammar = $this->connection->getQueryGrammar();
+        $this->processor = $this->connection->getPostProcessor();
+    }
+
+    /**
+     * @param  mixed  $callback
+     * @return mixed
+     */
+    protected function wrapForSerialization($callback)
+    {
+        return $callback instanceof \Closure ? new \Laravel\SerializableClosure\SerializableClosure($callback) : $callback;
+    }
+
+    /**
+     * @param  mixed  $callback
+     * @return mixed
+     */
+    protected function unwrapFromSerialization($callback)
+    {
+        return $callback instanceof \Laravel\SerializableClosure\SerializableClosure ? $callback->getClosure() : $callback;
     }
 
     /**

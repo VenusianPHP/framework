@@ -345,6 +345,23 @@ class Connection implements ConnectionInterface
     }
 
     /**
+     * Run a raw statement on a work target and get a promise. Only a named connection can be offloaded.
+     *
+     * @param  string|null  $target
+     * @return \Voyager\Database\IOPools\OffloadedConnection
+     *
+     * @throws \LogicException
+     */
+    public function via($target = null)
+    {
+        if (is_null($name = $this->getName())) {
+            throw new \LogicException('This connection has no name, so a worker could not find it. Resolve it through the database manager to offload it.');
+        }
+
+        return new \Voyager\Database\IOPools\OffloadedConnection($name, app('work-targets')->driver($target));
+    }
+
+    /**
      * Run a select statement and return a single result.
      *
      * @param  string  $query

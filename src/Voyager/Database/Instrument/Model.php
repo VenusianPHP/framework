@@ -150,6 +150,13 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
     protected static $dispatcher;
 
     /**
+     * Hydration inside a gig must not fire `retrieved`. Arrived does, on the caller.
+     *
+     * @var bool
+     */
+    protected static $quietRetrieved = false;
+
+    /**
      * The array of booted models.
      *
      * @var array
@@ -730,9 +737,39 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
 
         $model->setConnection($connection ?? $this->getConnectionName());
 
-        $model->fireModelEvent('retrieved', false);
+        if (! static::$quietRetrieved) {
+            $model->fireModelEvent('retrieved', false);
+        }
 
         return $model;
+    }
+
+    /**
+     * Fire `retrieved` for a model hydrated elsewhere (a pool worker) whose listeners live here.
+     *
+     * @return void
+     */
+    public function fireRetrieved()
+    {
+        $this->fireModelEvent('retrieved', false);
+    }
+
+    /**
+     * Run a callback while hydration stays quiet. Other model events still fire.
+     *
+     * @param  callable  $callback
+     * @return mixed
+     */
+    public static function withoutRetrieved(callable $callback)
+    {
+        $previous = static::$quietRetrieved;
+        static::$quietRetrieved = true;
+
+        try {
+            return $callback();
+        } finally {
+            static::$quietRetrieved = $previous;
+        }
     }
 
     /**

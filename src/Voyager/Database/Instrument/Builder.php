@@ -5,6 +5,7 @@ namespace Voyager\Database\Instrument;
 use BadMethodCallException;
 use Closure;
 use Exception;
+use Laravel\SerializableClosure\SerializableClosure;
 use Voyager\Contracts\Database\Instrument\Builder as BuilderContract;
 use Voyager\Contracts\Database\Query\Expression;
 use Voyager\Contracts\NutsAndBolts\Arrayable;
@@ -2007,6 +2008,48 @@ class Builder implements BuilderContract
     }
 
     /**
+     * Run a terminal on a work target and get a promise. Only a named connection can be offloaded: the worker finds it by name.
+     *
+     * @param  string|null  $target
+     * @return \Voyager\Database\IOPools\OffloadedQuery
+     *
+     * @throws \LogicException
+     */
+    public function via($target = null)
+    {
+        if (is_null($this->query->getConnection()->getName())) {
+            throw new \LogicException('This builder is not on a named connection, so a worker could not find it. Build it through the database manager to offload it.');
+        }
+
+        return new \Voyager\Database\IOPools\OffloadedQuery($this, app('work-targets')->driver($target));
+    }
+
+    /**
+     * The rows as ModelChunk mail on the loop: keyed pages from a work target. done() settles with the row count.
+     *
+     * @param  int  $chunk
+     * @param  string|null  $column
+     * @param  string|null  $target
+     * @return \Voyager\Database\IOPools\QueryStreamResource
+     *
+     * @throws \LogicException
+     */
+    public function stream($chunk = 1000, $column = null, $target = null)
+    {
+        if (is_null($this->query->getConnection()->getName())) {
+            throw new \LogicException('This builder is not on a named connection, so a worker could not find it. Build it through the database manager to offload it.');
+        }
+
+        return new \Voyager\Database\IOPools\QueryStreamResource(
+            app(\Voyager\Contracts\IOPools\Loop::class),
+            app('work-targets')->driver($target),
+            $this,
+            $chunk,
+            $column,
+        );
+    }
+
+    /**
      * Get the relationships being eagerly loaded.
      *
      * @return array
@@ -2331,5 +2374,42 @@ class Builder implements BuilderContract
         foreach ($this->onCloneCallbacks as $onCloneCallback) {
             $onCloneCallback($this);
         }
+    }
+
+    /**
+     * Cross a worker: the query carries the connection name; closures the builder keeps for later are wrapped.
+     *
+     * @return array
+     */
+    public function __serialize()
+    {
+        $wrap = fn ($value) => $value instanceof Closure ? new SerializableClosure($value) : $value;
+
+        return [
+            'query' => $this->query,
+            'model' => $this->model,
+            'pendingAttributes' => $this->pendingAttributes,
+            'eagerLoad' => array_map($wrap, $this->eagerLoad),
+            'scopes' => array_map($wrap, $this->scopes),
+            'removedScopes' => $this->removedScopes,
+            'afterQueryCallbacks' => array_map($wrap, $this->afterQueryCallbacks),
+        ];
+    }
+
+    /**
+     * @param  array  $vars
+     * @return void
+     */
+    public function __unserialize(array $vars)
+    {
+        $unwrap = fn ($value) => $value instanceof SerializableClosure ? $value->getClosure() : $value;
+
+        $this->query = $vars['query'];
+        $this->model = $vars['model'];
+        $this->pendingAttributes = $vars['pendingAttributes'];
+        $this->eagerLoad = array_map($unwrap, $vars['eagerLoad']);
+        $this->scopes = array_map($unwrap, $vars['scopes']);
+        $this->removedScopes = $vars['removedScopes'];
+        $this->afterQueryCallbacks = array_map($unwrap, $vars['afterQueryCallbacks']);
     }
 }

@@ -136,7 +136,7 @@ class Kernel implements KernelContract
         $classes = array_merge(
             $this->sketches,
             (array) $this->app['config']->get('sketches.load', []),
-            DiscoverSketches::within(
+            $this->sketch_paths === [] ? [] : DiscoverSketches::within(
                 $this->sketch_paths,
                 $this->root_namespace ?? $this->app->getNamespace(),
                 $this->root_path ?? $this->app->path(),

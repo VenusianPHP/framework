@@ -21,8 +21,10 @@
         "symfony/polyfill-php85": "^1.33",
         "venusian-voyager/collections": "^0.9.0",
         "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/io-pools": "^0.9.0",
         "venusian-voyager/macroable": "^0.9.0",
         "venusian-voyager/nuts-and-bolts": "^0.9.0",
+        "venusian-voyager/pagination": "^0.9.0",
         "venusian-voyager/vessel": "^0.9.0"
     },
     "suggest": {
@@ -31,7 +33,6 @@
         "symfony/finder": "Required to use Instrument model factories (^7.2).",
         "venusian-voyager/console": "Required to use the database commands (^0.9.0).",
         "venusian-voyager/filesystem": "Required to use the migrations (^0.9.0).",
-        "venusian-voyager/pagination": "Required to paginate the result set (^0.9.0).",
         "venusian-voyager/signals": "Required to use observers with Instrument (^0.9.0)."
     },
     "autoload": {

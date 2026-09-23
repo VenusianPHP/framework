@@ -5,14 +5,19 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Venusian\Tests\Sketches\Fixtures\Sketches\PingSketch;
 use Voyager\Contracts\Sketches\Kernel as KernelContract;
+use Voyager\Core\Bootstrap\HandleExceptions;
 use Voyager\Core\RenderedInstance;
 use Voyager\Core\Sketches\Kernel;
 use Voyager\Sketches\Signals\SketchFinished;
 use Voyager\Sketches\Signals\SketchStarting;
 
+afterEach(function () {
+    HandleExceptions::flushState($this);
+});
+
 function sketchApp(): RenderedInstance
 {
-    $app = new RenderedInstance(dirname(__DIR__, 2));   // framework root: has config/, no .env needed
+    $app = new RenderedInstance(__DIR__.'/Fixtures/app');
     $app->registerSingleton(KernelContract::class, Kernel::class);
     return $app;
 }

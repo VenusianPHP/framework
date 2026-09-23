@@ -142,4 +142,29 @@ class JoinClause extends Builder
 
         return new $class($this->parentConnection, $this->parentGrammar, $this->parentProcessor);
     }
+
+    /**
+     * @return array
+     */
+    public function __serialize()
+    {
+        $vars = parent::__serialize();
+
+        unset($vars['parentConnection'], $vars['parentGrammar'], $vars['parentProcessor']);
+
+        return $vars;
+    }
+
+    /**
+     * @param  array  $vars
+     * @return void
+     */
+    public function __unserialize(array $vars)
+    {
+        parent::__unserialize($vars);
+
+        $this->parentConnection = $this->connection;
+        $this->parentGrammar = $this->grammar;
+        $this->parentProcessor = $this->processor;
+    }
 }
