@@ -187,3 +187,27 @@ it('builds the configured engine, and throws when its package is missing', funct
         ->and(fn () => $manager->driver('ghost'))
             ->toThrow(EventLoopException::class, 'composer require ghost/promise');
 });
+
+it('a then() that returns a loop promise hands on its value', function (PromiseEngine $engine) {
+    $loop = loopOn($engine);
+    $outer = $loop->promise();
+    $inner = $loop->promise();
+
+    $chained = $outer->then(fn () => $inner);
+    $outer->resolve(1);
+    $inner->resolve('inner value');
+
+    expect($chained->wait())->toBe('inner value');
+})->with('engines');
+
+it('a then() that returns a loop promise hands on its rejection', function (PromiseEngine $engine) {
+    $loop = loopOn($engine);
+    $outer = $loop->promise();
+    $inner = $loop->promise();
+
+    $chained = $outer->then(fn () => $inner);
+    $outer->resolve(1);
+    $inner->reject(new RuntimeException('inner failed'));
+
+    expect(fn () => $chained->wait())->toThrow(RuntimeException::class, 'inner failed');
+})->with('engines');

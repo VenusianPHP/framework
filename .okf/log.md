@@ -2,6 +2,10 @@
 
 ## 2026-09-23
 
+* **Update**: [Async drivers](http/async-drivers.md) — adopt unwraps `FluentPromise`. [Event loop](io-pools/event-loop.md) — `until()` flushes before giving up; `then()` second callable. Both back to `draft` pending re-verify.
+
+* **Update**: [Event loop](io-pools/event-loop.md) — `then()` takes an optional second callable so a foreign `then($resolve, $reject)` reject handler reaches the chain. Back to `draft` pending re-verify.
+* **Update**: [Async drivers](http/async-drivers.md) — adopt unwraps `FluentPromise`. [Event loop](io-pools/event-loop.md) — `until()` flushes before giving up. Both back to `draft` pending re-verify.
 * **Audit**: Whole `.okf` tree checked against `0.9.x` tip `5fb34e76550303f5c6cfeb757c63576b5e84bb94`. Every concept is `status: stable` with `verification_key: agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94`.
 * **Correction**: [Framework](orientation/framework.md) — boot table reordered to match `DefaultProviders`. Root `replace` map listed. Migration row includes `make:migration`. `neo4j_connection()` throw path clarified.
 * **Correction**: [Computer](console/computer.md) — `make:job` is not commented because the queue provider is missing; `QueueServiceProvider` boots and `queue:*` is registered. Loader maps `|` in `AsCommand` name, not the aliases list.

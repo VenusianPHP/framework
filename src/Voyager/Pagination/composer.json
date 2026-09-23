@@ -2,7 +2,6 @@
     "name": "venusian-voyager/pagination",
     "description": "The Voyager Pagination package.",
     "license": "MIT",
-    "version": "0.9.0",
     "authors": [
         {
             "name": "Angel Gonzalez",
@@ -26,13 +25,6 @@
     "extra": {
         "branch-alias": {
             "dev-main": "0.9.x-dev"
-        },
-        "ported-at": "2026-09-22",
-        "venusian": {
-            "upstream": "laravel/framework",
-            "upstream-ref": "v12.67.0",
-            "upstream-path": "src/Illuminate/Pagination",
-            "ported-at": "2026-09-22"
         }
     },
     "config": {

@@ -37,6 +37,16 @@ it('fake never registers', function () {
         ->and((fn () => $this->registered)->call($this->http->loopHandler()))->toBeFalse();
 });
 
+it('then() on an adopted send sees the response, however many times', function () {
+    $this->http->fake(['*' => Factory::response(['ok' => true], 200)]);
+    $p = $this->http->async()->get('http://nowhere.test/');
+    $a = $p->then(fn ($r) => $r->json('ok'));
+    $b = $p->then(fn ($r) => $r->status());
+    expect($a->wait())->toBeTrue()
+        ->and($b->wait())->toBe(200)
+        ->and($p->wait()->body())->toBe('{"ok":true}');
+});
+
 it('refused rejects with ConnectionException', function () {
     expect(fn () => $this->http->async()->get('http://127.0.0.1:1/')->wait())->toThrow(ConnectionException::class);
 });

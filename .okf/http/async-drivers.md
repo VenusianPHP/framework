@@ -4,9 +4,8 @@ title: Http async drivers
 description: curl and pcurl loop handlers behind one Guzzle promise bridge.
 resource: src/Voyager/Http/Async/HttpAsyncManager.php
 tags: [http, async, curl, pcurl, loop]
-status: stable
-verification_key: "agent:framework-auditor@5fb34e76550303f5c6cfeb757c63576b5e84bb94"
-generated: { by: grok-4.7/cursor, at: 2026-09-22T19:50:00Z }
+status: draft
+generated: { by: claude-opus-5-5, at: '2026-09-23T16:21:52Z' }
 sources:
   - id: manager
     resource: src/Voyager/Http/Async/HttpAsyncManager.php
@@ -36,7 +35,7 @@ Resource names are `AsyncResource`: `CURL = http.curl`, `PCURL = http.pcurl`.[^n
 
 # Bridge
 
-Both handlers are Guzzle handlers. The promise they return waits with `$loop->until()` until that transfer leaves the in-flight map, and cancels by removing the easy handle. `CurlFactory::finish()` runs from `harvest()` inside `tick()` (or from the pcurl timer) and resolves or rejects that promise. `PendingRequest::send()` on a bound loop returns `$loop->adopt()` of the Guzzle promise when no handler was handed in. `Pool` and `Batch` set their own handler and keep a `LazyPromise` so their concurrency cap still applies; `getPromise()` returns that `LazyPromise`.[^inflight][^loop]
+Both handlers are Guzzle handlers. The promise they return waits with `$loop->until()` until that transfer leaves the in-flight map, and cancels by removing the easy handle. `CurlFactory::finish()` runs from `harvest()` inside `tick()` (or from the pcurl timer) and resolves or rejects that promise. `PendingRequest::send()` on a bound loop returns `$loop->adopt()` of the Guzzle promise when no handler was handed in. The loop adopts the bare Guzzle promise, never the `FluentPromise` wrapper — its `then()` re-points in place, which fed later `then()`s `null`.[^loop] `Pool` and `Batch` set their own handler and keep a `LazyPromise` so their concurrency cap still applies; `getPromise()` returns that `LazyPromise`.[^inflight][^loop]
 
 The handler calls `resource()` on the first in-flight request and `forget()` as soon as nothing is in flight.[^inflight]
 

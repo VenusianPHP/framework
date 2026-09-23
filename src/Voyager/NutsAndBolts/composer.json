@@ -23,14 +23,16 @@
         "venusian-voyager/contracts": "^0.9.0",
         "venusian-voyager/macroable": "^0.9.0"
     },
-    "suggest": {},
+    "suggest": [],
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Voyager\\NutsAndBolts\\": ""
         },
         "files": [
-            "Helpers/functions.php"
+            "Helpers/functions.php",
+            "Helpers/helpers.php",
+            "Helpers/time.php"
         ]
     },
     "config": {
