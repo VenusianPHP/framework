@@ -21,7 +21,8 @@ function getFilePermissions($file)
 $tempDir = null;
 
 beforeAll(function () use (&$tempDir) {
-    $tempDir = sys_get_temp_dir().'/tmp';
+    // one directory per process, like OffloadTest and StorageTest: two runs at once never share files
+    $tempDir = sys_get_temp_dir().'/vf-filesystem-'.getmypid();
     mkdir($tempDir);
 });
 

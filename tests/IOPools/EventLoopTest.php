@@ -662,6 +662,45 @@ it('until() gives up when the loop is stopped underneath it', function () {
         ->and(microtime(true) - $start)->toBeLessThan(0.2);
 });
 
+it('until() still waits after stop() ended a run()', function () {
+    $loop = new EventLoop;
+
+    $loop->at(0.001, fn () => $loop->stop());
+    $loop->every(1.0, fn () => null, 'keepalive');
+    $loop->run();
+
+    $done = false;
+    $loop->at(0.001, function () use (&$done) { $done = true; });
+    $loop->until(function () use (&$done) { return $done; });
+
+    expect($done)->toBeTrue();
+});
+
+it('until() still waits after stop() interrupted an earlier until()', function () {
+    $loop = new EventLoop;
+
+    $loop->at(0.001, fn () => $loop->stop());
+    $loop->every(1.0, fn () => null, 'keepalive');
+
+    expect(fn () => $loop->until(fn () => false))->toThrow(EventLoopException::class, 'stopped');
+
+    $done = false;
+    $loop->at(0.001, function () use (&$done) { $done = true; });
+    $loop->until(function () use (&$done) { return $done; });
+
+    expect($done)->toBeTrue();
+});
+
+it('a run() after a stopped one starts from status 0', function () {
+    $loop = new EventLoop;
+
+    $loop->at(0.001, fn () => $loop->stop(7));
+    expect($loop->run())->toBe(7);
+
+    $loop->at(0.001, fn () => null);
+    expect($loop->run())->toBe(0);
+});
+
 it('registers a resumable through resource(), like any other', function () {
     $loop = new EventLoop;
 

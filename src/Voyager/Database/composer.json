@@ -2,7 +2,6 @@
     "name": "venusian-voyager/database",
     "description": "The Voyager Database package.",
     "license": "MIT",
-    "version": "0.9.0",
     "authors": [
         {
             "name": "Angel Gonzalez",
