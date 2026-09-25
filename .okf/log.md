@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-09-25
+
+* **Update**: [Worker pools](io-pools/worker-pools.md) — frames open with `VFP\x01`; process workers say hello after boot and the parent holds the first gig for it; `hello_timeout_s` bounds the wait on both drivers (config `io-pools.thread_pool.hello_timeout_s`, env `POOL_HELLO_TIMEOUT`). Back to `draft` pending re-verify.
+
 ## 2026-09-23
 
 * **Update**: [Worker pools](io-pools/worker-pools.md) — clean CI checkouts had no `bootstrap/cache`, so process workers died during `PackageManifest::write()`. The exception went to stdout (`HandleExceptions` → `ConsoleOutput`), so `DeadWorkerException` quoted an empty stderr tail. `tests/Pest.php` mkdir's `bootstrap/cache` and `storage/app` at test time (app-skeleton paths, not shipped). `pool-worker` writes a bootstrap failure to stderr.

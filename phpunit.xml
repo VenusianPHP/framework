@@ -15,6 +15,10 @@
             <exclude>./tests/Database/deferred</exclude>
         </testsuite>
     </testsuites>
+    <php>
+        <!-- the suite outgrows 128M (the ZTS build's php.ini default); pin it so every binary finishes -->
+        <ini name="memory_limit" value="1G"/>
+    </php>
     <groups>
         <exclude>
             <group>deferred</group>

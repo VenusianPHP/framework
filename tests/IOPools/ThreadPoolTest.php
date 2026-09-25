@@ -41,6 +41,57 @@ it('refuses max_jobs below one', function () {
         ->toThrow(EventLoopException::class, 'max_jobs');
 })->skip(processOnly(), 'process driver only');
 
+it('gives up when a process worker never says hello', function () {
+    $loop = new EventLoop;
+    $pool = new ProcessPool($loop, [PHP_BINARY, '-r', 'sleep(30);'], 1, null, 0.2);
+    $start = microtime(true);
+
+    expect(fn () => $pool->submit(new AddNumbers(2, 3))->wait())
+        ->toThrow(EventLoopException::class, 'did not answer')
+        ->and(microtime(true) - $start)->toBeLessThan(1.0);
+
+    $pool->shutDown();
+})->skip(processOnly(), 'process driver only');
+
+it('refuses a hello timeout of zero', function () {
+    expect(fn () => new ProcessPool(new EventLoop, workerCommand(), 1, null, 0.0))
+        ->toThrow(EventLoopException::class, 'hello_timeout_s');
+})->skip(processOnly(), 'process driver only');
+
+it('rejects at once when a worker writes outside a frame', function (string $code, string $says) {
+    $pool = new ProcessPool(new EventLoop, [PHP_BINARY, '-r', $code], 1);
+    $start = microtime(true);
+
+    expect(fn () => $pool->submit(new AddNumbers(2, 3))->wait())
+        ->toThrow(DeadWorkerException::class, $says)
+        ->and(microtime(true) - $start)->toBeLessThan(1.0);          // not the 5s hello timeout, not forever
+
+    $pool->shutDown();
+})->with([
+    'stray text before the hello' => ['echo "Warning: noise\n"; sleep(30);', 'Warning: noise'],
+    'a frame that is not a hello' => ['$b = serialize(["ok" => 1]); echo "VFP\x01".pack("N", strlen($b)).$b; sleep(30);', 'Expected a hello first'],
+])->skip(processOnly(), 'process driver only');
+
+it('holds a gig bigger than the pipe until the worker says hello', function () {
+    $pool = new ProcessPool(new EventLoop, [PHP_BINARY, '-r', 'sleep(30);'], 1, null, 0.2);
+    $start = microtime(true);
+
+    // 1MB: a blocking write into a pipe nobody reads would never return, and the timeout could never fire
+    expect(fn () => $pool->submit(new SleepFor(0, str_repeat('x', 1024 * 1024)))->wait())
+        ->toThrow(EventLoopException::class, 'did not answer')
+        ->and(microtime(true) - $start)->toBeLessThan(1.0);
+
+    $pool->shutDown();
+})->skip(processOnly(), 'process driver only');
+
+it('hands the held gig over once a slow boot says hello', function () {
+    $pool = new ProcessPool(new EventLoop, workerCommand(), 1);
+
+    expect($pool->submit(new SleepFor(0, str_repeat('x', 1024 * 1024)))->wait())->toHaveLength(1024 * 1024);
+
+    $pool->shutDown();
+})->skip(processOnly(), 'process driver only');
+
 
 function workerCommand(): array
 {

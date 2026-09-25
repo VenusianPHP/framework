@@ -639,6 +639,22 @@ it('until() throws on an empty loop instead of spinning', function () {
         ->toThrow(EventLoopException::class, 'ran out of work');
 });
 
+it('until() on a bare loop resumes a waiting fiber whose condition already holds instead of cancelling it', function () {
+    $loop = new EventLoop;
+    $flag = false;
+
+    $task = $loop->async(function () use ($loop, &$flag): string {
+        $loop->until(function () use (&$flag): bool { return $flag; });
+
+        return 'resumed';
+    });
+    $flag = true;
+
+    $loop->until(fn (): bool => $task->settled());
+
+    expect($task->wait())->toBe('resumed');
+});
+
 it('until() gives up when the loop is stopped underneath it', function () {
     $loop = new EventLoop;
     $caught = null;

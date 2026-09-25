@@ -30,6 +30,13 @@ describe('thread driver', function () {
         $this->pool?->shutDown();
     });
 
+    it('refuses a hello timeout of zero', function () {
+        $root = dirname(__DIR__, 2);
+
+        expect(fn () => new ThreadPool($this->loop, $root.'/vendor/autoload.php', $root, 1, null, 0.1, 0.0))
+            ->toThrow(EventLoopException::class, 'hello_timeout_s');
+    });
+
     it('wakes on the bell, not on the sweep', function () {
         $loop = new EventLoop;
         $pool = threadPool($loop, 1, null, 5.0);           // a sweep this slow would fail the clock below
