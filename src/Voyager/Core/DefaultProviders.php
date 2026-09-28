@@ -33,7 +33,7 @@ class DefaultProviders
             //\Voyager\Filesystem\FilesystemServiceProvider::class,
             //\Voyager\Core\Providers\FoundationServiceProvider::class,
             //\Voyager\Hashing\HashServiceProvider::class,
-            //\Voyager\Http\HttpServiceProvider::class,
+            \Voyager\Http\HttpServiceProvider::class,
             \Voyager\Log\LogServiceProvider::class,
             //\Voyager\Queue\QueueServiceProvider::class,
             \Voyager\Redis\RedisServiceProvider::class,

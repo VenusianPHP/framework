@@ -37,6 +37,8 @@
         "league/commonmark": "^2.8.1",
         "symfony/var-dumper": "^8.0.0",
         "guzzlehttp/promises": "^2.0",
+        "guzzlehttp/guzzle": "^7.9",
+        "guzzlehttp/uri-template": "^1.0",
         "symfony/filesystem": "^v8.0.0",
         "voku/portable-ascii": "^2.0.2",
         "symfony/error-handler": "^8.0.0",

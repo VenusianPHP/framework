@@ -92,6 +92,18 @@ it('stops firing a stream once its wake is removed', function ($backend) {
     expect($backend->wait(0))->toBe([]);
 })->with('backends');
 
+it('stops watching an open stream once its last wake is removed, so the wait sleeps', function ($backend) {
+    [$a] = streamPair();
+    $backend->add('writer', $wake = new Writable($a));
+    $backend->remove('writer', $wake);
+
+    // A writable socket fires on every wait while the kernel still watches it.
+    $started = hrtime(true);
+
+    expect($backend->wait(50_000_000))->toBe([])
+        ->and(hrtime(true) - $started)->toBeGreaterThan(40_000_000);
+})->with('backends');
+
 it('fires on bytes PHP already buffered even though the kernel has none left', function ($backend) {
     [$a, $b] = streamPair();
     fwrite($b, "one\ntwo\n");
