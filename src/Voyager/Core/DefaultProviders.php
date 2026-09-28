@@ -36,7 +36,7 @@ class DefaultProviders
             //\Voyager\Http\HttpServiceProvider::class,
             \Voyager\Log\LogServiceProvider::class,
             //\Voyager\Queue\QueueServiceProvider::class,
-            //\Voyager\Redis\RedisServiceProvider::class,
+            \Voyager\Redis\RedisServiceProvider::class,
             //\Voyager\Broadcasting\BroadcastServiceProvider::class,
             \Voyager\IOPools\IOPoolsServiceProvider::class,
             //\Voyager\Pipeline\PipelineServiceProvider::class,

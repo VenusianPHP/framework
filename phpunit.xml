@@ -10,5 +10,8 @@
         <testsuite name="Log">
             <directory>tests/Log</directory>
         </testsuite>
+        <testsuite name="Redis">
+            <directory>tests/Redis</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
