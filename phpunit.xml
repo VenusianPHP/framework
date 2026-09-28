@@ -16,5 +16,8 @@
         <testsuite name="Http">
             <directory>tests/Http</directory>
         </testsuite>
+        <testsuite name="Cache">
+            <directory>tests/Cache</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
