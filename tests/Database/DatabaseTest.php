@@ -102,3 +102,13 @@ it('fires model events, and serializes a model with its relations', function (st
 
     Author::flushEventListeners();
 })->with('connections');
+
+it('rounds a decimal cast half up to its scale', function () {
+    $model = new class extends \Voyager\Database\Instrument\Model {
+        protected $casts = ['price' => 'decimal:2'];
+    };
+
+    $model->price = '1.235';
+
+    expect($model->price)->toBe('1.24');
+});

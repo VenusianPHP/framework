@@ -271,3 +271,21 @@ it('gives a batched job a fake batch to run against in isolation', function () {
         ->and($batch->totalJobs)->toBe(1)
         ->and($batch->cancelled())->toBeTrue();
 });
+
+it('calls the manager\'s before, after and failing hooks around the jobs a worker runs', function () {
+    $journal = QueueApp::journal();
+    $heard = [];
+    $queues = $this->app['queue'];
+    $queues->before(function ($event) use (&$heard) { $heard[] = 'before '.$event->job->resolveName(); });
+    $queues->after(function ($event) use (&$heard) { $heard[] = 'after '.$event->job->resolveName(); });
+    $queues->failing(function ($event) use (&$heard) { $heard[] = 'failing '.$event->job->resolveName(); });
+
+    $queues->connection('database')->push(new RecordJob($journal, 'hooked'));
+    $queues->connection('database')->push(new FailingJob($journal));
+    QueueApp::run($this->app, ['command' => 'queue:work', 'connection' => 'database', '--stop-when-empty' => true, '--sleep' => 0]);
+
+    expect($heard)->toBe([
+        'before '.RecordJob::class, 'after '.RecordJob::class,
+        'before '.FailingJob::class, 'failing '.FailingJob::class,
+    ]);
+});
