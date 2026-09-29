@@ -1,0 +1,34 @@
+{
+    "name": "venusian-voyager/pipeline",
+    "description": "The Voyager Pipeline package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "venusian-voyager/contracts": "^0.9.0",
+        "venusian-voyager/macroable": "^0.9.0",
+        "venusian-voyager/nuts-and-bolts": "^0.9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Voyager\\Pipeline\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.9.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev"
+}

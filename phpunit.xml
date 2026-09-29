@@ -28,5 +28,8 @@
         <testsuite name="Process">
             <directory>tests/Process</directory>
         </testsuite>
+        <testsuite name="Pipeline">
+            <directory>tests/Pipeline</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

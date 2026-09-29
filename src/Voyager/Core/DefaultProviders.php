@@ -39,7 +39,7 @@ class DefaultProviders
             \Voyager\Redis\RedisServiceProvider::class,
             //\Voyager\Broadcasting\BroadcastServiceProvider::class,
             \Voyager\IOPools\IOPoolsServiceProvider::class,
-            //\Voyager\Pipeline\PipelineServiceProvider::class,
+            \Voyager\Pipeline\PipelineServiceProvider::class,
             //\Voyager\Sketches\SketchesServiceProvider::class,
             //\Voyager\Workflows\WorkflowsServiceProvider::class,
         ];

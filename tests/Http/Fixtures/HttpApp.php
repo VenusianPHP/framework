@@ -10,8 +10,8 @@ use Voyager\Contracts\Console\Kernel;
 use Voyager\Core\Bootstrap\HandleExceptions;
 
 /**
- * This repository booted as the app, and a `php -S` server running tests/Http/Fixtures/server.php
- * with workers of its own, so concurrent requests really are answered concurrently.
+ * This repository booted as the app, and tests/Http/Fixtures/server.php answering on a port of its
+ * own, a child per connection, so concurrent requests really are answered concurrently.
  */
 final class HttpApp
 {
@@ -55,8 +55,8 @@ final class HttpApp
     }
 
     /**
-     * Kills the workers PHP_CLI_SERVER_WORKERS forked, then the server: the workers outlive a stopped
-     * master. SIGKILL, because a server spawned while a loop watched SIGTERM inherits it ignored.
+     * Kills the children still answering, then the server: a child outlives a stopped parent.
+     * SIGKILL, because a server spawned while a loop watched SIGTERM inherits it ignored.
      */
     public static function stopServer(): void
     {
@@ -81,11 +81,9 @@ final class HttpApp
         fclose($probe);
 
         self::$server = proc_open(
-            [PHP_BINARY, '-S', '127.0.0.1:'.self::$port, __DIR__.'/server.php'],
+            [PHP_BINARY, __DIR__.'/server.php', (string) self::$port],
             [0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']],
             $pipes,
-            null,
-            [...getenv(), 'PHP_CLI_SERVER_WORKERS' => '8'],
         );
 
         // Up once it accepts a connection.
