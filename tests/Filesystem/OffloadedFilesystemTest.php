@@ -15,15 +15,25 @@ beforeEach(fn () => $this->app = FilesApp::boot());
 afterEach(fn () => FilesApp::tearDown($this->app, $this));
 
 /** Runs the loop until $count chunks of $name have been dispatched, or five seconds pass. */
-function chunks(object $test, string $name, int $count): array
+function chunks(object $test, string $name, int $count, ?Promise $also = null): array
 {
     $heard = [];
     $loop = $test->app->get(Loop::class);
 
-    $test->app->get('signals')->listen($name, function (FileChunk $chunk) use (&$heard, $count, $loop) {
+    // Stopping the loop shuts the pool down, so an offloaded call still out would be cut off:
+    // the run ends once the chunks are in and $also has settled.
+    $done = fn (): bool => count($heard) >= $count && (is_null($also) || $also->settled());
+
+    $test->app->get('signals')->listen($name, function (FileChunk $chunk) use (&$heard, $done, $loop) {
         $heard[] = $chunk;
 
-        if (count($heard) === $count) {
+        if ($done()) {
+            $loop->stop();
+        }
+    });
+
+    $also?->finally(function () use ($done, $loop) {
+        if ($done()) {
             $loop->stop();
         }
     });
@@ -211,10 +221,11 @@ it('holds the path while it streams: a write made meanwhile lands after the last
     $files = $this->app['files']->via();
 
     $files->stream($path, 10);
-    $files->put($path, str_repeat('b', 30));
-    $heard = chunks($this, "file:{$path}", 3);
+    $put = $files->put($path, str_repeat('b', 30));
+    $heard = chunks($this, "file:{$path}", 3, also: $put);
 
     expect(implode('', array_map(fn (FileChunk $chunk) => $chunk->bytes, $heard)))->toBe(str_repeat('a', 30))
+        ->and($put->fulfilled())->toBeTrue()
         ->and($this->app['files']->get($path))->toBe(str_repeat('b', 30));
 });
 
