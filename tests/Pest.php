@@ -2,8 +2,6 @@
 
 namespace Venusian\Tests;
 
-use Voyager\IOPools\EventLoop;
-use Voyager\Workflows\Runtimes\LoopRuntime;
 
 // Process-pool workers boot this repo as an app. PackageManifest::write() needs
 // bootstrap/cache; FileStream / PoolCrossing write under storage/app. Those dirs
@@ -47,13 +45,6 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
-dataset('async runtimes', [
-    'loop'     => [fn () => new LoopRuntime(new EventLoop)],
-    'isolated' => [fn () => LoopRuntime::isolated()],
-]);
-dataset('overlapping async runtimes', [
-    'loop' => [fn () => new LoopRuntime(new EventLoop)],
-]);
 
 /*
 |--------------------------------------------------------------------------

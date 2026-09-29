@@ -41,7 +41,7 @@ class DefaultProviders
             \Voyager\IOPools\IOPoolsServiceProvider::class,
             \Voyager\Pipeline\PipelineServiceProvider::class,
             //\Voyager\Sketches\SketchesServiceProvider::class,
-            //\Voyager\Workflows\WorkflowsServiceProvider::class,
+            \Voyager\Workflows\WorkflowsServiceProvider::class,
         ];
     }
 

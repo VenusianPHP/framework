@@ -31,5 +31,8 @@
         <testsuite name="Pipeline">
             <directory>tests/Pipeline</directory>
         </testsuite>
+        <testsuite name="Workflows">
+            <directory>tests/Workflows</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
