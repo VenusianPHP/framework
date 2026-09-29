@@ -26,10 +26,10 @@ return [
     | well as their drivers. You may even define multiple stores for the
     | same cache driver to group types of items stored in your caches.
     |
-    | Supported drivers: "array", "file", "redis", "null"
+    | Supported drivers: "array", "database", "file", "redis", "null"
     |
-    | The "database" and "memcached" stores are configured for the drivers
-    | still to come; selecting one before then throws.
+    | The "memcached" store is configured for the driver still to come;
+    | selecting it before then throws.
     |
     */
 

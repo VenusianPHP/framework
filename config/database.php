@@ -4,6 +4,137 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify which database connection the computer uses by
+    | default. This connection is used unless another is named explicitly.
+    |
+    */
+
+    'default' => env('DB_CONNECTION', 'sqlite'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Connections
+    |--------------------------------------------------------------------------
+    |
+    | Below are every database connection defined for your computer. An example
+    | of each supported driver is provided; you are free to add more.
+    |
+    | Supported: "sqlite", "mysql", "mariadb", "pgsql", "sqlsrv"
+    |
+    */
+
+    'connections' => [
+
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+        ],
+
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'venusian'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'mariadb' => [
+            'driver' => 'mariadb',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'venusian'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'venusian'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE', 'venusian'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
+        'neo4j' => [
+            'driver' => 'neo4j',
+            'host' => env('NEO4J_HOST', 'localhost'),
+            'port' => env('NEO4J_PORT', 7687),
+            'database' => env('NEO4J_DATABASE', 'neo4j'),
+            'username' => env('NEO4J_USERNAME', 'neo4j'),
+            'password' => env('NEO4J_PASSWORD', ''),
+            'scheme' => env('NEO4J_SCHEME', 'bolt'),
+            'prefix' => env('NEO4J_PREFIX', ''),
+            'options' => [
+                'timeout' => 30,
+            ],
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Migration Repository Table
+    |--------------------------------------------------------------------------
+    |
+    | This table keeps track of which migrations have already run for your
+    | computer. Using this information, we can determine which migrations on
+    | disk have not actually been run against the database.
+    |
+    */
+
+    'migrations' => [
+        'table' => 'migrations',
+        'update_date_on_publish' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Redis Databases
     |--------------------------------------------------------------------------
     |

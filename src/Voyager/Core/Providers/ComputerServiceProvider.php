@@ -3,6 +3,9 @@
 namespace Voyager\Core\Providers;
 
 use ReflectionClass;
+use Voyager\Cache\Console\CacheTableCommand;
+use Voyager\Cache\Console\ClearCommand as CacheClearCommand;
+use Voyager\Cache\Console\ForgetCommand as CacheForgetCommand;
 use Voyager\Queue\Console\ClearCommand as QueueClearCommand;
 use Voyager\Queue\Console\FlushFailedCommand as FlushFailedQueueCommand;
 use Voyager\Queue\Console\ForgetFailedCommand as ForgetFailedQueueCommand;
@@ -62,6 +65,8 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      */
     protected array $commands = [
         //'About' => AboutCommand::class,
+        'CacheClear' => CacheClearCommand::class,
+        'CacheForget' => CacheForgetCommand::class,
         'ConfigCache' => ConfigCacheCommand::class,
         'ConfigClear' => ConfigClearCommand::class,
         'Environment' => EnvironmentCommand::class,
@@ -86,7 +91,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         //'QueueRetry' => QueueRetryCommand::class,
         //'QueueRetryBatch' => QueueRetryBatchCommand::class,
         //'QueueWork' => QueueWorkCommand::class,
-        // queue:table, queue:failed-table, queue:batches-table need MigrationGeneratorCommand: Database wave
+        // queue:table, queue:failed-table, queue:batches-table extend Console\MigrationGeneratorCommand: they land with Queue
     ];
 
     /**
@@ -95,6 +100,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      * @var array
      */
     protected array $dev_commands = [
+        'CacheTable' => CacheTableCommand::class,
         'ClassMake' => ClassMakeCommand::class,
         'ConfigMake' => ConfigMakeCommand::class,
         'ConfigPublish' => ConfigPublishCommand::class,
@@ -171,6 +177,22 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
     public function provides(): array
     {
         return array_values(array_merge($this->commands, $this->dev_commands));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    protected function registerCacheClearCommand(): void
+    {
+        $this->app->registerSingleton(CacheClearCommand::class, fn ($app) => new CacheClearCommand($app['cache'], $app['files']));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    protected function registerCacheForgetCommand(): void
+    {
+        $this->app->registerSingleton(CacheForgetCommand::class, fn ($app) => new CacheForgetCommand($app['cache']));
     }
 
     /** Make-commands and a few others take the filesystem in their constructor.
