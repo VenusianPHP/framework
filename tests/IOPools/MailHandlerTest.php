@@ -6,15 +6,12 @@ use Voyager\IOPools\LoopWaiter;
 use Voyager\Vessel\ControlPanel;
 use Voyager\IOPools\ResourceRegistry;
 use Voyager\Signals\SignalDispatcher;
-use Voyager\IOPools\Resources\Pollable;
 use Voyager\Contracts\IOPools\MailHandler;
-use Voyager\Contracts\IOPools\IOPoolsException;
 use Voyager\IOPools\MailHandlers\SignalMailHandler;
 use Voyager\IOPools\MailHandlers\SketchMailHandler;
 use Voyager\IOPools\MailHandlers\MailHandlerManager;
 use Voyager\IOPools\Waiter\StreamSelectWaiterBackend;
 use Voyager\IOPools\PromiseEngines\GuzzlePromiseEngine;
-use Venusian\Tests\IOPools\Fixtures\MailSketch;
 use Venusian\Tests\IOPools\Fixtures\PingSignal;
 
 function mailLoop(MailHandler $mail_handler): EventLoop
@@ -70,53 +67,28 @@ it('resolves the dispatcher at hand-off, not when the handler is built', functio
     expect($heard)->toBe(['late']);
 });
 
-it('passes all of a turn\'s mail to the sketch\'s loop() in one call', function () {
-    $sketch = new MailSketch();
+it('holds every delivery, oldest first, until the runner takes it', function () {
     $handler = new SketchMailHandler();
-    $handler->attach($sketch);
 
     $loop = mailLoop($handler);
     $loop->post(new PingSignal('a'));
-    $loop->post(new PingSignal('b'));
-    $loop->at(0.01, fn () => $loop->stop());
+    $loop->at(0.01, fn () => $loop->post(new PingSignal('b')));
+    $loop->at(0.02, fn () => $loop->stop());
     $loop->run();
 
-    expect($sketch->loops)->toHaveCount(1)
-        ->and(array_map(fn (PingSignal $p) => $p->from, $sketch->loops[0]))->toBe(['a', 'b']);
+    expect(array_map(fn (PingSignal $p) => $p->from, $handler->take()))->toBe(['a', 'b'])
+        ->and($handler->take())->toBe([]);
 });
 
-it('stops the loop when the sketch answers STOP', function () {
-    $sketch = new MailSketch(stop_after: 1);
+it('holds mail without anyone to hand it to, and never stops the loop', function () {
     $handler = new SketchMailHandler();
-    $handler->attach($sketch);
 
     $loop = mailLoop($handler);
-    $loop->resource('work', new class extends Pollable {
-        public function tick(): void {}
-    });
-    $loop->at(0.01, fn () => $loop->post(new PingSignal('bye')));
-    $started = hrtime(true);
+    $loop->post(new PingSignal('kept'));
+    $loop->at(0.01, fn () => $loop->stop(7));
 
-    expect($loop->run())->toBe(0)
-        ->and($sketch->loops)->toHaveCount(1)
-        ->and(hrtime(true) - $started)->toBeLessThan(1_000_000_000);
-});
-
-it('refuses to drop mail when no sketch is attached', function () {
-    $handler = new SketchMailHandler();
-    $loop = mailLoop($handler);
-    $loop->post(new PingSignal('lost'));
-    $loop->at(0.01, fn () => $loop->stop());
-
-    expect(fn () => $loop->run())->toThrow(IOPoolsException::class, 'no sketch attached');
-});
-
-it('detaches a sketch', function () {
-    $handler = new SketchMailHandler();
-    $handler->attach(new MailSketch());
-    $handler->detach();
-
-    expect($handler->sketch())->toBeNull();
+    expect($loop->run())->toBe(7)
+        ->and($handler->take())->toHaveCount(1);
 });
 
 it('builds the signal and sketch drivers by name, once each', function () {

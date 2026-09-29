@@ -26,6 +26,7 @@ class Kernel implements KernelContract
     protected array $bootstrappers = [
         \Voyager\Core\Bootstrap\LoadEnvironmentVariables::class,
         \Voyager\Core\Bootstrap\LoadConfiguration::class,
+        DeliverMailToSketches::class,
         \Voyager\Core\Bootstrap\HandleExceptions::class,
         \Voyager\Core\Bootstrap\RegisterProviders::class,
         \Voyager\Core\Bootstrap\BootProviders::class,
@@ -41,7 +42,7 @@ class Kernel implements KernelContract
     public function __construct(protected readonly FrameworkCore $app)
     {
         if (! defined('ROCKET_BINARY')) {
-            define('ROCKET_BINARY', 'launch');
+            define('ROCKET_BINARY', 'rocket');
         }
 
         $app->booted(function () use ($app) {
@@ -133,11 +134,13 @@ class Kernel implements KernelContract
     protected function registry(): SketchRegistry
     {
         $registry = $this->app->make(SketchRegistry::class);
+        // Only a path that exists is scanned, so the app namespace is only needed when one does.
+        $paths = array_values(array_filter($this->sketch_paths, 'is_dir'));
         $classes = array_merge(
             $this->sketches,
             (array) $this->app['config']->get('sketches.load', []),
-            $this->sketch_paths === [] ? [] : DiscoverSketches::within(
-                $this->sketch_paths,
+            $paths === [] ? [] : DiscoverSketches::within(
+                $paths,
                 $this->root_namespace ?? $this->app->getNamespace(),
                 $this->root_path ?? $this->app->path(),
             ),
