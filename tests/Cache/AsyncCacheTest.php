@@ -9,6 +9,7 @@ use Venusian\Tests\Cache\Fixtures\CacheApp;
 
 dataset('stores', function () {
     yield 'array' => ['array'];
+    yield 'database' => ['database'];
     yield 'file' => ['file'];
 
     if (CacheApp::redisReachable()) {
@@ -17,6 +18,7 @@ dataset('stores', function () {
 });
 
 dataset('io stores', function () {
+    yield 'database' => ['database'];
     yield 'file' => ['file'];
 
     if (CacheApp::redisReachable()) {

@@ -10,8 +10,9 @@ use Voyager\Contracts\Console\Kernel;
 use Voyager\Core\Bootstrap\HandleExceptions;
 
 /**
- * This repository booted as the app, its file store in a fresh directory, its redis store on the
- * local Redis's database 15 under a key prefix of its own, so a run only touches what it wrote.
+ * This repository booted as the app, its file store in a fresh directory, its database store on a
+ * fresh SQLite file, its redis store on the local Redis's database 15 under a key prefix of its
+ * own, so a run only touches what it wrote.
  */
 final class CacheApp
 {
@@ -31,7 +32,26 @@ final class CacheApp
         $app['config']->set('database.redis.default.database', self::DATABASE);
         $app['config']->set('database.redis.options.prefix', 'venusian_test_'.bin2hex(random_bytes(4)).':');
 
+        // the database store on a SQLite file of this run's own, its tables made by cache:table's stub
+        $sqlite = $directory.'.sqlite';
+        touch($sqlite);
+        $app['config']->set('database.connections.sqlite.database', $sqlite);
+        $app['config']->set('cache.stores.database.connection', 'sqlite');
+        self::migrateCacheTables($directory.'-cache-migration.php');
+
         return $app;
+    }
+
+    /** Runs cache:table's migration, as the command would write it, on the default SQLite file. */
+    public static function migrateCacheTables(string $path): void
+    {
+        file_put_contents($path, str_replace('{{table}}', 'cache', file_get_contents(dirname(__DIR__, 3).'/src/Voyager/Cache/Console/stubs/cache.stub')));
+
+        try {
+            (require $path)->up();
+        } finally {
+            unlink($path);
+        }
     }
 
     public static function redisReachable(): bool
@@ -54,6 +74,10 @@ final class CacheApp
 
         if (is_dir($directory)) {
             $app['files']->deleteDirectory($directory);
+        }
+
+        if (is_file($directory.'.sqlite')) {
+            unlink($directory.'.sqlite');
         }
 
         if ($app->isBound('redis') && self::redisReachable()) {
