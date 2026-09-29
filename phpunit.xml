@@ -22,5 +22,8 @@
         <testsuite name="Filesystem">
             <directory>tests/Filesystem</directory>
         </testsuite>
+        <testsuite name="Process">
+            <directory>tests/Process</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
