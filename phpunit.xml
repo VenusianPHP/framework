@@ -37,5 +37,14 @@
         <testsuite name="Sketches">
             <directory>tests/Sketches</directory>
         </testsuite>
+        <testsuite name="Hashing">
+            <directory>tests/Hashing</directory>
+        </testsuite>
+        <testsuite name="Encryption">
+            <directory>tests/Encryption</directory>
+        </testsuite>
+        <testsuite name="Pagination">
+            <directory>tests/Pagination</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
