@@ -57,7 +57,8 @@
         "venusian-voyager/reflection": "self.version"
     },
     "suggest": {
-        "laudis/neo4j-php-client": "Required for Voyager\\Graph Neo4j connections (^3.3)."
+        "laudis/neo4j-php-client": "Required for Voyager\\Graph Neo4j connections (^3.3).",
+        "pusher/pusher-php-server": "Required to use the Pusher and Reverb broadcast drivers (^7.0)."
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -85,7 +86,8 @@
             "src/Voyager/NutsAndBolts/Helpers/time.php",
             "src/Voyager/Filesystem/functions.php",
             "src/Voyager/Filesystem/helpers.php",
-            "src/Voyager/Graph/Helpers/functions.php"
+            "src/Voyager/Graph/Helpers/functions.php",
+            "src/Voyager/Broadcasting/helpers.php"
         ]
     },
     "autoload-dev": {

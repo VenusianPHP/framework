@@ -24,7 +24,7 @@ class DefaultProviders
     public function __construct(?array $providers = null)
     {
         $this->providers = $providers ?: [
-            //\Voyager\Bus\BusServiceProvider::class,
+            \Voyager\Bus\BusServiceProvider::class,
             \Voyager\Core\Providers\ConsoleSupportServiceProvider::class,
             \Voyager\Cache\CacheServiceProvider::class,
             \Voyager\Concurrency\ConcurrencyServiceProvider::class,
@@ -37,9 +37,9 @@ class DefaultProviders
             \Voyager\Encryption\EncryptionServiceProvider::class,
             \Voyager\Http\HttpServiceProvider::class,
             \Voyager\Log\LogServiceProvider::class,
-            //\Voyager\Queue\QueueServiceProvider::class,
+            \Voyager\Queue\QueueServiceProvider::class,
             \Voyager\Redis\RedisServiceProvider::class,
-            //\Voyager\Broadcasting\BroadcastServiceProvider::class,
+            \Voyager\Broadcasting\BroadcastServiceProvider::class,
             \Voyager\IOPools\IOPoolsServiceProvider::class,
             \Voyager\Pipeline\PipelineServiceProvider::class,
             \Voyager\Sketches\SketchesServiceProvider::class,

@@ -656,8 +656,8 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
     {
         $core_aliases = [
             'app' => [self::class, TheServiceContainer::class, FrameworkCore::class, ContainerInterface::class],
-            //'broadcast' => [\Voyager\Broadcasting\BroadcastManager::class, \Voyager\Contracts\Broadcasting\Factory::class],
-            //'broadcast.connection' => [\Voyager\Contracts\Broadcasting\Broadcaster::class],
+            'broadcast' => [\Voyager\Broadcasting\BroadcastManager::class, \Voyager\Contracts\Broadcasting\Factory::class],
+            'broadcast.connection' => [\Voyager\Contracts\Broadcasting\Broadcaster::class],
             'cache' => [\Voyager\Cache\CacheManager::class, \Voyager\Contracts\Cache\Factory::class],
             'cache.store' => [\Voyager\Cache\Repository::class, \Voyager\Contracts\Cache\Repository::class, \Psr\SimpleCache\CacheInterface::class],
             'config' => [\Voyager\Config\Repository::class, \Voyager\Contracts\Config\Repository::class],
@@ -674,9 +674,9 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
             'filesystem.disk' => [\Voyager\Contracts\Filesystem\Filesystem::class],
             'filesystem.cloud' => [\Voyager\Contracts\Filesystem\Cloud::class],
             'log' => [\Voyager\Log\LogManager::class, \Psr\Log\LoggerInterface::class],
-            //'queue' => [\Voyager\Queue\QueueManager::class, \Voyager\Contracts\Queue\Factory::class, \Voyager\Contracts\Queue\Monitor::class],
-            //'queue.connection' => [\Voyager\Contracts\Queue\Queue::class],
-            //'queue.failer' => [\Voyager\Queue\Failed\FailedJobProviderInterface::class],
+            'queue' => [\Voyager\Queue\QueueManager::class, \Voyager\Contracts\Queue\Factory::class, \Voyager\Contracts\Queue\Monitor::class],
+            'queue.connection' => [\Voyager\Contracts\Queue\Queue::class],
+            'queue.failer' => [\Voyager\Queue\Failed\FailedJobProviderInterface::class],
             //'redis' => [\Voyager\Redis\RedisManager::class, \Voyager\Contracts\Redis\Factory::class],
             //'redis.connection' => [\Voyager\Redis\Connections\Connection::class, \Voyager\Contracts\Redis\Connection::class],
             'signals' => [\Voyager\Signals\SignalDispatcher::class, \Voyager\Contracts\Signals\SignalDispatcher::class],

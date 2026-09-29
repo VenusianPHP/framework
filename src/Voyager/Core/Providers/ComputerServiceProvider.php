@@ -20,6 +20,9 @@ use Voyager\Queue\Console\ResumeCommand as QueueResumeCommand;
 use Voyager\Queue\Console\RetryBatchCommand as QueueRetryBatchCommand;
 use Voyager\Queue\Console\RetryCommand as QueueRetryCommand;
 use Voyager\Queue\Console\WorkCommand as QueueWorkCommand;
+use Voyager\Queue\Console\TableCommand as QueueTableCommand;
+use Voyager\Queue\Console\FailedTableCommand as QueueFailedTableCommand;
+use Voyager\Queue\Console\BatchesTableCommand as QueueBatchesTableCommand;
 use ReflectionException;
 use Voyager\Console\ConsoleSignals;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
@@ -77,21 +80,20 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'SignalCache' => SignalCacheCommand::class,
         'SignalClear' => SignalClearCommand::class,
         'SignalList' => EventListCommand::class,
-        //'QueueClear' => QueueClearCommand::class,
-        //'QueueFailed' => ListFailedQueueCommand::class,
-        //'QueueFlush' => FlushFailedQueueCommand::class,
-        //'QueueForget' => ForgetFailedQueueCommand::class,
-        //'QueueListen' => QueueListenCommand::class,
-        //'QueueMonitor' => QueueMonitorCommand::class,
-        //'QueuePause' => QueuePauseCommand::class,
-        //'QueuePruneBatches' => QueuePruneBatchesCommand::class,
-        //'QueuePruneFailedJobs' => QueuePruneFailedJobsCommand::class,
-        //'QueueRestart' => QueueRestartCommand::class,
-        //'QueueResume' => QueueResumeCommand::class,
-        //'QueueRetry' => QueueRetryCommand::class,
-        //'QueueRetryBatch' => QueueRetryBatchCommand::class,
-        //'QueueWork' => QueueWorkCommand::class,
-        // queue:table, queue:failed-table, queue:batches-table extend Console\MigrationGeneratorCommand: they land with Queue
+        'QueueClear' => QueueClearCommand::class,
+        'QueueFailed' => ListFailedQueueCommand::class,
+        'QueueFlush' => FlushFailedQueueCommand::class,
+        'QueueForget' => ForgetFailedQueueCommand::class,
+        'QueueListen' => QueueListenCommand::class,
+        'QueueMonitor' => QueueMonitorCommand::class,
+        'QueuePause' => QueuePauseCommand::class,
+        'QueuePruneBatches' => QueuePruneBatchesCommand::class,
+        'QueuePruneFailedJobs' => QueuePruneFailedJobsCommand::class,
+        'QueueRestart' => QueueRestartCommand::class,
+        'QueueResume' => QueueResumeCommand::class,
+        'QueueRetry' => QueueRetryCommand::class,
+        'QueueRetryBatch' => QueueRetryBatchCommand::class,
+        'QueueWork' => QueueWorkCommand::class,
     ];
 
     /**
@@ -101,6 +103,9 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      */
     protected array $dev_commands = [
         'CacheTable' => CacheTableCommand::class,
+        'QueueBatchesTable' => QueueBatchesTableCommand::class,
+        'QueueFailedTable' => QueueFailedTableCommand::class,
+        'QueueTable' => QueueTableCommand::class,
         'ClassMake' => ClassMakeCommand::class,
         'ConfigMake' => ConfigMakeCommand::class,
         'ConfigPublish' => ConfigPublishCommand::class,

@@ -37,7 +37,7 @@ class SeederMakeCommand extends GeneratorCommand
      */
     public function handle(): ?bool
     {
-        parent::handle();
+        return parent::handle();
     }
 
     /**

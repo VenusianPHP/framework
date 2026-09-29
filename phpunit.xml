@@ -49,6 +49,12 @@
         <testsuite name="Graph">
             <directory>tests/Graph</directory>
         </testsuite>
+        <testsuite name="Queue">
+            <directory>tests/Queue</directory>
+        </testsuite>
+        <testsuite name="Broadcasting">
+            <directory>tests/Broadcasting</directory>
+        </testsuite>
         <testsuite name="Pagination">
             <directory>tests/Pagination</directory>
         </testsuite>
