@@ -13,11 +13,12 @@
     ],
     "require": {
         "php": "^8.4|^8.5",
-        "venusian-voyager/contracts": "^0.9.0",
-        "venusian-voyager/nuts-and-bolts": "^0.9.0"
+        "venusian-voyager/contracts": "^0.10.0",
+        "venusian-voyager/nuts-and-bolts": "^0.10.0",
+        "venusian-voyager/vessel": "^0.10.0"
     },
     "suggest": {
-        "venusian-voyager/io-pools": "Required for makeAsync(), checkAsync() and the hashing gigs: they run on its worker pools (^0.9.0)."
+        "venusian-voyager/io-pools": "Required for makeAsync(), checkAsync() and the hashing gigs: they run on its worker pools (^0.10.0)."
     },
     "autoload": {
         "psr-4": {
@@ -26,7 +27,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.9.x-dev"
+            "dev-main": "0.10.x-dev"
         }
     },
     "config": {

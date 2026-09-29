@@ -3,7 +3,7 @@
 namespace {{ factoryNamespace }};
 
 use {{ namespacedModel }};
-use Illuminate\Database\Eloquent\Factories\Factory;
+use Voyager\Database\Instrument\Factories\Factory;
 
 /**
  * @extends Factory<{{ model }}>

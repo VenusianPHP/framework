@@ -11,7 +11,7 @@ use Voyager\NutsAndBolts\DataObjects\Str;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\Contracts\Core\CachesConfiguration;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
-use Voyager\Database\Instrument\Factory as ModelFactory;
+use Voyager\Database\Instrument\Factories\Factory as ModelFactory;
 
 /**
  * @property array<string, string> $bindings Every container binding that should be registered.

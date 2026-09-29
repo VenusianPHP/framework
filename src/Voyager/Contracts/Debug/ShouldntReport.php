@@ -1,6 +1,6 @@
 <?php
 
-namespace Illuminate\Contracts\Debug;
+namespace Voyager\Contracts\Debug;
 
 interface ShouldntReport
 {

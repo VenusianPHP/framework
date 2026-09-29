@@ -904,7 +904,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param bool $descending
      * @return static
      */
-    public function sortBy(array|callable|int|string $callback, int $options = SORT_REGULAR, bool $descending = false): static;
+    public function sortBy(array|callable|int|string $callback, int $options = SORT_REGULAR, SortDirection|bool $descending = false): static;
 
     /**
      * Sort the collection in descending order using the given callback.

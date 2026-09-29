@@ -9,21 +9,33 @@
         }
     ],
     "require": {
-        "ramsey/uuid": "^4.7",
         "php": "^8.4|^8.5|^8.6",
-        "symfony/uid": "^8.0.0",
-        "nesbot/carbon": "^3.8.4",
-        "vlucas/phpdotenv": "^5.6.1",
+        "ext-ctype": "*",
+        "ext-filter": "*",
+        "ext-mbstring": "*",
         "doctrine/inflector": "^2.0",
         "league/commonmark": "^2.8.1",
+        "nesbot/carbon": "^3.8.4",
+        "phpoption/phpoption": "^1.9",
+        "ramsey/uuid": "^4.7",
+        "symfony/polyfill-php85": "^1.33",
+        "symfony/uid": "^8.0.0",
         "symfony/var-dumper": "^8.0.0",
-        "voku/portable-ascii": "^2.0.2",
-        "venusian-voyager/collections": "^0.9.0",
-        "venusian-voyager/conditionable": "^0.9.0",
-        "venusian-voyager/contracts": "^0.9.0",
-        "venusian-voyager/macroable": "^0.9.0"
+        "venusian-voyager/collections": "^0.10.0",
+        "venusian-voyager/conditionable": "^0.10.0",
+        "venusian-voyager/contracts": "^0.10.0",
+        "venusian-voyager/macroable": "^0.10.0",
+        "vlucas/phpdotenv": "^5.6.1",
+        "voku/portable-ascii": "^2.0.2"
     },
-    "suggest": [],
+    "suggest": {
+        "ext-intl": "Required to format numbers with Number.",
+        "laravel/serializable-closure": "Required for once() (^2.0).",
+        "symfony/process": "Required to use the Composer class (^8.0.0).",
+        "venusian-voyager/console": "Required for ServiceProvider::commands() (^0.10.0).",
+        "venusian-voyager/database": "Required for ServiceProvider::loadFactoriesFrom() (^0.10.0).",
+        "venusian-voyager/filesystem": "Required to use the Composer class (^0.10.0)."
+    },
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
@@ -40,7 +52,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.9.x-dev"
+            "dev-main": "0.10.x-dev"
         }
     }
 }

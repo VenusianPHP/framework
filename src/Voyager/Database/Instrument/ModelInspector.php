@@ -50,7 +50,7 @@ class ModelInspector
      * @param  string|null  $connection
      * @return array{"class": class-string<\Voyager\Database\Instrument\Model>, database: string, table: string, policy: class-string|null, attributes: \Voyager\NutsAndBolts\Collection, relations: \Voyager\NutsAndBolts\Collection, events: \Voyager\NutsAndBolts\Collection, observers: \Voyager\NutsAndBolts\Collection, collection: class-string<\Voyager\Database\Instrument\Collection<\Voyager\Database\Instrument\Model>>, builder: class-string<\Voyager\Database\Instrument\Builder<\Voyager\Database\Instrument\Model>>, "resource": class-string<\Voyager\Http\Resources\Json\JsonResource>|null}
      *
-     * @throws \Voyager\Contracts\Vessel\BindingResolutionException
+     * @throws \Voyager\Contracts\Vessel\DataBindingException
      */
     public function inspect($model, $connection = null)
     {
@@ -236,7 +236,7 @@ class ModelInspector
      * @param  \Voyager\Database\Instrument\Model  $model
      * @return \Voyager\NutsAndBolts\Collection
      *
-     * @throws \Voyager\Contracts\Vessel\BindingResolutionException
+     * @throws \Voyager\Contracts\Vessel\DataBindingException
      */
     protected function getObservers($model)
     {

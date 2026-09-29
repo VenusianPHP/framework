@@ -1,35 +1,35 @@
 {
-  "name": "venusian-voyager/reflection",
-  "description": "The Voyager Reflection package.",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Angel Gonzalez",
-      "email": "angel@projectsaturnstudios.com"
+    "name": "venusian-voyager/reflection",
+    "description": "The Voyager Reflection package.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Angel Gonzalez",
+            "email": "angel@projectsaturnstudios.com"
+        },
+        {
+            "name": "Taylor Otwell"
+        }
+    ],
+    "require": {
+        "php": "^8.4|^8.5",
+        "venusian-voyager/collections": "^0.10.0"
     },
-    {
-      "name": "Taylor Otwell"
-    }
-  ],
-  "require": {
-    "php": "^8.4|^8.5",
-    "venusian-voyager/collections": "^0.9"
-  },
-  "minimum-stability": "dev",
-  "autoload": {
-    "psr-4": {
-      "Voyager\\NutsAndBolts\\": ""
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Voyager\\NutsAndBolts\\": ""
+        },
+        "files": [
+            "Helpers/helpers.php"
+        ]
     },
-    "files": [
-      "Helpers/helpers.php"
-    ]
-  },
-  "config": {
-    "sort-packages": true
-  },
-  "extra": {
-    "branch-alias": {
-      "dev-main": "0.9.x-dev"
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.10.x-dev"
+        }
     }
-  }
 }

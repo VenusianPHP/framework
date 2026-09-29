@@ -7,6 +7,7 @@ use ArrayAccess;
 use JsonSerializable;
 use Stringable as BaseStringable;
 use Voyager\NutsAndBolts\Collection;
+use Voyager\NutsAndBolts\HtmlString;
 use Voyager\NutsAndBolts\Concerns\Dumpable;
 use Voyager\NutsAndBolts\Concerns\Tappable;
 use Voyager\NutsAndBolts\Concerns\Macroable;

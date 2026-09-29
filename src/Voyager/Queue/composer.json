@@ -14,18 +14,27 @@
     "require": {
         "php": "^8.4|^8.5",
         "laravel/serializable-closure": "^2.0",
-        "ramsey/uuid": "^4.7",
-        "symfony/process": "^7.2",
-        "venusian-voyager/collections": "^0.9.0",
-        "venusian-voyager/console": "^0.9.0",
-        "venusian-voyager/contracts": "^0.9.0",
-        "venusian-voyager/filesystem": "^0.9.0",
-        "venusian-voyager/nuts-and-bolts": "^0.9.0",
-        "venusian-voyager/pipeline": "^0.9.0",
-        "venusian-voyager/vessel": "^0.9.0"
+        "nesbot/carbon": "^3.8.4",
+        "symfony/process": "^8.0.0",
+        "venusian-voyager/bus": "^0.10.0",
+        "venusian-voyager/collections": "^0.10.0",
+        "venusian-voyager/console": "^0.10.0",
+        "venusian-voyager/contracts": "^0.10.0",
+        "venusian-voyager/database": "^0.10.0",
+        "venusian-voyager/filesystem": "^0.10.0",
+        "venusian-voyager/log": "^0.10.0",
+        "venusian-voyager/nuts-and-bolts": "^0.10.0",
+        "venusian-voyager/pipeline": "^0.10.0",
+        "venusian-voyager/reflection": "^0.10.0",
+        "venusian-voyager/vessel": "^0.10.0"
     },
     "suggest": {
-        "venusian-voyager/database": "Required to use the database queue driver and the database failed-job providers (^0.9.0)."
+        "ext-mbstring": "Required to store failed jobs.",
+        "ext-pcntl": "Required for worker timeouts and SIGQUIT handling.",
+        "ext-pdo": "Required to use the database queue driver.",
+        "ext-posix": "Required for a timed-out worker to kill itself.",
+        "venusian-voyager/cache": "Required for the RateLimited and ThrottlesExceptions job middleware (^0.10.0).",
+        "venusian-voyager/redis": "Required to use the redis queue driver (^0.10.0)."
     },
     "autoload": {
         "psr-4": {
@@ -34,7 +43,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.9.x-dev"
+            "dev-main": "0.10.x-dev"
         }
     },
     "config": {

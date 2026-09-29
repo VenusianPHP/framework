@@ -28,7 +28,7 @@ if (! function_exists('Voyager\NutsAndBolts\join_paths')) {
     }
 }
 
-if (! function_exists('Illuminate\Support\enum_value')) {
+if (! function_exists('Voyager\NutsAndBolts\enum_value')) {
     /**
      * Return a scalar value for the given value that might be an enum.
      *

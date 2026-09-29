@@ -4,7 +4,7 @@ namespace Voyager\Core\Exceptions;
 
 use Closure;
 use Exception;
-use Illuminate\Contracts\Debug\ShouldntReport;
+use Voyager\Contracts\Debug\ShouldntReport;
 use ReflectionException;
 use Voyager\Cache\RateLimiter;
 use Voyager\Cache\RateLimiting\Limit;

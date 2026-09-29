@@ -1588,7 +1588,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  SortDirection|bool  $descending
      * @return static
      */
-    public function sortBy(array|callable|int|string $callback, int $options = SORT_REGULAR, bool $descending = false): static
+    public function sortBy(array|callable|int|string $callback, int $options = SORT_REGULAR, SortDirection|bool $descending = false): static
     {
         if (is_array($callback) && ! is_callable($callback)) {
             return $this->sortByMany($callback, $options);

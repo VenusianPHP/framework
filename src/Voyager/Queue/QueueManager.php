@@ -52,7 +52,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function before($callback)
     {
-        $this->app['signals']->listen(Events\JobProcessing::class, $callback);
+        $this->app['signals']->listen(Signals\JobProcessing::class, $callback);
     }
 
     /**
@@ -63,7 +63,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function after($callback)
     {
-        $this->app['signals']->listen(Events\JobProcessed::class, $callback);
+        $this->app['signals']->listen(Signals\JobProcessed::class, $callback);
     }
 
     /**
@@ -74,7 +74,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function exceptionOccurred($callback)
     {
-        $this->app['signals']->listen(Events\JobExceptionOccurred::class, $callback);
+        $this->app['signals']->listen(Signals\JobExceptionOccurred::class, $callback);
     }
 
     /**
@@ -85,7 +85,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function looping($callback)
     {
-        $this->app['signals']->listen(Events\Looping::class, $callback);
+        $this->app['signals']->listen(Signals\Looping::class, $callback);
     }
 
     /**
@@ -96,7 +96,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function failing($callback)
     {
-        $this->app['signals']->listen(Events\JobFailed::class, $callback);
+        $this->app['signals']->listen(Signals\JobFailed::class, $callback);
     }
 
     /**
@@ -107,7 +107,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function starting($callback)
     {
-        $this->app['signals']->listen(Events\WorkerStarting::class, $callback);
+        $this->app['signals']->listen(Signals\WorkerStarting::class, $callback);
     }
 
     /**
@@ -118,7 +118,7 @@ class QueueManager implements FactoryContract, MonitorContract
      */
     public function stopping($callback)
     {
-        $this->app['signals']->listen(Events\WorkerStopping::class, $callback);
+        $this->app['signals']->listen(Signals\WorkerStopping::class, $callback);
     }
 
     /**

@@ -20,6 +20,7 @@ use Throwable;
 use Traversable;
 use voku\helper\ASCII;
 use Voyager\NutsAndBolts\Concerns\Macroable;
+use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\DataObjects\Number;
 use Voyager\NutsAndBolts\DataObjects\Pluralizer;
 use Voyager\NutsAndBolts\DataObjects\Stringable;

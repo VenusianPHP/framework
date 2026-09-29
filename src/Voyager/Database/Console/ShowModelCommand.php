@@ -4,7 +4,7 @@ namespace Voyager\Database\Console;
 
 use Voyager\Console\Concerns\FindsAvailableModels;
 use Voyager\Contracts\Console\PromptsForMissingInput;
-use Voyager\Contracts\Vessel\BindingResolutionException;
+use Voyager\Contracts\Vessel\DataBindingException;
 use Voyager\Database\Instrument\ModelInspector;
 use Voyager\NutsAndBolts\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -52,7 +52,7 @@ class ShowModelCommand extends DatabaseInspectionCommand implements PromptsForMi
                 $this->argument('model'),
                 $this->option('database')
             );
-        } catch (BindingResolutionException $e) {
+        } catch (DataBindingException $e) {
             $this->components->error($e->getMessage());
 
             return 1;
