@@ -30,7 +30,7 @@ class DefaultProviders
             //\Voyager\Concurrency\ConcurrencyServiceProvider::class,
             //\Voyager\Database\DatabaseServiceProvider::class,
             //\Voyager\Database\MigrationServiceProvider::class,
-            //\Voyager\Filesystem\FilesystemServiceProvider::class,
+            \Voyager\Filesystem\FilesystemServiceProvider::class,
             //\Voyager\Core\Providers\FoundationServiceProvider::class,
             //\Voyager\Hashing\HashServiceProvider::class,
             \Voyager\Http\HttpServiceProvider::class,

@@ -561,10 +561,10 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
 
         try {
             $this->registerInstance(
-                'signals.cached', $this['files']->exists($this->getCachedSignalsPath())
+                'signals.cached', $cached = $this['files']->exists($this->getCachedSignalsPath())
             );
 
-            return true;
+            return $cached;
         }
         catch (Exception $e)
         {

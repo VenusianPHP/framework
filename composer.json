@@ -80,7 +80,9 @@
             "src/Voyager/Reflection/Helpers/helpers.php",
             "src/Voyager/NutsAndBolts/Helpers/functions.php",
             "src/Voyager/NutsAndBolts/Helpers/helpers.php",
-            "src/Voyager/NutsAndBolts/Helpers/time.php"
+            "src/Voyager/NutsAndBolts/Helpers/time.php",
+            "src/Voyager/Filesystem/functions.php",
+            "src/Voyager/Filesystem/helpers.php"
         ]
     },
     "autoload-dev": {
