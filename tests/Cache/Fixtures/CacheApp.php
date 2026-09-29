@@ -65,7 +65,7 @@ final class CacheApp
             }
         }
 
-        foreach (['thread-pool', 'process-pool'] as $pool) {
+        foreach (['thread-workers', 'process-workers'] as $pool) {
             if ($app->isBound($pool)) {
                 $app->get($pool)->shutDown();
             }

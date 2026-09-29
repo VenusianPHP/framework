@@ -57,7 +57,7 @@ final class LogApp
     /** Stops the pools, removes the files, and hands PHPUnit back the error handlers the boot replaced. */
     public static function tearDown(RenderedInstance $app, TestCase $test): void
     {
-        foreach (['thread-pool', 'process-pool'] as $pool) {
+        foreach (['thread-workers', 'process-workers'] as $pool) {
             if ($app->isBound($pool)) {
                 $app->get($pool)->shutDown();
             }

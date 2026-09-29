@@ -34,7 +34,7 @@ final class FilesApp
     /** Removes the run's directory, stops the pools, and hands PHPUnit back its error handlers. */
     public static function tearDown(RenderedInstance $app, TestCase $test): void
     {
-        foreach (['thread-pool', 'process-pool'] as $pool) {
+        foreach (['thread-workers', 'process-workers'] as $pool) {
             if ($app->isBound($pool)) {
                 $app->get($pool)->shutDown();
             }

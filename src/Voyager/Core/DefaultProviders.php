@@ -27,7 +27,7 @@ class DefaultProviders
             //\Voyager\Bus\BusServiceProvider::class,
             \Voyager\Core\Providers\ConsoleSupportServiceProvider::class,
             \Voyager\Cache\CacheServiceProvider::class,
-            //\Voyager\Concurrency\ConcurrencyServiceProvider::class,
+            \Voyager\Concurrency\ConcurrencyServiceProvider::class,
             //\Voyager\Database\DatabaseServiceProvider::class,
             //\Voyager\Database\MigrationServiceProvider::class,
             \Voyager\Filesystem\FilesystemServiceProvider::class,

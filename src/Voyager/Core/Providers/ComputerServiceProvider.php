@@ -68,7 +68,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'EnvironmentDecrypt' => EnvironmentDecryptCommand::class,
         'EnvironmentEncrypt' => EnvironmentEncryptCommand::class,
         'PackageDiscover' => PackageDiscoverCommand::class,
-        //'InvokeSerializedClosure' => InvokeSerializedClosureCommand::class,
+        'InvokeSerializedClosure' => InvokeSerializedClosureCommand::class,
         'SignalCache' => SignalCacheCommand::class,
         'SignalClear' => SignalClearCommand::class,
         'SignalList' => EventListCommand::class,

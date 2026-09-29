@@ -50,7 +50,7 @@ it('answers local filesystem calls from a worker, as the blocking calls would', 
         ->and($files->glob("{$root}/notes/*.txt")->wait())->toBe(["{$root}/notes/a.txt", "{$root}/notes/c.txt"])
         ->and($files->delete("{$root}/notes/c.txt")->wait())->toBeTrue()
         ->and($files->exists("{$root}/notes/c.txt")->wait())->toBeFalse()
-        ->and($this->app->get('process-pool')->workerCount())->toBeGreaterThan(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBeGreaterThan(0);
 });
 
 it('hands back the files a worker found as Finder\'s SplFileInfo', function () {
@@ -127,7 +127,7 @@ it('refuses arguments that aren\'t data before anything is sent', function () {
 
     expect(fn () => $refused->wait())
         ->toThrow(InvalidArgumentException::class, "delete() can't run in a worker: its arguments must be strings, numbers, booleans, null or arrays of them, and ArrayObject was given.")
-        ->and($this->app->get('process-pool')->workerCount())->toBe(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBe(0);
 });
 
 it('refuses to offload a disk whose config can\'t cross to a worker', function () {
@@ -139,7 +139,7 @@ it('refuses to offload a disk whose config can\'t cross to a worker', function (
 
 it('offloads to the thread pool when it is on, and to the pool named', function () {
     $threads = new RecordingPool($this->app->get(Loop::class));
-    $this->app->registerInstance('thread-pool', $threads);
+    $this->app->registerInstance('thread-workers', $threads);
     $path = $this->app['test.root'].'/threaded.txt';
 
     $this->app['files']->via()->put($path, 'on a thread')->wait();
@@ -147,7 +147,7 @@ it('offloads to the thread pool when it is on, and to the pool named', function 
 
     expect($threads->gigs)->toHaveCount(1)
         ->and($threads->gigs[0])->toBeInstanceOf(FilesystemCall::class)
-        ->and($this->app->get('process-pool')->workerCount())->toBeGreaterThan(0)
+        ->and($this->app->get('process-workers')->workerCount())->toBeGreaterThan(0)
         ->and(file_get_contents($path))->toBe('in a process');
 });
 
@@ -159,10 +159,10 @@ it('says which pool is missing', function () {
 });
 
 it('runs offloaded calls and streams on a real thread pool', function () {
-    $pool = new Voyager\IOPools\WorkerPools\Thread\ThreadPool(
+    $pool = new Voyager\IOPools\WorkerPools\Thread\ThreadWorkerPool(
         $this->app->get(Loop::class), 2, dirname(__DIR__, 2), Voyager\IOPools\WorkerPools\WorkerPoolManager::autoloader(),
     );
-    $this->app->registerInstance('thread-pool', $pool);
+    $this->app->registerInstance('thread-workers', $pool);
     $path = $this->app['test.root'].'/threaded.txt';
 
     $files = $this->app['files']->via('thread');
@@ -170,7 +170,7 @@ it('runs offloaded calls and streams on a real thread pool', function () {
 
     // Counted before the loop runs: a pool stops its workers when run() ends.
     expect($pool->workerCount())->toBeGreaterThan(0)
-        ->and($this->app->get('process-pool')->workerCount())->toBe(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBe(0);
 
     $read = $files->stream($path, 8);
     $heard = chunks($this, "file:{$path}", 3);

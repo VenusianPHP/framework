@@ -22,7 +22,7 @@ it('returns before the line is written, and a worker writes it', function () {
 
     expect($promise->wait())->toBeNull()
         ->and(LogApp::lines($path)[0])->toContain('.INFO: off the loop')
-        ->and($this->app->get('process-pool')->workerCount())->toBeGreaterThan(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBeGreaterThan(0);
 });
 
 it('keeps the order the calls were made in, however many workers the pool has', function () {
@@ -89,19 +89,19 @@ it('sends nothing for a level the channel ignores', function () {
 
     expect($this->app->get('log')->channel('async')->infoAsync('below the level')->wait())->toBeNull()
         ->and(LogApp::lines($path))->toBe([])
-        ->and($this->app->get('process-pool')->workerCount())->toBe(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBe(0);
 });
 
 it('prefers the thread pool when it is on', function () {
     LogApp::channel($this->app, 'async');
     $threads = new RecordingPool($this->app->get(Loop::class));
-    $this->app->registerInstance('thread-pool', $threads);
+    $this->app->registerInstance('thread-workers', $threads);
 
     $this->app->get('log')->channel('async')->infoAsync('to the threads')->wait();
 
     expect($threads->gigs)->toHaveCount(1)
         ->and($threads->gigs[0])->toBeInstanceOf(WriteLog::class)
-        ->and($this->app->get('process-pool')->workerCount())->toBe(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBe(0);
 });
 
 it('refuses an async call when no pool is on', function () {

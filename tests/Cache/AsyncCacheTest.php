@@ -63,7 +63,7 @@ it('reads what the other path wrote, both ways', function (string $store) {
 })->with('io stores');
 
 it('runs the file store\'s operations in a worker, and an array store\'s right here', function () {
-    $pool = $this->app->get('process-pool');
+    $pool = $this->app->get('process-workers');
 
     $this->app->get('cache')->store('array')->async()->put('here', 'inline', 60)->wait();
     expect($pool->workerCount())->toBe(0);
@@ -166,11 +166,11 @@ it('has no async operations on a tagged cache', function () {
 
 it('sends the file store\'s operations to the thread pool when it is on', function () {
     $threads = new Venusian\Tests\Log\Fixtures\RecordingPool($this->app->get(Voyager\Contracts\IOPools\Loop::class));
-    $this->app->registerInstance('thread-pool', $threads);
+    $this->app->registerInstance('thread-workers', $threads);
 
     $this->app->get('cache')->store('file')->async()->put('threaded', 'value', 60)->wait();
 
     expect($threads->gigs)->toHaveCount(1)
         ->and($threads->gigs[0])->toBeInstanceOf(FileOperation::class)
-        ->and($this->app->get('process-pool')->workerCount())->toBe(0);
+        ->and($this->app->get('process-workers')->workerCount())->toBe(0);
 });

@@ -7,8 +7,8 @@ use Voyager\IOPools\Waiter\KqueueWaiterBackend;
 use Voyager\IOPools\Waiter\EpollWaiterBackend;
 use Voyager\IOPools\Waiter\StreamSelectWaiterBackend;
 use Voyager\IOPools\WorkerPools\WorkerPoolManager;
-use Voyager\IOPools\WorkerPools\Thread\ThreadPool;
-use Voyager\IOPools\WorkerPools\Process\ProcessPool;
+use Voyager\IOPools\WorkerPools\Thread\ThreadWorkerPool;
+use Voyager\IOPools\WorkerPools\Process\ProcessWorkerPool;
 use Voyager\IOPools\PromiseEngines\GuzzlePromiseEngine;
 use Voyager\Contracts\IOPools\IOPoolsException;
 use Voyager\Contracts\IOPools\WorkerPools\RemoteException;
@@ -37,10 +37,10 @@ function poolLoop(): EventLoop
 dataset('pools', function () {
     $base = dirname(__DIR__, 2);
 
-    yield 'process' => [fn (int $max = 2) => new ProcessPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
+    yield 'process' => [fn (int $max = 2) => new ProcessWorkerPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
 
     if (PHP_ZTS && extension_loaded('parallel')) {
-        yield 'thread' => [fn (int $max = 2) => new ThreadPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
+        yield 'thread' => [fn (int $max = 2) => new ThreadWorkerPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
     }
 });
 
@@ -50,7 +50,7 @@ it('runs a gig off the loop and hands back its return value', function (Closure 
     $result = $pool->submit(new ReturnGig('hello'))->wait();
 
     expect($result['value'])->toBe('hello')
-        ->and($pool instanceof ProcessPool ? $result['pid'] !== getmypid() : true)->toBeTrue();
+        ->and($pool instanceof ProcessWorkerPool ? $result['pid'] !== getmypid() : true)->toBeTrue();
 
     $pool->shutDown();
 })->with('pools');
@@ -125,7 +125,7 @@ it('rejects queued gigs and stops its workers when the loop stops', function (Cl
 })->with('pools');
 
 it('rejects with the worker\'s last words when it exits mid-gig, then replaces it', function () {
-    $pool = new ProcessPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader());
+    $pool = new ProcessWorkerPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader());
 
     expect(fn () => $pool->submit(new ExitGig())->wait())
         ->toThrow(DeadWorkerException::class, 'exited before its gig finished. Last output: leaving now');
@@ -136,7 +136,7 @@ it('rejects with the worker\'s last words when it exits mid-gig, then replaces i
 });
 
 it('replaces an idle worker that died between gigs', function () {
-    $pool = new ProcessPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader());
+    $pool = new ProcessWorkerPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader());
 
     $first = $pool->submit(new ReturnGig('first'))->wait();
     posix_kill($first['pid'], SIGKILL);
@@ -151,6 +151,6 @@ it('replaces an idle worker that died between gigs', function () {
 })->skip(! extension_loaded('posix'), 'needs posix');
 
 it('refuses to build a thread pool on a build that cannot run threads', function () {
-    expect(fn () => new ThreadPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader()))
+    expect(fn () => new ThreadWorkerPool(poolLoop(), 1, dirname(__DIR__, 2), WorkerPoolManager::autoloader()))
         ->toThrow(IOPoolsException::class, 'The thread pool needs a ZTS build of PHP with ext-parallel loaded.');
 })->skip(PHP_ZTS && extension_loaded('parallel'), 'this build can run threads');
