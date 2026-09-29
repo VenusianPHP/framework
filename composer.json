@@ -56,7 +56,9 @@
         "venusian-voyager/nuts-and-bolts": "self.version",
         "venusian-voyager/reflection": "self.version"
     },
-    "suggest": {},
+    "suggest": {
+        "laudis/neo4j-php-client": "Required for Voyager\\Graph Neo4j connections (^3.3)."
+    },
     "require-dev": {
         "fakerphp/faker": "^1.24",
         "mockery/mockery": "^1.6",
@@ -82,7 +84,8 @@
             "src/Voyager/NutsAndBolts/Helpers/helpers.php",
             "src/Voyager/NutsAndBolts/Helpers/time.php",
             "src/Voyager/Filesystem/functions.php",
-            "src/Voyager/Filesystem/helpers.php"
+            "src/Voyager/Filesystem/helpers.php",
+            "src/Voyager/Graph/Helpers/functions.php"
         ]
     },
     "autoload-dev": {

@@ -43,6 +43,12 @@
         <testsuite name="Encryption">
             <directory>tests/Encryption</directory>
         </testsuite>
+        <testsuite name="Database">
+            <directory>tests/Database</directory>
+        </testsuite>
+        <testsuite name="Graph">
+            <directory>tests/Graph</directory>
+        </testsuite>
         <testsuite name="Pagination">
             <directory>tests/Pagination</directory>
         </testsuite>

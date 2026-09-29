@@ -142,8 +142,19 @@ class ConfigFactory
         return $this;
     }
 
+    /**
+     * The app as configured. One built without withExceptions() (a bare package, a pool worker
+     * booted from its base path) still gets the default exception handler, which the queue
+     * worker and the error bootstrap both resolve.
+     *
+     * @throws ReflectionException
+     */
     public function create(): RenderedInstance
     {
+        if (! $this->instance->isBound(\Voyager\Contracts\Debug\ExceptionHandler::class)) {
+            $this->withExceptions();
+        }
+
         return $this->instance;
     }
 }
