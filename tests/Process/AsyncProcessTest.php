@@ -107,12 +107,21 @@ it('settles a process that had already exited when the wait began', function (st
 
 it('hands the output to the callback as it arrives', function () {
     $heard = [];
-    $promise = $this->process->start(['sh', '-c', 'printf first; sleep 0.3; printf second'])
-        ->waitAsync(function (string $type, string $buffer) use (&$heard) {
-            $heard[] = [$buffer, hrtime(true)];
-        });
+    // The child prints only once the gate exists: output read before waitAsync() attaches its
+    // callback (start() reads the pipes once) isn't handed to it.
+    $gate = sys_get_temp_dir().'/venusian-gate-'.bin2hex(random_bytes(6));
+    $invoked = $this->process->start(['sh', '-c', 'while [ ! -e "$0" ]; do sleep 0.01; done; printf first; sleep 0.3; printf second', $gate]);
+    $promise = $invoked->waitAsync(function (string $type, string $buffer) use (&$heard) {
+        $heard[] = [$buffer, hrtime(true)];
+    });
+    touch($gate);
 
-    $result = $promise->wait();
+    try {
+        $result = $promise->wait();
+    } finally {
+        unlink($gate);
+    }
+
     $settled_at = hrtime(true);
 
     expect(implode('', array_column($heard, 0)))->toBe('firstsecond')
