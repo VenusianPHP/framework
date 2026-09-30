@@ -27,9 +27,9 @@ sources:
 
 App object `Voyager\Core\RenderedInstance`. Container `Voyager\Vessel\ControlPanel`. `ConfigFactory::create()` binds the default exception handler when `withExceptions()` was not called, so a bare boot (pool worker, test app) still resolves `ExceptionHandler`.[^factory]
 
-Root `replace` map: collections, conditionable, contracts, macroable, nuts-and-bolts, reflection. Every other component ships in this tree under `src/Voyager`. Config lives in root `config/` only; no component merges a config file of its own.[^composer]
+Every component ships in this tree under `src/Voyager` with its own `composer.json` (`venusian-voyager/*`, branch alias `0.10.x-dev`); the root `replace` map lists all 29 at `self.version`. Root autoload loads each component's helper files, `signal()` included. Config lives in root `config/` only; no component merges a config file of its own.[^composer]
 
-Suggested, not required: `laudis/neo4j-php-client` (Graph connections), `pusher/pusher-php-server` (pusher/reverb broadcasting).[^composer]
+Driver-only packages and extensions are suggested, not required: Neo4j client, Pusher SDK, predis, flysystem adapters, spatie/fork, react/promise, ext-redis/pcntl/posix/parallel/pcurl/epoll/kqueue, and the rest.[^composer]
 
 # Base providers
 

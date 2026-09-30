@@ -4,6 +4,9 @@
          bootstrap="vendor/autoload.php"
          colors="true">
     <testsuites>
+        <testsuite name="Core">
+            <directory>tests/Core</directory>
+        </testsuite>
         <testsuite name="IOPools">
             <directory>tests/IOPools</directory>
         </testsuite>
@@ -48,6 +51,9 @@
         </testsuite>
         <testsuite name="Graph">
             <directory>tests/Graph</directory>
+        </testsuite>
+        <testsuite name="Signals">
+            <directory>tests/Signals</directory>
         </testsuite>
         <testsuite name="Queue">
             <directory>tests/Queue</directory>

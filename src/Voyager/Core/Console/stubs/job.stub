@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use Voyager\System\Bus\Dispatchable;
+use Voyager\Core\Bus\Dispatchable;
 
 class {{ class }}
 {

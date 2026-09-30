@@ -1,5 +1,10 @@
 # Update Log
 
+## 2026-09-30
+
+* **Correction**: [Framework](orientation/framework.md) — root `replace` lists all 29 components; `signal()` autoloads.
+* **Update**: [Computer](console/computer.md) — stub imports resolve (job/event stubs off `Voyager\System`, rule/notification/middleware stubs gone, feature test stubs without HTTP); `ComposerScripts` post-autoload-dump hook.
+
 ## 2026-09-29
 
 * **Update**: Whole bundle rewritten against the 0.10.0 tree. Every touched concept is `status: draft`, `verification_key` dropped until re-verified.

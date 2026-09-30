@@ -16,6 +16,12 @@ sources:
   - id: generator
     resource: src/Voyager/Console/MigrationGeneratorCommand.php
     title: MigrationGeneratorCommand
+  - id: stubs
+    resource: src/Voyager/Core/Console/StubPublishCommand.php
+    title: StubPublishCommand
+  - id: composer
+    resource: src/Voyager/Core/ComposerScripts.php
+    title: ComposerScripts
 ---
 
 # Overview
@@ -30,8 +36,16 @@ A command constructed with required parameters gets `new Filesystem` unless the 
 
 `Console\MigrationGeneratorCommand` writes one migration from a stub through `migration.creator`, into `databasePath('migrations')`, and refuses when a `*_create_{table}_table.php` exists.[^generator]
 
+`stub:publish` copies maker stubs plus Database's factory, seeder, migration stubs into `stubs/`; makers prefer an app copy there. No rule or notification stub: neither component is in 0.10. Feature `test`/`pest` stubs assert `true`, no HTTP. `tests/Core/StubImportsTest` fails on any stub import the framework lacks; `Tests\` imports are the app's.[^stubs]
+
+# Composer hook
+
+App's `post-autoload-dump` calls `Voyager\Core\ComposerScripts::postAutoloadDump`: loads vendor autoload, then `clearCompiled(getcwd())` deletes cached config, services, packages, signals under `bootstrap/cache` (or their `APP_*_CACHE` paths). Next `package:discover` rebuilds packages from what is installed. No uninstall hook: dump runs after every remove.[^composer]
+
 The loader maps every `|`-separated name from `AsCommand`'s `name`, not the attribute's `aliases`. `Voyager\Console\Command` calls `setAliases()` from its `$aliases` property.
 
 [^provider]: ComputerServiceProvider
 [^kernel]: Console kernel bootstrap
 [^generator]: MigrationGeneratorCommand
+[^stubs]: StubPublishCommand
+[^composer]: ComposerScripts

@@ -3,7 +3,7 @@
 namespace {{ namespace }};
 
 use Voyager\Contracts\Queue\ShouldQueue;
-use Voyager\System\Queue\Queueable;
+use Voyager\Core\Queue\Queueable;
 
 class {{ class }} implements ShouldQueue
 {

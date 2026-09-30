@@ -7,12 +7,11 @@ use Voyager\Broadcasting\InteractsWithSockets;
 use Voyager\Broadcasting\PresenceChannel;
 use Voyager\Broadcasting\PrivateChannel;
 use Voyager\Contracts\Broadcasting\ShouldBroadcast;
-use Voyager\System\Events\Dispatchable;
 use Voyager\Queue\SerializesModels;
 
 class {{ class }}
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.

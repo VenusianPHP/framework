@@ -2,9 +2,7 @@
 
 namespace {{ namespace }};
 
-use Voyager\Testing\RefreshDatabase;
-use Voyager\Testing\WithFaker;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
 class {{ class }} extends TestCase
 {
@@ -13,8 +11,6 @@ class {{ class }} extends TestCase
      */
     public function test_example(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        $this->assertTrue(true);
     }
 }

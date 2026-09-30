@@ -7,7 +7,7 @@
         "scrapyard-io"
     ],
     "license": "MIT",
-    "version": "0.10.0",
+    "version": "0.10.1",
     "support": {
         "issues": "https://github.com/VenusianPHP/framework/issues",
         "source": "https://github.com/VenusianPHP/framework"
@@ -62,12 +62,35 @@
         "symfony/polyfill-php86": "^1.34"
     },
     "replace": {
+        "venusian-voyager/broadcasting": "self.version",
+        "venusian-voyager/bus": "self.version",
+        "venusian-voyager/cache": "self.version",
         "venusian-voyager/collections": "self.version",
+        "venusian-voyager/concurrency": "self.version",
         "venusian-voyager/conditionable": "self.version",
+        "venusian-voyager/config": "self.version",
+        "venusian-voyager/console": "self.version",
         "venusian-voyager/contracts": "self.version",
+        "venusian-voyager/database": "self.version",
+        "venusian-voyager/encryption": "self.version",
+        "venusian-voyager/filesystem": "self.version",
+        "venusian-voyager/graph": "self.version",
+        "venusian-voyager/hashing": "self.version",
+        "venusian-voyager/http": "self.version",
+        "venusian-voyager/io-pools": "self.version",
+        "venusian-voyager/log": "self.version",
         "venusian-voyager/macroable": "self.version",
         "venusian-voyager/nuts-and-bolts": "self.version",
-        "venusian-voyager/reflection": "self.version"
+        "venusian-voyager/pagination": "self.version",
+        "venusian-voyager/pipeline": "self.version",
+        "venusian-voyager/process": "self.version",
+        "venusian-voyager/queue": "self.version",
+        "venusian-voyager/redis": "self.version",
+        "venusian-voyager/reflection": "self.version",
+        "venusian-voyager/signals": "self.version",
+        "venusian-voyager/sketches": "self.version",
+        "venusian-voyager/vessel": "self.version",
+        "venusian-voyager/workflows": "self.version"
     },
     "suggest": {
         "aws/aws-sdk-php": "Required to use the s3 driver (^3.322.9).",
@@ -111,6 +134,7 @@
         },
         "files": [
             "src/Voyager/Core/Helpers/helpers.php",
+            "src/Voyager/Signals/Helpers/functions.php",
             "src/Voyager/Collections/Helpers/helpers.php",
             "src/Voyager/Collections/Helpers/functions.php",
             "src/Voyager/Reflection/Helpers/helpers.php",
