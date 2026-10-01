@@ -189,7 +189,9 @@ function descriptorReadable(int $descriptor): bool
     return count(epoll_wait($outer, 1, 0) ?: []) === 1;
 }
 
-it('makes its descriptor readable while a watched stream is ready, and quiet once drained', function ($backend) {
+it('makes its descriptor readable while a watched stream is ready, and quiet once drained', function () {
+    // One OS has kqueue, the other epoll: test the one this PHP has.
+    $backend = extension_loaded('kqueue') ? new KqueueWaiterBackend() : new EpollWaiterBackend();
     [$a, $b] = streamPair();
     $backend->add('reader', new Readable($a));
 
@@ -203,14 +205,6 @@ it('makes its descriptor readable while a watched stream is ready, and quiet onc
     $backend->wait(0);
 
     expect(descriptorReadable($backend->descriptor()))->toBeFalse();
-})->with(function () {
-    if (extension_loaded('kqueue')) {
-        yield 'kqueue' => [fn () => new KqueueWaiterBackend()];
-    }
-
-    if (extension_loaded('epoll')) {
-        yield 'epoll' => [fn () => new EpollWaiterBackend()];
-    }
 })->skip(! extension_loaded('kqueue') && ! extension_loaded('epoll'), 'needs ext-kqueue or ext-epoll');
 
 describe('kqueue', function () {
