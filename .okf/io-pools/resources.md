@@ -5,7 +5,7 @@ description: Loop resource kinds by interface, the one-sleeper succession, backg
 resource: src/Voyager/IOPools/ResourceRegistry.php
 tags: [iopools, loop, resources, kqueue, epoll]
 status: draft
-generated: { by: claude-opus-5-5, at: 2026-09-29T18:31:32Z }
+generated: { by: claude-opus-5-5, at: 2026-09-30T22:47:29Z }
 sources:
   - id: registry
     resource: src/Voyager/IOPools/ResourceRegistry.php
@@ -53,11 +53,13 @@ Wake reasons: `READABLE`, `WRITEABLE`, `CONTROL_SIGNAL`, `PROCESS_EXIT`, `FILE_C
 
 `io-pools.pool_waiters.default`: `auto` picks epoll (ext-epoll), else kqueue (ext-kqueue), else select.[^backends]
 
-| Backend | Waits on |
-|---|---|
-| kqueue | every reason; control signals need pcntl |
-| epoll | read, write |
-| select | read, write |
+| Backend | Waits on | `descriptor()` |
+|---|---|---|
+| kqueue | every reason; control signals need pcntl | the kqueue fd |
+| epoll | read, write | the epoll fd |
+| select | read, write | null |
+
+`descriptor()` (on the backend, `Waiter` and `Loop`) is the one fd that turns readable whenever a wait would return something: a kqueue or epoll fd is itself pollable. A native loop that holds the sleep (a GUI toolkit) watches it, so every wake of this loop also ends that sleep; the glance after the sleep then reads what fired. Level-triggered: it stays readable until the backend's wait drains it. Null for select, which keeps its set in PHP.[^backends]
 
 Where the backend lacks control signals and pcntl is loaded, `SignalRelay` turns signals into a byte on a socket pair the backend reads. Handlers run async (`pcntl_async_signals`).[^relay]
 

@@ -161,6 +161,58 @@ it('declares which wakes it takes directly', function ($backend) {
     ]))->toBe($expected);
 })->with('backends');
 
+it('names the descriptor another loop can wait on, or none', function ($backend) {
+    $descriptor = $backend->descriptor();
+
+    expect($backend instanceof StreamSelectWaiterBackend ? $descriptor === null : $descriptor >= 0)->toBeTrue()
+        ->and($backend->descriptor())->toBe($descriptor);
+})->with('backends');
+
+/**
+ * Whether $descriptor is readable right now, asked the way a native loop nesting it would:
+ * through a second kqueue or epoll set that watches it.
+ */
+function descriptorReadable(int $descriptor): bool
+{
+    if (extension_loaded('kqueue')) {
+        $outer = kqueue();
+        $kev = new kevent();
+        EV_SET($kev, $descriptor, EVFILT_READ, EV_ADD, 0, 0, 0);
+        $events = [];
+
+        return kevent($outer, [$kev], 1, $events, 1, new timespec()) === 1;
+    }
+
+    $outer = epoll_create1(EPOLL_CLOEXEC);
+    epoll_ctl($outer, EPOLL_CTL_ADD, $descriptor, EPOLLIN, 0);
+
+    return count(epoll_wait($outer, 1, 0) ?: []) === 1;
+}
+
+it('makes its descriptor readable while a watched stream is ready, and quiet once drained', function ($backend) {
+    [$a, $b] = streamPair();
+    $backend->add('reader', new Readable($a));
+
+    expect(descriptorReadable($backend->descriptor()))->toBeFalse();
+
+    fwrite($b, 'x');
+
+    expect(descriptorReadable($backend->descriptor()))->toBeTrue();
+
+    fread($a, 1);
+    $backend->wait(0);
+
+    expect(descriptorReadable($backend->descriptor()))->toBeFalse();
+})->with(function () {
+    if (extension_loaded('kqueue')) {
+        yield 'kqueue' => [fn () => new KqueueWaiterBackend()];
+    }
+
+    if (extension_loaded('epoll')) {
+        yield 'epoll' => [fn () => new EpollWaiterBackend()];
+    }
+})->skip(! extension_loaded('kqueue') && ! extension_loaded('epoll'), 'needs ext-kqueue or ext-epoll');
+
 describe('kqueue', function () {
     it('fires a signal and keeps the process alive through it', function () {
         $backend = new KqueueWaiterBackend();

@@ -90,6 +90,14 @@ interface Loop
     public function supports(WakeReason $kind): bool;
 
     /**
+     * The waiter's descriptor: readable whenever this loop's wait would return something.
+     * A native event loop that sleeps for this one (a GUI toolkit's) watches it so every
+     * wake of this loop also ends that sleep. Null when the waiter backend has none.
+     * @return int|null
+     */
+    public function descriptor(): ?int;
+
+    /**
      * Registers a hook that fires once run() ends, whether by stop() or by running out of work.
      * Not fired by until().
      */

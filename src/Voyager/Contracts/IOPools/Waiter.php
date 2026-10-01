@@ -13,4 +13,7 @@ interface Waiter
      * @return array<string, list<Wake>>
      */
     public function wait(?int $deadline = null): array;
+
+    /** The backend's descriptor(): readable whenever a wait would return something, or null. */
+    public function descriptor(): ?int;
 }

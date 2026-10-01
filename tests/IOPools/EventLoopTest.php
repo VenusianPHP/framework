@@ -179,3 +179,21 @@ it('suspends an async body at await() and finishes it once the promise settles',
 
     expect($task->wait())->toBe('done');
 });
+
+it('hands out its waiter backend\'s descriptor', function () {
+    $registry = new ResourceRegistry();
+    $backend = new StreamSelectWaiterBackend();
+    $waiter = new LoopWaiter($registry, $backend, 5_000_000);
+    $loop = new EventLoop($registry, $waiter, new GuzzlePromiseEngine());
+
+    expect($waiter->descriptor())->toBeNull()
+        ->and($loop->descriptor())->toBeNull();
+
+    if (extension_loaded('kqueue')) {
+        $registry = new ResourceRegistry();
+        $kqueue = new Voyager\IOPools\Waiter\KqueueWaiterBackend();
+        $loop = new EventLoop($registry, new LoopWaiter($registry, $kqueue, 5_000_000), new GuzzlePromiseEngine());
+
+        expect($loop->descriptor())->toBe($kqueue->descriptor());
+    }
+});

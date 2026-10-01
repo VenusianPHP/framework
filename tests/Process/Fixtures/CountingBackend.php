@@ -34,4 +34,9 @@ final class CountingBackend implements WaiterBackendDriver
 
         return $this->inner->wait($timeout_ns);
     }
+
+    public function descriptor(): ?int
+    {
+        return $this->inner->descriptor();
+    }
 }

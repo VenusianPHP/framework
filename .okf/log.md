@@ -2,7 +2,9 @@
 
 ## 2026-09-30
 
+* **Update**: [Resources and waiters](io-pools/resources.md) — `descriptor()` on waiter backends, `Waiter` and `Loop`: kqueue/epoll fd, null for select.
 * **Correction**: [Framework](orientation/framework.md) — root `replace` lists all 29 components; `signal()` autoloads.
+* **Removal**: root `config/services.php` — Laravel mail credentials, no 0.10 reader. `cache.prefix` falls back to the `venusian` slug.
 * **Update**: [Computer](console/computer.md) — stub imports resolve (job/event stubs off `Voyager\System`, rule/notification/middleware stubs gone, feature test stubs without HTTP); `ComposerScripts` post-autoload-dump hook.
 
 ## 2026-09-29
