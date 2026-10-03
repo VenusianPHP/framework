@@ -41,9 +41,9 @@ Contract: `at()`, `every()`, `promise()`, `await()`, `async()`, `defer()`, `post
 
 # run(), stop(), until()
 
-`run()` turns while `stop()` was not called and the registry has foreground work. Finally: cancel parked fibers, flush promises, run `onStop()` hooks, flush again. Returns the status `stop()` set.[^loop]
+`run()` turns while `stop()` was not called and the registry has foreground work; out of work, it flushes promises first and stops only if that made none. Finally: cancel parked fibers, flush promises, run `onStop()` hooks, flush again. Returns the status `stop()` set.[^loop]
 
-`until(Closure)`: inside a fiber the scheduler owns, suspends on the closure. Otherwise borrows the loop with quiet turns (no mail hand-off). No work left: flush promises, recheck, cancel parked fibers if any, else throw `IOPoolsException` "ran out of work". `stop()` during a borrow throws `IOPoolsException`. A `FiberError` from a C frame falls back to borrowing.[^loop]
+`until(Closure)`: inside a fiber the scheduler owns, suspends on the closure. Otherwise borrows the loop with quiet turns (no mail hand-off). No work left: flush promises, recheck; turn again if the flush made work (a parked fiber whose promise it settled) and the scheduler is not mid-resume; else cancel parked fibers if any, else throw `IOPoolsException` "ran out of work". `stop()` during a borrow throws `IOPoolsException`. A `FiberError` from a C frame falls back to borrowing.[^loop]
 
 `await()` takes a loop promise, any object with `then()` (adopted through the engine), or a plain value.[^loop]
 

@@ -1,5 +1,11 @@
 # Update Log
 
+## 2026-10-02
+
+* **Update**: [Event loop](io-pools/event-loop.md) — `run()` flushes before stopping; `until()` turns for ready fibers only outside a resume. [Async drivers](http/async-drivers.md) — idle pcurl closes retired streams by deferral. Workflows: a cancelled node is not retried.
+* **Update**: [Event loop](io-pools/event-loop.md) — `until()` resumes a fiber the last flush made ready instead of cancelling it.
+* **Update**: [Async drivers](http/async-drivers.md) — pcurl retires a released socket's stream until the waiter has detached it (epoll EEXIST on a reused connection).
+
 ## 2026-09-30
 
 * **Update**: [Resources and waiters](io-pools/resources.md) — `descriptor()` on waiter backends, `Waiter` and `Loop`: kqueue/epoll fd, null for select.

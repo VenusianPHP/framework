@@ -146,7 +146,16 @@ class EventLoop implements Loop
         $this->stop_signals->arm();
 
         try {
-            while (! $this->stopping && $this->registry->hasWork()) {
+            while (! $this->stopping) {
+                // The flush can settle what a parked fiber waits on: that is work, not the end.
+                if (! $this->registry->hasWork()) {
+                    $this->promises->flush();
+
+                    if (! $this->registry->hasWork()) {
+                        break;
+                    }
+                }
+
                 $this->turn();
             }
         } finally {
@@ -214,6 +223,13 @@ class EventLoop implements Loop
 
                 if ($assertion()) {
                     return;
+                }
+
+                // The flush can settle what a parked fiber waits on: turn so it resumes. Not while
+                // the scheduler is mid-resume (this wait runs inside a fiber it resumed): it would
+                // not resume another, and the turn would only glance again.
+                if ($this->registry->hasWork() && ! $this->fibers->resuming()) {
+                    continue;
                 }
 
                 // Only parked fibers are left and nothing can wake them: cancel, then look again.

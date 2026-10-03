@@ -119,8 +119,9 @@ it('runs offloaded reads side by side', function (string $connection, string $sl
     $a->wait();
     $b->wait();
 
-    // one after the other is two seconds; side by side is one, plus each worker's first connect
-    expect(hrtime(true) - $started)->toBeLessThan(1_500_000_000);
+    // One after the other is two seconds at least; side by side is one, plus each worker's first
+    // connect, which alone has measured up to 0.65 s here. Under 1.8 s is only possible in parallel.
+    expect(hrtime(true) - $started)->toBeLessThan(1_800_000_000);
 })->with('servers');
 
 it('runs a write alone: it waits for the reads before it', function (string $connection, string $sleep) {

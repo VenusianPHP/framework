@@ -3,6 +3,7 @@
 namespace Voyager\Workflows;
 
 use Throwable;
+use Voyager\Contracts\IOPools\CancelledException;
 use Voyager\Contracts\Workflows\WorkflowRuntimeException;
 use Voyager\Workflows\Concerns\ResolvesAsyncRuntime;
 
@@ -83,6 +84,9 @@ trait AsyncWorkflowLogic
         for ($attempt = 0; $attempt < $this->maxRetries; $attempt++) {
             try {
                 return $runtime->await($this->execAsync($prepRes));
+            } catch (CancelledException $e) {
+                // The task was cancelled (the loop is stopping): another try would only park again.
+                throw $e;
             } catch (Throwable $e) {
                 if ($attempt === $this->maxRetries - 1) {
                     return $runtime->await($this->execFallbackAsync($prepRes, $e));

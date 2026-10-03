@@ -39,6 +39,8 @@ A node takes the app's runtime (the manager's driver, else a `LoopRuntime` on th
 
 Parallel batches fan items through `all()`; branches get their own copy of each node visited; `SharedBag` stays one object.
 
+Retries: `execAsync` gets `maxRetries` tries with `wait` seconds between them (waited on the loop), then `execFallbackAsync`. A `CancelledException` is never retried; it propagates.[^runtime]
+
 [^runtime]: LoopRuntime
 [^manager]: AsyncRuntimeManager
 [^resolver]: ResolvesAsyncRuntime

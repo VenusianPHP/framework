@@ -96,6 +96,24 @@ it('holds a parallel batch to its concurrency cap', function () {
     expect(hrtime(true) - $started)->toBeGreaterThan(380_000_000)->toBeLessThan(600_000_000);
 });
 
+it('does not retry a node whose task was cancelled', function () {
+    $node = new class extends AsyncNode {
+        public int $attempts = 0;
+
+        public function __construct() { parent::__construct(maxRetries: 3, wait: 1); }
+
+        public function execAsync(mixed $prepRes): mixed
+        {
+            $this->attempts++;
+
+            throw new Voyager\Contracts\IOPools\CancelledException('The task was cancelled.');
+        }
+    };
+
+    expect(fn () => $node->runAsync(new SharedBag()))->toThrow(Voyager\Contracts\IOPools\CancelledException::class)
+        ->and($node->attempts)->toBe(1);
+});
+
 it('runs a batch node\'s items one after another', function () {
     $node = new class extends AsyncBatchNode {
         public function prepAsync(SharedBag $shared): mixed

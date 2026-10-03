@@ -117,6 +117,30 @@ it('lets run() end once its transfers finish', function (string $driver) {
         ->and($promise->wait()->json('delayed'))->toBe(100);
 })->with('drivers');
 
+it('sends one request after another over a kept-alive connection', function (string $driver) {
+    $t = http($driver);
+
+    // curl lets go of the socket between requests and takes it back for the next one.
+    $answers = [];
+    foreach (range(1, 3) as $n) {
+        $answers[] = $t->http->async()->get(HttpApp::url("/keep/echo?n={$n}"))->wait()->json('query');
+    }
+
+    expect($answers)->toBe([['n' => '1'], ['n' => '2'], ['n' => '3']]);
+})->with('drivers');
+
+it('closes the streams of released sockets once it has no transfers left', function () {
+    $t = http('pcurl');
+
+    $t->http->async()->get(HttpApp::url('/keep/echo?n=1'))->wait();
+    $t->loop->run();
+
+    $handler = $t->app->get('http.async')->driver();
+    $held = fn (string $property): array => (fn () => $this->{$property})->call($handler);
+
+    expect([...$held('retired'), ...$held('closing')])->toBe([]);
+})->skip(! extension_loaded('pcurl'), 'needs ext-pcurl');
+
 it('wakes another wake source on time while a slow response is in flight', function () {
     $t = http('pcurl');
     [$ours, $theirs] = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);

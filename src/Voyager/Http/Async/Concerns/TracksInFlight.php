@@ -111,7 +111,14 @@ trait TracksInFlight
         if ($this->in_flight !== [] || ! $this->registered) { return; }
         $this->loop->forget($this->name()->value);
         $this->registered = false;
+        $this->forgotten();
     }
+
+    /**
+     * After the loop forgot this resource: nothing will ask for its wakes until the next transfer.
+     * @return void
+     */
+    protected function forgotten(): void {}
 
     abstract private function multi(): CurlMultiHandle;
 

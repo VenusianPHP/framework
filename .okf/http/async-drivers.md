@@ -38,6 +38,8 @@ Both are Guzzle handlers (`TracksInFlight`). A request's Guzzle promise waits wi
 
 `LoopPcurlHandler` is a wake source and a deadline. ext-pcurl binds curl's socket and timer callbacks: each socket curl opens joins the loop's wait as readable and/or writable, exactly as curl asked; curl's timer is the handler's `dueAt()`. `fire()` and new transfers run `curlMultiSocketAction` with `PcurlSocket::TIMEOUT`.[^pcurl]
 
+The loop waits on a `php://fd` duplicate of each socket. On `CURL_POLL_REMOVE` the duplicate is retired, not closed: it closes on the `wakes()` call after the one that dropped it, once the waiter has detached it; when the handler goes idle and the loop forgets it, a deferral closes what is left after the next sync. A pooled connection keeps curl's descriptor open, so closing first would leave epoll a stale entry for the socket (the next duplicate fails `EPOLL_CTL_ADD` with EEXIST, and the entry stays ready).[^pcurl]
+
 ext-pcurl is 1:1 libcurl and defines no constants. The values live in userland int enums `PcurlOption`, `PcurlPoll`, `PcurlSelect`, `PcurlSocket`; pass them with `->value`.[^pcurl]
 
 [^manager]: HttpAsyncManager

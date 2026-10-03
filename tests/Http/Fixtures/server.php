@@ -8,6 +8,7 @@
 //   /delay?ms=N         answers after N milliseconds
 //   /echo               answers with the method, query and body it got
 //   /flaky?key=K&fail=N answers 503 for the first N requests with key K, then 200
+//   /keep/<route>       <route>, on a connection kept open for the client's next request
 
 $server = stream_socket_server('tcp://127.0.0.1:'.(int) $argv[1], $errno, $errstr);
 
@@ -35,15 +36,36 @@ while (true) {
     fclose($client);
 }
 
-/** @param resource $client */
+/**
+ * Answer requests on one connection: one, unless the client asks for a /keep/ route, which
+ * keeps the connection for the next request until the client closes it.
+ * @param resource $client
+ */
 function serve($client): void
 {
     stream_set_timeout($client, 5);
 
+    while (answer($client)) {
+        // kept alive: wait for the client's next request on this connection
+    }
+
+    fclose($client);
+}
+
+/**
+ * @param resource $client
+ * @return bool Whether the connection stays open for another request.
+ */
+function answer($client): bool
+{
     $head = '';
 
     while (! str_contains($head, "\r\n\r\n") && ($line = fgets($client)) !== false) {
         $head .= $line;
+    }
+
+    if ($head === '') {
+        return false;
     }
 
     [$method, $target] = explode(' ', strtok($head, "\r\n")) + ['GET', '/'];
@@ -60,12 +82,16 @@ function serve($client): void
     }
 
     parse_str((string) parse_url($target, PHP_URL_QUERY), $query);
-    [$status, $payload] = route($method, (string) parse_url($target, PHP_URL_PATH), $query, $body);
+    $path = (string) parse_url($target, PHP_URL_PATH);
+    $keep = str_starts_with($path, '/keep/');
+    [$status, $payload] = route($method, $keep ? substr($path, strlen('/keep')) : $path, $query, $body);
 
     $reason = [200 => 'OK', 404 => 'Not Found', 503 => 'Service Unavailable'][$status];
+    $connection = $keep ? 'keep-alive' : 'close';
 
-    fwrite($client, "HTTP/1.1 {$status} {$reason}\r\nContent-Type: application/json\r\nContent-Length: ".strlen($payload)."\r\nConnection: close\r\n\r\n".$payload);
-    fclose($client);
+    fwrite($client, "HTTP/1.1 {$status} {$reason}\r\nContent-Type: application/json\r\nContent-Length: ".strlen($payload)."\r\nConnection: {$connection}\r\n\r\n".$payload);
+
+    return $keep;
 }
 
 /**

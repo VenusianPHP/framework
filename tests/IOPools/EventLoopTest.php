@@ -180,6 +180,31 @@ it('suspends an async body at await() and finishes it once the promise settles',
     expect($task->wait())->toBe('done');
 });
 
+it('resumes a fiber whose promise settles in the last flush instead of cancelling it', function () {
+    $loop = loop();
+    $source = $loop->promise();
+    // A chained promise settles only when the engine's queue is flushed.
+    $chained = $source->then(fn (int $value): int => $value * 2);
+    $task = $loop->async(fn () => $loop->await($chained));
+    $source->resolve(21);
+
+    $loop->until(fn () => $task->settled());
+
+    expect($task->wait())->toBe(42);
+});
+
+it('lets run() resume a fiber whose promise settles in the last flush instead of cancelling it', function () {
+    $loop = loop();
+    $source = $loop->promise();
+    $chained = $source->then(fn (int $value): int => $value * 2);
+    $task = $loop->async(fn () => $loop->await($chained));
+    $source->resolve(21);
+
+    $loop->run();
+
+    expect($task->wait())->toBe(42);
+});
+
 it('hands out its waiter backend\'s descriptor', function () {
     $registry = new ResourceRegistry();
     $backend = new StreamSelectWaiterBackend();

@@ -34,6 +34,20 @@ final class LoopPcurlHandler extends WakeSource implements Deadlined
      */
     private array $fds = [];
 
+    /**
+     * Streams curl let go of, not yet out of the loop's wait set. A pooled connection keeps curl's
+     * descriptor open, so closing our duplicate before the waiter detaches it would leave epoll
+     * holding it: a stale entry that refuses the next duplicate of that socket and stays ready.
+     * @var list<resource>
+     */
+    private array $retired = [];
+
+    /**
+     * Streams retired before the last wakes(): the waiter has detached them since, so they close.
+     * @var list<resource>
+     */
+    private array $closing = [];
+
     /** Absolute hrtime(true) curl wants its timeout action at, or null when it wants none. */
     private ?int $due_at = null;
 
@@ -49,6 +63,14 @@ final class LoopPcurlHandler extends WakeSource implements Deadlined
 
     public function wakes(): array
     {
+        // The waiter asks for wakes, then detaches what is no longer declared: a stream retired
+        // before the previous ask has been detached by now.
+        foreach ($this->closing as $stream) {
+            fclose($stream);
+        }
+        $this->closing = $this->retired;
+        $this->retired = [];
+
         $wakes = [];
 
         foreach ($this->sockets as ['stream' => $stream, 'what' => $what]) {
@@ -107,12 +129,35 @@ final class LoopPcurlHandler extends WakeSource implements Deadlined
         $this->harvest();
     }
 
+    /**
+     * Forgotten, this resource's wakes are no longer asked for, so the retired streams would wait
+     * for the next transfer. The next turn's sync detaches them (their owner is gone); a deferral
+     * runs after that sync, so it closes them.
+     * @return void
+     */
+    protected function forgotten(): void
+    {
+        $streams = [...$this->closing, ...$this->retired];
+        $this->closing = [];
+        $this->retired = [];
+
+        if ($streams !== []) {
+            $this->loop->defer(function () use ($streams): void {
+                foreach ($streams as $stream) {
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                }
+            });
+        }
+    }
+
     private function onSocket(int $fd, int $what): void
     {
         if ($what === PcurlPoll::REMOVE->value) {
             if (isset($this->sockets[$fd])) {
                 unset($this->fds[(int) $this->sockets[$fd]['stream']]);
-                fclose($this->sockets[$fd]['stream']);
+                $this->retired[] = $this->sockets[$fd]['stream'];
                 unset($this->sockets[$fd]);
             }
 

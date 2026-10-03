@@ -67,6 +67,15 @@ class FiberScheduler extends FollowOnResource
         return isset($this->owned[spl_object_id($fiber)]);
     }
 
+    /**
+     * Whether a resume() is running: a fiber it resumed is on the stack.
+     * @return bool
+     */
+    public function resuming(): bool
+    {
+        return $this->resuming;
+    }
+
     public function idle(): bool
     {
         return empty($this->waiting);
