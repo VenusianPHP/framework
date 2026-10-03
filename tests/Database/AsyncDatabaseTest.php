@@ -120,7 +120,8 @@ it('runs offloaded reads side by side', function (string $connection, string $sl
     $b->wait();
 
     // one after the other is two seconds; side by side is one, plus each worker's first connect
-    expect(hrtime(true) - $started)->toBeLessThan(1_500_000_000);
+    // (measured 1.52-1.65 s on a Mac and a Pi 5), so under 1.8 s still proves they overlapped
+    expect(hrtime(true) - $started)->toBeLessThan(1_800_000_000);
 })->with('servers');
 
 it('runs a write alone: it waits for the reads before it', function (string $connection, string $sleep) {
