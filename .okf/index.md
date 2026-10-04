@@ -66,6 +66,7 @@ okf_version: "0.2"
 # Console
 
 * [Computer](console/computer.md) - How built-in commands get onto `php computer`'s list, and which are registered.
+* [install:ext](console/install-ext.md) - Dev command: first-party PHP extensions through PIE, on a Workflows flow.
 
 # Sketches
 

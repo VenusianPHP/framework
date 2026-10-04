@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-04
+
+* **Creation**: [install:ext](console/install-ext.md) — dev command, `ExtensionsFlow` on Workflows, `ChecklistPrompt`; `laravel/prompts` floor `^0.3.15`.
+
 ## 2026-09-30
 
 * **Update**: [Resources and waiters](io-pools/resources.md) — `descriptor()` on waiter backends, `Waiter` and `Loop`: kqueue/epoll fd, null for select.

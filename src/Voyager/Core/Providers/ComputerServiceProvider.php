@@ -41,6 +41,7 @@ use Voyager\Core\Console\EventGenerateCommand;
 use Voyager\Core\Console\EventListCommand;
 use Voyager\Core\Console\EventMakeCommand;
 use Voyager\Core\Console\ExceptionMakeCommand;
+use Voyager\Core\Console\ExtensionInstallCommand;
 use Voyager\Core\Console\FactoryMakeCommand;
 use Voyager\Core\Console\GigMakeCommand;
 use Voyager\Core\Console\InterfaceMakeCommand;
@@ -114,6 +115,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         //'EventGenerate' => EventGenerateCommand::class,
         //'EventMake' => EventMakeCommand::class,
         'ExceptionMake' => ExceptionMakeCommand::class,
+        'ExtensionInstall' => ExtensionInstallCommand::class,
         'FactoryMake' => FactoryMakeCommand::class,
         'InterfaceMake' => InterfaceMakeCommand::class,
         //'GigMake' => GigMakeCommand::class,
