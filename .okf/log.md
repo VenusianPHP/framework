@@ -1,5 +1,10 @@
 # Update Log
 
+## 2026-10-07
+
+* **Creation**: [make:sketch](console/make-sketch.md) — dev command; sketch `Kernel` contract gains `sketchPaths()`, `discoveryNamespace()`, `discoveryPath()`; `sketch.stub` on the 0.9 `loop(array $mail)` signature, in `stub:publish`.
+* **Update**: [Computer](console/computer.md) — sketch maker on the dev list.
+
 ## 2026-10-04
 
 * **Creation**: [install:ext](console/install-ext.md) — dev command, `ExtensionsFlow` on Workflows, `ChecklistPrompt`; `laravel/prompts` floor `^0.3.15`.

@@ -60,6 +60,7 @@ class StubPublishCommand extends Command
             __DIR__.'/stubs/pest.unit.stub' => 'pest.unit.stub',
             __DIR__.'/stubs/provider.stub' => 'provider.stub',
             __DIR__.'/stubs/scope.stub' => 'scope.stub',
+            __DIR__.'/stubs/sketch.stub' => 'sketch.stub',
             __DIR__.'/stubs/test.stub' => 'test.stub',
             __DIR__.'/stubs/test.unit.stub' => 'test.unit.stub',
             __DIR__.'/stubs/trait.stub' => 'trait.stub',

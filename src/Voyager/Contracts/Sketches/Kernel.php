@@ -40,4 +40,21 @@ interface Kernel
      * @return $this
      */
     public function addSketchPaths(array $paths): static;
+
+    /**
+     * The directories scanned for sketches.
+     *
+     * @return array<int, string>
+     */
+    public function sketchPaths(): array;
+
+    /**
+     * The namespace a scanned sketch path maps onto.
+     */
+    public function discoveryNamespace(): string;
+
+    /**
+     * The directory that maps onto discoveryNamespace().
+     */
+    public function discoveryPath(): string;
 }

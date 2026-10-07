@@ -53,6 +53,7 @@ use Voyager\Core\Console\PackageDiscoverCommand;
 use Voyager\Core\Console\ProviderMakeCommand;
 use Voyager\Core\Console\SignalCacheCommand;
 use Voyager\Core\Console\SignalClearCommand;
+use Voyager\Core\Console\SketchMakeCommand;
 use Voyager\Core\Console\StubPublishCommand;
 use Voyager\Core\Console\TestMakeCommand;
 use Voyager\Core\Console\TraitMakeCommand;
@@ -124,6 +125,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         //'ListenerMake' => ListenerMakeCommand::class,
         //'ObserverMake' => ObserverMakeCommand::class,
         'ProviderMake' => ProviderMakeCommand::class,
+        'SketchMake' => SketchMakeCommand::class,
 
         'StubPublish' => StubPublishCommand::class,
         'TestMake' => TestMakeCommand::class,

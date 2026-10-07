@@ -35,7 +35,7 @@ Rocket is a `ComputerConsoleInstance` named `Rocket` with one `RunSketchCommand`
 
 Symfony `COMMAND` / `TERMINATE` become `SketchStarting` / `SketchFinished` on `app('signals')`. A throw is reported and rendered; exit 1.[^kernel]
 
-`ROCKET_BINARY` is `'rocket'`. `ConfigFactory::withSketches()` feeds classes and paths (default `app/Console/Sketches`).[^kernel][^factory]
+`ROCKET_BINARY` is `'rocket'`. `ConfigFactory::withSketches()` feeds classes and paths (default `app/Console/Sketches`). `make:sketch` writes into the first of those paths under the discovery root ([make:sketch](../console/make-sketch.md)).[^kernel][^factory]
 
 # Binaries
 

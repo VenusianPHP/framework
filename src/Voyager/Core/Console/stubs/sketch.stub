@@ -2,9 +2,10 @@
 
 namespace {{ namespace }};
 
+{{ baseImport }}
 use Voyager\Contracts\Sketches\SketchLoopResult;
 
-class {{ class }} extends Sketch
+class {{ class }} extends {{ base }}
 {
     /**
      * The sketch description.
@@ -14,7 +15,7 @@ class {{ class }} extends Sketch
     protected string $description = '';
 
     /**
-     * Prepare the sketch before the first loop tick.
+     * Prepare the sketch before the first frame.
      */
     public function boot(): void
     {
@@ -22,9 +23,11 @@ class {{ class }} extends Sketch
     }
 
     /**
-     * Execute one cooperative tick of the sketch.
+     * One frame. The runner calls it at the refresh rate.
+     *
+     * @param list<object> $mail what the loop delivered since the last frame; empty when nothing did
      */
-    public function loop(): SketchLoopResult
+    public function loop(array $mail = []): SketchLoopResult
     {
         return SketchLoopResult::CONTINUE;
     }

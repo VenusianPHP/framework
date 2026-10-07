@@ -71,6 +71,21 @@ class Kernel implements KernelContract
         return $this;
     }
 
+    public function sketchPaths(): array
+    {
+        return $this->sketch_paths;
+    }
+
+    public function discoveryNamespace(): string
+    {
+        return $this->root_namespace ?? $this->app->getNamespace();
+    }
+
+    public function discoveryPath(): string
+    {
+        return $this->root_path ?? $this->app->path();
+    }
+
     public function handle(InputInterface $input, ?OutputInterface $output = null): int
     {
         $output ??= new ConsoleOutput;
@@ -141,8 +156,8 @@ class Kernel implements KernelContract
             (array) $this->app['config']->get('sketches.load', []),
             $paths === [] ? [] : DiscoverSketches::within(
                 $paths,
-                $this->root_namespace ?? $this->app->getNamespace(),
-                $this->root_path ?? $this->app->path(),
+                $this->discoveryNamespace(),
+                $this->discoveryPath(),
             ),
         );
         foreach (array_unique($classes) as $class) {
