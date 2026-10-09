@@ -174,6 +174,10 @@ trait BasePathManagement
             return $this->joinPaths($this->storage_path ?: $_SERVER['VENUSIAN_STORAGE_PATH'], $path);
         }
 
+        if (! $this->storage_path && ($packaged = $this->packagedPaths())) {
+            return $this->joinPaths($packaged->dataPath('storage'), $path);
+        }
+
         return $this->joinPaths($this->storage_path ?: $this->basePath('storage'), $path);
     }
 
@@ -185,6 +189,10 @@ trait BasePathManagement
      */
     public function databasePath(string $path = ''): string
     {
+        if (! $this->database_path && ($packaged = $this->packagedPaths())) {
+            return $this->joinPaths($packaged->dataPath('database'), $path);
+        }
+
         return $this->joinPaths($this->database_path ?: $this->basePath('database'), $path);
     }
 
@@ -208,6 +216,13 @@ trait BasePathManagement
      * @param  string  $path
      * @return string
      */
+    /**
+     * The data directory of a packaged app, or null outside a phar.
+     *
+     * @return \Voyager\Core\PackagedPaths|null
+     */
+    abstract public function packagedPaths(): ?\Voyager\Core\PackagedPaths;
+
     public function joinPaths(string $basePath, string $path = ''): string
     {
         return join_paths($basePath, $path);

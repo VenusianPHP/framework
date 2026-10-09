@@ -4,6 +4,7 @@ okf_version: "0.2"
 
 # Venusian framework
 
+* [Packaged mode](orientation/packaged-mode.md) - An app whose base path is inside a phar keeps storage, database and bootstrap caches in the user's data directory, seeded once.
 * [Framework](orientation/framework.md) - PHP 8.4 framework package `venusian/framework` at 0.10.0, the `replace` map, and which providers boot.
 
 # IOPools
@@ -66,6 +67,8 @@ okf_version: "0.2"
 # Console
 
 * [Computer](console/computer.md) - How built-in commands get onto `php computer`'s list, and which are registered.
+* [about](console/about.md) - What the app has set up: drivers, event loop, first-party extensions, sketches; packages add sections.
+* [make:node](console/make-node.md) - Dev command: empty workflow Node or AsyncNode (`--async`) in `App\Workflows`.
 * [make:sketch](console/make-sketch.md) - Dev command: empty sketch into the scanned sketch path, on the app's own base.
 * [install:ext](console/install-ext.md) - Dev command: first-party PHP extensions through PIE, on a Workflows flow.
 

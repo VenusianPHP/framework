@@ -28,7 +28,7 @@ class Composer
      * Create a new Composer manager instance.
      *
      * @param Filesystem $files
-     * @param string|null $workingPath
+     * @param string|null $working_path
      */
     public function __construct(Filesystem $files, ?string $working_path = null)
     {
@@ -171,7 +171,7 @@ class Composer
     {
         if (! is_null($composerBinary) && $this->files->exists($composerBinary)) {
             return [$this->phpBinary(), $composerBinary];
-        } elseif ($this->files->exists($this->workingPath.'/composer.phar')) {
+        } elseif ($this->files->exists($this->working_path.'/composer.phar')) {
             return [$this->phpBinary(), 'composer.phar'];
         }
 
@@ -187,10 +187,10 @@ class Composer
      */
     protected function findComposerFile(): string
     {
-        $composerFile = "{$this->workingPath}/composer.json";
+        $composerFile = "{$this->working_path}/composer.json";
 
         if (! file_exists($composerFile)) {
-            throw new RuntimeException("Unable to locate `composer.json` file at [{$this->workingPath}].");
+            throw new RuntimeException("Unable to locate `composer.json` file at [{$this->working_path}].");
         }
 
         return $composerFile;
@@ -215,7 +215,7 @@ class Composer
      */
     protected function getProcess(array $command, array $env = []): Process
     {
-        return new Process($command, $this->workingPath, $env)->setTimeout(null);
+        return new Process($command, $this->working_path, $env)->setTimeout(null);
     }
 
     /**
@@ -226,7 +226,7 @@ class Composer
      */
     public function setWorkingPath(string $path): static
     {
-        $this->workingPath = realpath($path);
+        $this->working_path = realpath($path);
 
         return $this;
     }

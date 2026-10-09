@@ -54,6 +54,8 @@ class StubPublishCommand extends Command
             __DIR__.'/stubs/listener.stub' => 'listener.stub',
             __DIR__.'/stubs/model.pivot.stub' => 'model.pivot.stub',
             __DIR__.'/stubs/model.stub' => 'model.stub',
+            __DIR__.'/stubs/node.async.stub' => 'node.async.stub',
+            __DIR__.'/stubs/node.stub' => 'node.stub',
             __DIR__.'/stubs/observer.plain.stub' => 'observer.plain.stub',
             __DIR__.'/stubs/observer.stub' => 'observer.stub',
             __DIR__.'/stubs/pest.stub' => 'pest.stub',

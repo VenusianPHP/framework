@@ -16,6 +16,8 @@ use Venusian\Tests\Log\Fixtures\LogApp;
 use Venusian\Tests\Sketches\Fixtures\PingMail;
 use Venusian\Tests\Sketches\Fixtures\FrameSketch;
 use Venusian\Tests\Sketches\Fixtures\NamedSketch;
+use Venusian\Tests\Sketches\Fixtures\RocketAwareProvider;
+use Voyager\Contracts\Console\Kernel;
 use Venusian\Tests\Sketches\Fixtures\GreetingSketch;
 use Venusian\Tests\Sketches\Fixtures\Discovered\FoundSketch;
 
@@ -149,9 +151,34 @@ describe('rocket', function () {
             ->and((fn () => $this->mail)->call($this->app->get(SketchRunner::class)))->toBe($handler);
     });
 
+    it('tells providers whether rocket is running while they register', function () {
+        $boot = fn () => tap(VenusianVoyager::setup(dirname(__DIR__, 2))->withProviders([RocketAwareProvider::class])->create(), function ($app) {
+            $app->loadEnvironmentFrom('tests/Log/Fixtures/testing.env');
+        });
+
+        $rocket = $boot();
+        expect($rocket->isRocketRunning())->toBeFalse();
+        $rocket->make(SketchKernel::class)->bootstrap();
+        $saw_under_rocket = RocketAwareProvider::$saw_rocket;
+        HandleExceptions::flushState($this);
+
+        $computer = $boot();
+        $computer->make(Kernel::class)->bootstrap();
+
+        expect($saw_under_rocket)->toBeTrue()
+            ->and($rocket->isRocketRunning())->toBeTrue()
+            ->and(RocketAwareProvider::$saw_rocket)->toBeFalse()
+            ->and($computer->isRocketRunning())->toBeFalse();
+    });
+
     it('leaves computer runs dispatching mail as signals', function () {
         $app = LogApp::boot();
 
         expect($app['mail-handler-mgr']->driver())->toBeInstanceOf(SignalMailHandler::class);
     });
+});
+
+it('collapses dot segments in a phar path the way realpath does on disk', function () {
+    expect(DiscoverSketches::normalize('phar:///app/x.phar/bootstrap/../app/./Runner/Sketches/'))->toBe('phar:///app/x.phar/app/Runner/Sketches')
+        ->and(DiscoverSketches::normalize(__DIR__.'/../Sketches'))->toBe(__DIR__);
 });

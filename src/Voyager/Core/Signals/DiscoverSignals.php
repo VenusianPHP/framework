@@ -60,7 +60,7 @@ class DiscoverSignals
      * @param  string  $basePath
      * @return array
      */
-    protected static function getListenerEvents(array $listeners, string $basePath): array
+    protected static function getListenerEvents(iterable $listeners, string $basePath): array
     {
         $listenerEvents = [];
 
@@ -105,7 +105,8 @@ class DiscoverSignals
             return call_user_func(static::$guess_class_names_using_callback, $file, $basePath);
         }
 
-        $class = trim(Str::replaceFirst($basePath, '', $file->getRealPath()), DIRECTORY_SEPARATOR);
+        // getRealPath() is false inside a phar (a packaged app); the phar:// pathname is the real one there.
+        $class = trim(Str::replaceFirst($basePath, '', $file->getRealPath() ?: $file->getPathname()), DIRECTORY_SEPARATOR);
 
         return ucfirst(Str::camel(str_replace(
             [DIRECTORY_SEPARATOR, ucfirst(basename(app()->path())).'\\'],

@@ -54,6 +54,27 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
     protected bool $has_been_bootstrapped = false;
 
     /**
+     * Indicates if the rocket kernel is running the application.
+     *
+     * @var bool
+     */
+    protected bool $rocket_running = false;
+
+    /**
+     * The data directory of a packaged app, resolved once.
+     *
+     * @var PackagedPaths|null
+     */
+    protected ?PackagedPaths $packaged_paths = null;
+
+    /**
+     * Whether the packaged paths have been looked up yet.
+     *
+     * @var bool
+     */
+    protected bool $packaged_resolved = false;
+
+    /**
      * The environment file to load during bootstrapping.
      *
      * @var string
@@ -214,6 +235,52 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
     public function runningUnitTests(): bool
     {
         return $this->isBound('env') && $this['env'] === 'testing';
+    }
+
+    /**
+     * Determine if the rocket kernel is running the application.
+     *
+     * @return bool
+     */
+    public function isRocketRunning(): bool
+    {
+        return $this->rocket_running;
+    }
+
+    /**
+     * Record that the rocket kernel is running the application.
+     *
+     * @return void
+     */
+    public function markRocketRunning(): void
+    {
+        $this->rocket_running = true;
+    }
+
+    /**
+     * Determine if the application runs from a phar (a venusian build).
+     *
+     * @return bool
+     */
+    public function runningPackaged(): bool
+    {
+        return ! is_null($this->packagedPaths());
+    }
+
+    /**
+     * The data directory of this packaged app, seeded on first use; null outside a phar.
+     *
+     * @return PackagedPaths|null
+     */
+    public function packagedPaths(): ?PackagedPaths
+    {
+        if (! $this->packaged_resolved) {
+            $this->packaged_resolved = true;
+            $this->packaged_paths = PackagedPaths::fromRunningPhar($this->base_path);
+            $this->packaged_paths?->seed();
+        }
+
+        return $this->packaged_paths;
     }
 
     /**

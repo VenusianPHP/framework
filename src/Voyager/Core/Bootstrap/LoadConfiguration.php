@@ -168,16 +168,18 @@ class LoadConfiguration
     {
         $files = [];
 
-        $configPath = realpath($app->configPath());
+        // realpath() is false inside a phar (a packaged app); the phar:// path is the real one there.
+        $configPath = realpath($app->configPath()) ?: $app->configPath();
 
-        if (! $configPath) {
+        if (! is_dir($configPath)) {
             return [];
         }
 
         foreach (Finder::create()->files()->name('*.php')->in($configPath) as $file) {
             $directory = $this->getNestedDirectory($file, $configPath);
 
-            $files[$directory.basename($file->getRealPath(), '.php')] = $file->getRealPath();
+            $path = $file->getRealPath() ?: $file->getPathname();
+            $files[$directory.basename($path, '.php')] = $path;
         }
 
         ksort($files, SORT_NATURAL);
@@ -213,7 +215,8 @@ class LoadConfiguration
         $config = [];
 
         foreach (Finder::create()->files()->name('*.php')->in(__DIR__.'/../../../../config') as $file) {
-            $config[basename($file->getRealPath(), '.php')] = require $file->getRealPath();
+            $path = $file->getRealPath() ?: $file->getPathname();
+            $config[basename($path, '.php')] = require $path;
         }
 
         return $config;

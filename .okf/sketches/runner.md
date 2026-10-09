@@ -35,6 +35,8 @@ Rocket is a `ComputerConsoleInstance` named `Rocket` with one `RunSketchCommand`
 
 Symfony `COMMAND` / `TERMINATE` become `SketchStarting` / `SketchFinished` on `app('signals')`. A throw is reported and rendered; exit 1.[^kernel]
 
+`Kernel::bootstrap()` calls `markRocketRunning()` before the bootstrappers, so `$app->isRocketRunning()` is true while providers register on a rocket run and false on computer runs. A provider whose command is computer-only returns early on it (probe does): rocket's console picks up any provider command without `#[AsCommand]`.[^kernel]
+
 `ROCKET_BINARY` is `'rocket'`. `ConfigFactory::withSketches()` feeds classes and paths (default `app/Console/Sketches`). `make:sketch` writes into the first of those paths under the discovery root ([make:sketch](../console/make-sketch.md)).[^kernel][^factory]
 
 # Binaries

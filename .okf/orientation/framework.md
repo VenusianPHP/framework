@@ -10,6 +10,9 @@ sources:
   - id: composer
     resource: composer.json
     title: Package manifest
+  - id: app-config
+    resource: config/app.php
+    title: app config
   - id: providers
     resource: src/Voyager/Core/DefaultProviders.php
     title: Default provider list
@@ -28,6 +31,8 @@ sources:
 App object `Voyager\Core\RenderedInstance`. Container `Voyager\Vessel\ControlPanel`. `ConfigFactory::create()` binds the default exception handler when `withExceptions()` was not called, so a bare boot (pool worker, test app) still resolves `ExceptionHandler`.[^factory]
 
 Every component ships in this tree under `src/Voyager` with its own `composer.json` (`venusian-voyager/*`, branch alias `0.10.x-dev`); the root `replace` map lists all 29 at `self.version`. Root autoload loads each component's helper files, `signal()` included. Config lives in root `config/` only; no component merges a config file of its own.[^composer]
+
+`config/app.php` carries the app's two names: `app.name` (`APP_NAME`) for people, and `app.id` (`APP_ID`, default `com.venusian.app`) for the desktop: the macOS bundle identifier, the GTK application id and the Qt desktop file name in one reverse-DNS key. The jovian toolkit drivers read `config('app.id')` rather than carrying defaults of their own, and `venusian build` writes the same value into a packaged app's `.env`, so the window a desktop sees and the app it installed carry one id.[^app-config]
 
 Driver-only packages and extensions are suggested, not required: Neo4j client, Pusher SDK, predis, flysystem adapters, spatie/fork, react/promise, ext-redis/pcntl/posix/parallel/pcurl/epoll/kqueue, and the rest.[^composer]
 
@@ -65,3 +70,4 @@ In `DefaultProviders` order. `FoundationServiceProvider` is the one commented en
 [^providers]: Default provider list
 [^instance]: RenderedInstance base providers and aliases
 [^factory]: ConfigFactory
+[^app-config]: app config

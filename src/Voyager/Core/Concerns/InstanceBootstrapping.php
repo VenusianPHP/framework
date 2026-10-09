@@ -162,7 +162,9 @@ trait InstanceBootstrapping
     protected function normalizeCachePath(string $key, string $default): string
     {
         if (is_null($env = Env::get($key))) {
-            return $this->bootstrapPath($default);
+            return ($packaged = $this->packagedPaths())
+                ? $packaged->dataPath('bootstrap/'.$default)
+                : $this->bootstrapPath($default);
         }
 
         return Str::startsWith($env, $this->absolute_cache_path_prefixes)

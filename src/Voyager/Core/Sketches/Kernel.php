@@ -107,6 +107,9 @@ class Kernel implements KernelContract
 
     public function bootstrap(): void
     {
+        // Before the providers register, so a provider can leave rocket alone.
+        $this->app->markRocketRunning();
+
         if (! $this->app->hasBeenBootstrapped()) {
             $this->app->bootstrapWith($this->bootstrappers);
         }

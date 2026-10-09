@@ -79,6 +79,21 @@ interface FrameworkCore extends TheServiceContainer
     public function runningUnitTests(): bool;
 
     /**
+     * Determine if the rocket kernel is running the application.
+     *
+     * @return bool
+     */
+    public function isRocketRunning(): bool;
+
+    /**
+     * Record that the rocket kernel is running the application. Its bootstrap()
+     * calls this before any provider registers.
+     *
+     * @return void
+     */
+    public function markRocketRunning(): void;
+
+    /**
      * Register every configured provider.
      *
      * @return void

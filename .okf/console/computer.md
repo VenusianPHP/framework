@@ -30,7 +30,7 @@ sources:
 
 # What is registered
 
-The uncommented entries in `ComputerServiceProvider`. Commands: `cache:clear`, `cache:forget`, config cache/clear, env and env encrypt/decrypt, package discover, `invoke-serialized-closure`, signal cache/clear/list, every `queue:*`. Dev commands: `make:cache-table`, `make:queue-table`, `make:queue-failed-table`, `make:queue-batches-table`, the class/config/console/enum/exception/factory/interface/provider/sketch/test/trait makers, `config:publish`, `stub:publish`, `vendor:publish`. Commented: `about`, `make:gig`, `make:job`, `make:job-middleware`, event/listener/observer makers.[^provider]
+The uncommented entries in `ComputerServiceProvider`. Commands: `cache:clear`, `cache:forget`, config cache/clear, env and env encrypt/decrypt, package discover, `invoke-serialized-closure`, signal cache/clear/list, every `queue:*`, `about`. Dev commands: `make:cache-table`, `make:queue-table`, `make:queue-failed-table`, `make:queue-batches-table`, the class/config/console/enum/exception/factory/interface/node/provider/sketch/test/trait makers, `config:publish`, `stub:publish`, `vendor:publish`. Commented: `make:gig`, `make:job`, `make:job-middleware`, event/listener/observer makers.[^provider]
 
 A command constructed with required parameters gets `new Filesystem` unless the provider has a `register{Name}Command()` method (cache clear/forget, queue listen/monitor/restart/work). Other providers add theirs with `commands()`: migrations, `make:graph-model`.[^provider]
 

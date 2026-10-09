@@ -13,9 +13,10 @@ use Voyager\Contracts\Core\FrameworkCore;
 class DeliverMailToSketches
 {
     public const string HANDLER_KEY = 'io-pools.event_loop.mail_handlers.default';
+    public const string HANDLER = 'sketch';
 
     public function bootstrap(FrameworkCore $app): void
     {
-        $app['config']->set(self::HANDLER_KEY, 'sketch');
+        $app['config']->set(self::HANDLER_KEY, self::HANDLER);
     }
 }

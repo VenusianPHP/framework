@@ -27,6 +27,7 @@ use ReflectionException;
 use Voyager\Console\ConsoleSignals;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\Concurrency\Console\InvokeSerializedClosureCommand;
+use Voyager\Core\Console\AboutCommand;
 use Voyager\Core\Console\ClassMakeCommand;
 use Voyager\Core\Console\ConfigCacheCommand;
 use Voyager\Core\Console\ConfigClearCommand;
@@ -48,6 +49,7 @@ use Voyager\Core\Console\InterfaceMakeCommand;
 use Voyager\Core\Console\JobMakeCommand;
 use Voyager\Core\Console\JobMiddlewareMakeCommand;
 use Voyager\Core\Console\ListenerMakeCommand;
+use Voyager\Core\Console\NodeMakeCommand;
 use Voyager\Core\Console\ObserverMakeCommand;
 use Voyager\Core\Console\PackageDiscoverCommand;
 use Voyager\Core\Console\ProviderMakeCommand;
@@ -69,7 +71,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      * @var array
      */
     protected array $commands = [
-        //'About' => AboutCommand::class,
+        'About' => AboutCommand::class,
         'CacheClear' => CacheClearCommand::class,
         'CacheForget' => CacheForgetCommand::class,
         'ConfigCache' => ConfigCacheCommand::class,
@@ -119,6 +121,7 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'ExtensionInstall' => ExtensionInstallCommand::class,
         'FactoryMake' => FactoryMakeCommand::class,
         'InterfaceMake' => InterfaceMakeCommand::class,
+        'NodeMake' => NodeMakeCommand::class,
         //'GigMake' => GigMakeCommand::class,
         //'JobMake' => JobMakeCommand::class,
         //'JobMiddlewareMake' => JobMiddlewareMakeCommand::class,
@@ -186,6 +189,14 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
     public function provides(): array
     {
         return array_values(array_merge($this->commands, $this->dev_commands));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    protected function registerAboutCommand(): void
+    {
+        $this->app->registerSingleton(AboutCommand::class, fn ($app) => new AboutCommand($app['composer']));
     }
 
     /**

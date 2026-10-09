@@ -1,0 +1,79 @@
+<?php
+
+namespace Voyager\Core\Console;
+
+use Voyager\Console\GeneratorCommand;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Input\InputOption;
+
+#[AsCommand(name: 'make:node')]
+class NodeMakeCommand extends GeneratorCommand
+{
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected ?string $name = 'make:node';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected string $description = 'Create a new workflow node class';
+
+    /**
+     * The type of class being generated.
+     *
+     * @var string
+     */
+    protected ?string $type = 'Node';
+
+    /**
+     * Get the stub file for the generator.
+     *
+     * @return string
+     */
+    protected function getStub(): string
+    {
+        return $this->resolveStubPath($this->option('async') ? '/stubs/node.async.stub' : '/stubs/node.stub');
+    }
+
+    /**
+     * Resolve the fully-qualified path to the stub.
+     *
+     * @param  string  $stub
+     * @return string
+     */
+    protected function resolveStubPath(string $stub): string
+    {
+        return file_exists($customPath = $this->venusian->basePath(trim($stub, '/')))
+            ? $customPath
+            : __DIR__.$stub;
+    }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param  string  $rootNamespace
+     * @return string
+     */
+    protected function getDefaultNamespace(string $rootNamespace): string
+    {
+        return $rootNamespace.'\Workflows';
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions(): array
+    {
+        return [
+            ['async', 'a', InputOption::VALUE_NONE, 'Create an AsyncNode, run through the async runtime'],
+            ['force', 'f', InputOption::VALUE_NONE, 'Create the class even if the node already exists'],
+        ];
+    }
+}

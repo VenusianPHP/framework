@@ -1,7 +1,15 @@
 # Update Log
 
+## 2026-10-09
+
+* **Update**: [Framework](orientation/framework.md) — `app.id` (`APP_ID`, default `com.venusian.app`) in `config/app.php`: the reverse-DNS identity the jovian toolkit drivers read and `venusian build` writes into a packaged app's `.env`.
+
 ## 2026-10-07
 
+* **Creation**: [make:node](console/make-node.md) — dev command on the existing `node.stub` / `node.async.stub`, both now in `stub:publish`. [Computer](console/computer.md) — node maker on the dev list.
+* **Update**: [Runner](sketches/runner.md) — `FrameworkCore::isRocketRunning()`; the rocket kernel's `bootstrap()` calls `markRocketRunning()` before providers register.
+* **Creation**: [about](console/about.md) — 0.8 `about` ported: no maintenance/Octane/debug/timezone/locale rows, Events → Signals, Event Loop / Extensions / Sketches sections; `autoDriver()` on the waiter and async-HTTP managers; `DeliverMailToSketches::HANDLER`.
+* **Correction**: `NutsAndBolts\Composer` reads `$working_path` (was the undeclared `$workingPath`).
 * **Creation**: [make:sketch](console/make-sketch.md) — dev command; sketch `Kernel` contract gains `sketchPaths()`, `discoveryNamespace()`, `discoveryPath()`; `sketch.stub` on the 0.9 `loop(array $mail)` signature, in `stub:publish`.
 * **Update**: [Computer](console/computer.md) — sketch maker on the dev list.
 
@@ -102,3 +110,4 @@
 * **Creation**: First bundle for `venusian/framework` 0.9.0 — [framework](orientation/framework.md), [event loop](io-pools/event-loop.md), [worker pools](io-pools/worker-pools.md), [async](io-pools/async.md), [defer](io-pools/defer.md), [deferred log channel](log/deferred-channel.md), [cache stores](cache/stores.md), [cache defer](cache/defer.md), [Redis component](redis/component.md), [Redis push/pop](redis/push-pop.md), [Computer](console/computer.md).
 * **Addition**: [Concurrency drivers](concurrency/drivers.md) — the component wired onto 0.9, plus the `defer()` helper and console binary helpers it needed. `runningInConsole()` is gone: every entry point is the console, so the question has one answer.
 * **Update**: `AGENTS.md` points at [`.okf/index.md`](index.md). Concepts stay `draft`. The authoring agent does not set `stable`.
+* **Addition**: [Packaged mode](orientation/packaged-mode.md) — `PackagedPaths` moves storage, database and bootstrap caches to the user's data directory when the base path is inside a phar, seeded from the phar once. The framework carries no build commands: `venusian build` (package `venusian/build`, a `venusian-tool` the installer reveals) packs the app from its own directory and hands it `phar://.../<name>.phar` as the base path. `Phar::running()` only answers from code inside the phar.
