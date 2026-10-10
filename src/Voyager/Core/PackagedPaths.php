@@ -11,7 +11,9 @@ use function Voyager\NutsAndBolts\join_paths;
  * Where a packaged app (one running from a phar) keeps what it writes.
  *
  * The phar is read-only, so storage, database and the bootstrap caches live
- * in the user's data directory, seeded from the phar on first run only.
+ * in the user's data directory, seeded from the phar on first run only. The
+ * bootstrap caches describe the phar that wrote them, so a different phar (an
+ * upgrade, a rebuild) drops them and the framework writes them again.
  */
 final class PackagedPaths
 {
@@ -84,24 +86,51 @@ final class PackagedPaths
         return join_paths($base, $path);
     }
 
-    /** Copies storage/ and database/ out of the phar the first time only. */
+    /**
+     * Copies storage/ and database/ out of the phar the first time only, and drops the
+     * bootstrap caches when the phar is not the one that wrote them.
+     */
     public function seed(): void
     {
-        if (is_dir($this->dataPath())) {
+        $files = new Filesystem;
+
+        if (! is_dir($this->dataPath())) {
+            $files->ensureDirectoryExists($this->dataPath('bootstrap/cache'));
+
+            foreach (['storage', 'database'] as $directory) {
+                $source = join_paths($this->phar_root, $directory);
+
+                if (is_dir($source)) {
+                    $files->copyDirectory($source, $this->dataPath($directory));
+                } else {
+                    $files->ensureDirectoryExists($this->dataPath($directory));
+                }
+            }
+        }
+
+        $this->forgetOtherPhars($files);
+    }
+
+    /**
+     * The cached packages, services, config and signals list what one phar ships. Its size and
+     * modification time name it: a build writes a new phar, so an upgrade or a rebuild differs,
+     * and the caches it would read go before the framework looks for them.
+     */
+    private function forgetOtherPhars(Filesystem $files): void
+    {
+        $file = str_starts_with($this->phar_root, 'phar://') ? substr($this->phar_root, strlen('phar://')) : $this->phar_root;
+        clearstatcache(true, $file);
+        $stamp = @filesize($file).':'.@filemtime($file);
+        $record = $this->dataPath('bootstrap/cache/phar.stamp');
+
+        if (is_file($record) && file_get_contents($record) === $stamp) {
             return;
         }
 
-        $files = new Filesystem;
         $files->ensureDirectoryExists($this->dataPath('bootstrap/cache'));
-
-        foreach (['storage', 'database'] as $directory) {
-            $source = join_paths($this->phar_root, $directory);
-
-            if (is_dir($source)) {
-                $files->copyDirectory($source, $this->dataPath($directory));
-            } else {
-                $files->ensureDirectoryExists($this->dataPath($directory));
-            }
+        foreach ($files->glob($this->dataPath('bootstrap/cache/*.php')) as $cache) {
+            $files->delete($cache);
         }
+        file_put_contents($record, $stamp);
     }
 }

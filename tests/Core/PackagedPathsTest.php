@@ -67,3 +67,27 @@ it('finds the phar file above a phar:// base path even without a .phar suffix, a
         ->and($paths->name)->toBe('stargazer')
         ->and(PackagedPaths::fromRunningPhar('phar:///nowhere/at/all/app'))->toBeNull();
 });
+
+it('drops the bootstrap caches a different phar wrote, and keeps them for the same one', function () {
+    // An upgrade replaces the phar: its packages and providers may differ from what the caches list.
+    $phar = $this->root.'/stargazer.phar';
+    file_put_contents($phar, 'version one');
+    touch($phar, 1_700_000_000);
+    $paths = new PackagedPaths('phar://'.$phar, 'Stargazer', $this->root.'/home', 'Linux');
+
+    $paths->seed();
+    file_put_contents($paths->dataPath('bootstrap/cache/packages.php'), '<?php return ["jovian/venusian-gtk" => []];');
+    file_put_contents($paths->dataPath('database/database.sqlite'), 'the user\'s data');
+    $paths->seed();
+    expect(is_file($paths->dataPath('bootstrap/cache/packages.php')))->toBeTrue();
+
+    file_put_contents($phar, 'version two, rebuilt');
+    touch($phar, 1_700_000_500);
+    $paths->seed();
+    expect(is_file($paths->dataPath('bootstrap/cache/packages.php')))->toBeFalse()
+        ->and(file_get_contents($paths->dataPath('database/database.sqlite')))->toBe('the user\'s data');
+
+    file_put_contents($paths->dataPath('bootstrap/cache/packages.php'), '<?php return ["jovian/venusian-qt" => []];');
+    $paths->seed();
+    expect(is_file($paths->dataPath('bootstrap/cache/packages.php')))->toBeTrue();
+});

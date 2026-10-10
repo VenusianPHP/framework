@@ -2,6 +2,7 @@
 
 ## 2026-10-09
 
+* **Update**: [Packaged mode](orientation/packaged-mode.md) — the bootstrap caches in the data directory are dropped when the running phar differs from the one that wrote them (`phar.stamp`: size and modification time), so an upgrade that changes providers no longer boots on the old `packages.php`.
 * **Update**: [Framework](orientation/framework.md) — `app.id` (`APP_ID`, default `com.venusian.app`) in `config/app.php`: the reverse-DNS identity the jovian toolkit drivers read and `venusian build` writes into a packaged app's `.env`.
 
 ## 2026-10-07

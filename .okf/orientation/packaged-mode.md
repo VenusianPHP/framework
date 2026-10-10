@@ -54,6 +54,8 @@ Name: phar metadata `name`, else the phar's basename.[^paths]
 
 First call creates `<data>/bootstrap/cache` and copies `storage/` and `database/` out of the phar. Guard is `is_dir(<data>)`: a second run, or a newer phar, never touches the user's files.[^paths][^unit]
 
+Every call compares the phar's size and modification time with `<data>/bootstrap/cache/phar.stamp`. A different phar (an upgrade, a rebuild) deletes `<data>/bootstrap/cache/*.php` and writes the new stamp, so the packages, services, config and signals caches are rebuilt from the phar now running: a cache listing an old version's providers would otherwise name classes the new phar lacks. Storage and database stay.[^paths][^unit]
+
 [^paths]: PackagedPaths
 [^instance]: runningPackaged(), packagedPaths()
 [^base]: storagePath(), databasePath()
