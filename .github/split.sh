@@ -28,6 +28,10 @@ git fetch --quiet origin '+refs/heads/*:refs/remotes/origin/*'
 
 head_of() { git rev-parse --verify --quiet "refs/remotes/origin/$1^{commit}" || true; }
 
+# actions/checkout leaves the workflow's own token as an http.<url>.extraheader for github.com,
+# which git sends instead of the credentials in $SPLIT_REMOTE. An empty value clears it.
+split_git() { git -c http.https://github.com/.extraheader= "$@"; }
+
 # --- Components --------------------------------------------------------------------------
 
 DIRS=()
@@ -112,7 +116,7 @@ done
 
 missing=()
 for name in "${NAMES[@]}"; do
-    git ls-remote "$SPLIT_REMOTE/${name#*/}.git" >/dev/null 2>&1 || missing+=("${name#*/}")
+    split_git ls-remote "$SPLIT_REMOTE/${name#*/}.git" >/dev/null 2>&1 || missing+=("${name#*/}")
 done
 [[ ${#missing[@]} -eq 0 ]] || fail "repositories not reachable: ${missing[*]}"
 
@@ -123,6 +127,6 @@ for i in "${!DIRS[@]}"; do
         refspecs+=("+${SHAS[$i]}:refs/heads/$target")
     done
     echo "${NAMES[$i]}: ${SHAS[$i]} -> ${TARGETS[*]}, $TAG"
-    git push --quiet "$repo" "${refspecs[@]}"
-    git push --quiet "$repo" "${SHAS[$i]}:refs/tags/$TAG"
+    split_git push --quiet "$repo" "${refspecs[@]}"
+    split_git push --quiet "$repo" "${SHAS[$i]}:refs/tags/$TAG"
 done
