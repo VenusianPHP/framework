@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-14
+
+* **Creation**: [Releasing](orientation/releasing.md) — `split.yml` on a `v*` tag: `tests.yml` gates, `.github/split.sh` splits every component to `venusian-voyager` with the same tag, line branch rules, manifest checks, `SPLIT_TOKEN`.
+
 ## 2026-10-09
 
 * **Update**: [Packaged mode](orientation/packaged-mode.md) — the bootstrap caches in the data directory are dropped when the running phar differs from the one that wrote them (`phar.stamp`: size and modification time), so an upgrade that changes providers no longer boots on the old `packages.php`.

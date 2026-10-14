@@ -6,6 +6,7 @@ okf_version: "0.2"
 
 * [Packaged mode](orientation/packaged-mode.md) - An app whose base path is inside a phar keeps storage, database and bootstrap caches in the user's data directory, seeded once.
 * [Framework](orientation/framework.md) - PHP 8.4 framework package `venusian/framework` at 0.10.0, the `replace` map, and which providers boot.
+* [Releasing](orientation/releasing.md) - A vX.Y.Z tag runs the suite, then splits every component to venusian-voyager with the same tag.
 
 # IOPools
 
