@@ -28,6 +28,16 @@ use Voyager\Console\ConsoleSignals;
 use Voyager\Contracts\NutsAndBolts\DeferrableProvider;
 use Voyager\Concurrency\Console\InvokeSerializedClosureCommand;
 use Voyager\Core\Console\AboutCommand;
+use Voyager\Database\Console\DbCommand;
+use Voyager\Database\Console\DumpCommand;
+use Voyager\Database\Console\MonitorCommand as DatabaseMonitorCommand;
+use Voyager\Database\Console\PruneCommand;
+use Voyager\Database\Console\Seeds\SeedCommand;
+use Voyager\Database\Console\Seeds\SeederMakeCommand;
+use Voyager\Database\Console\ShowCommand;
+use Voyager\Database\Console\ShowModelCommand;
+use Voyager\Database\Console\TableCommand as DatabaseTableCommand;
+use Voyager\Database\Console\WipeCommand;
 use Voyager\Core\Console\ClassMakeCommand;
 use Voyager\Core\Console\ConfigCacheCommand;
 use Voyager\Core\Console\ConfigClearCommand;
@@ -72,6 +82,15 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
      */
     protected array $commands = [
         'About' => AboutCommand::class,
+        'Db' => DbCommand::class,
+        'DbMonitor' => DatabaseMonitorCommand::class,
+        'DbPrune' => PruneCommand::class,
+        'DbShow' => ShowCommand::class,
+        'DbTable' => DatabaseTableCommand::class,
+        'DbWipe' => WipeCommand::class,
+        'SchemaDump' => DumpCommand::class,
+        'Seed' => SeedCommand::class,
+        'ShowModel' => ShowModelCommand::class,
         'CacheClear' => CacheClearCommand::class,
         'CacheForget' => CacheForgetCommand::class,
         'ConfigCache' => ConfigCacheCommand::class,
@@ -115,19 +134,20 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
         'ConfigPublish' => ConfigPublishCommand::class,
         'ConsoleMake' => ConsoleMakeCommand::class,
         'EnumMake' => EnumMakeCommand::class,
-        //'EventGenerate' => EventGenerateCommand::class,
-        //'EventMake' => EventMakeCommand::class,
+        'EventGenerate' => EventGenerateCommand::class,
+        'EventMake' => EventMakeCommand::class,
         'ExceptionMake' => ExceptionMakeCommand::class,
         'ExtensionInstall' => ExtensionInstallCommand::class,
         'FactoryMake' => FactoryMakeCommand::class,
         'InterfaceMake' => InterfaceMakeCommand::class,
         'NodeMake' => NodeMakeCommand::class,
-        //'GigMake' => GigMakeCommand::class,
-        //'JobMake' => JobMakeCommand::class,
-        //'JobMiddlewareMake' => JobMiddlewareMakeCommand::class,
-        //'ListenerMake' => ListenerMakeCommand::class,
-        //'ObserverMake' => ObserverMakeCommand::class,
+        'GigMake' => GigMakeCommand::class,
+        'JobMake' => JobMakeCommand::class,
+        'JobMiddlewareMake' => JobMiddlewareMakeCommand::class,
+        'ListenerMake' => ListenerMakeCommand::class,
+        'ObserverMake' => ObserverMakeCommand::class,
         'ProviderMake' => ProviderMakeCommand::class,
+        'SeederMake' => SeederMakeCommand::class,
         'SketchMake' => SketchMakeCommand::class,
 
         'StubPublish' => StubPublishCommand::class,
@@ -189,6 +209,22 @@ class ComputerServiceProvider extends ServiceProvider implements DeferrableProvi
     public function provides(): array
     {
         return array_values(array_merge($this->commands, $this->dev_commands));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    protected function registerDbMonitorCommand(): void
+    {
+        $this->app->registerSingleton(DatabaseMonitorCommand::class, fn ($app) => new DatabaseMonitorCommand($app['db'], $app['signals']));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    protected function registerSeedCommand(): void
+    {
+        $this->app->registerSingleton(SeedCommand::class, fn ($app) => new SeedCommand($app['db']));
     }
 
     /**

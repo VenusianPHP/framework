@@ -6,8 +6,6 @@ use ReflectionException;
 use Voyager\Core\Console\CliDumper;
 use Throwable;
 use Voyager\Console\Signals\CommandFinished;
-use Voyager\Console\Scheduling\Schedule;
-use Voyager\Contracts\Console\Kernel as ConsoleKernel;
 use Voyager\Contracts\Vessel\TheServiceContainer;
 use Voyager\Contracts\Signals\SignalDispatcher;
 use Voyager\Database\ConnectionInterface;
@@ -41,22 +39,8 @@ class FoundationServiceProvider extends AggregateServiceProvider
     {
         parent::register();
 
-        //$this->registerConsoleSchedule();
         $this->registerDumper();
         $this->registerDeferHandler();
-    }
-
-    /**
-     * Register the console schedule implementation.
-     *
-     * @return void
-     * @throws ReflectionException
-     */
-    public function registerConsoleSchedule(): void
-    {
-        $this->app->registerSingleton(Schedule::class, function ($app) {
-            return $app->make(ConsoleKernel::class)->resolveConsoleSchedule();
-        });
     }
 
     /**

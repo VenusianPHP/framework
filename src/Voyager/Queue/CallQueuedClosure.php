@@ -11,7 +11,7 @@ use Voyager\Contracts\Queue\ShouldQueue;
 use Voyager\Core\Bus\Dispatchable;
 use Laravel\SerializableClosure\SerializableClosure;
 use ReflectionFunction;
-use Voyager\Queue\Concerns\SerializesModels;
+use Voyager\Queue\SerializesModels;
 
 class CallQueuedClosure implements ShouldQueue
 {

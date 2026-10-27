@@ -1324,7 +1324,7 @@ class BelongsToMany extends Relation
         // the related model's timestamps, to make sure these all reflect the changes
         // to the parent models. This will help us keep any caching synced up here.
         if (count($ids = $this->allRelatedIds()) > 0) {
-            $this->getRelated()->newQueryWithoutRelationships()->whereKey($ids)->update($columns);
+            Model::runLifecycleStatement($this->getRelated()->newQueryWithoutRelationships()->whereKey($ids), 'update', [$columns]);
         }
     }
 
@@ -1335,7 +1335,7 @@ class BelongsToMany extends Relation
      */
     public function allRelatedIds()
     {
-        return $this->newPivotQuery()->pluck($this->relatedPivotKey);
+        return Model::runLifecycleStatement($this->newPivotQuery(), 'pluck', [$this->relatedPivotKey]);
     }
 
     /**

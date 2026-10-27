@@ -64,5 +64,11 @@
         <testsuite name="Pagination">
             <directory>tests/Pagination</directory>
         </testsuite>
+        <testsuite name="Console">
+            <directory>tests/Console</directory>
+        </testsuite>
+        <testsuite name="Vessel">
+            <directory>tests/Vessel</directory>
+        </testsuite>
     </testsuites>
 </phpunit>

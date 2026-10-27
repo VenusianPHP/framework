@@ -22,6 +22,19 @@ class Repository implements ArrayAccess, ConfigContract
     protected array $items = [];
 
     /**
+     * Answers where writes go right now: an Overrides to keep them apart, or null to write the
+     * items themselves.
+     *
+     * @var (Closure(): ?Overrides)|null
+     */
+    protected ?Closure $overrides_resolver = null;
+
+    /**
+     * Bumped by every write to the items themselves, so overrides built over them build again.
+     */
+    protected int $version = 0;
+
+    /**
      * Create a new configuration repository.
      *
      * @param  array  $items
@@ -39,7 +52,7 @@ class Repository implements ArrayAccess, ConfigContract
      */
     public function has(string $key): bool
     {
-        return Arr::has($this->items, $key);
+        return Arr::has($this->items(), $key);
     }
 
     /**
@@ -55,7 +68,7 @@ class Repository implements ArrayAccess, ConfigContract
             return $this->getMany($key);
         }
 
-        return Arr::get($this->items, $key, $default);
+        return Arr::get($this->items(), $key, $default);
     }
 
     /**
@@ -67,13 +80,14 @@ class Repository implements ArrayAccess, ConfigContract
     public function getMany(array $keys): array
     {
         $config = [];
+        $items = $this->items();
 
         foreach ($keys as $key => $default) {
             if (is_numeric($key)) {
                 [$key, $default] = [$default, null];
             }
 
-            $config[$key] = Arr::get($this->items, $key, $default);
+            $config[$key] = Arr::get($items, $key, $default);
         }
 
         return $config;
@@ -211,10 +225,55 @@ class Repository implements ArrayAccess, ConfigContract
     public function set(array|string $key, mixed $value = null): void
     {
         $keys = is_array($key) ? $key : [$key => $value];
+        $overrides = $this->overrides();
 
         foreach ($keys as $key => $value) {
-            Arr::set($this->items, $key, $value);
+            if ($overrides !== null) {
+                $overrides->record($key, $value);
+            } else {
+                Arr::set($this->items, $key, $value);
+            }
         }
+
+        if ($overrides === null) {
+            $this->version++;
+        }
+    }
+
+    /**
+     * Keep writes apart wherever the resolver hands back an Overrides; reads take its writes
+     * over the items. Null writes and reads the items themselves everywhere.
+     *
+     * @param (Closure(): ?Overrides)|null $resolver
+     * @return void
+     */
+    public function overridesUsing(?Closure $resolver): void
+    {
+        $this->overrides_resolver = $resolver;
+    }
+
+    /**
+     * The overrides writes go to right now, if any.
+     *
+     * @return Overrides|null
+     */
+    protected function overrides(): ?Overrides
+    {
+        return $this->overrides_resolver === null ? null : ($this->overrides_resolver)();
+    }
+
+    /**
+     * The items as read right now: the current overrides' writes over the items.
+     *
+     * @return array<string, mixed>
+     */
+    protected function items(): array
+    {
+        $overrides = $this->overrides();
+
+        return $overrides === null || $overrides->isEmpty()
+            ? $this->items
+            : $overrides->over($this->items, $this->version);
     }
 
     /**
@@ -256,7 +315,7 @@ class Repository implements ArrayAccess, ConfigContract
      */
     public function all(): array
     {
-        return $this->items;
+        return $this->items();
     }
 
     /**

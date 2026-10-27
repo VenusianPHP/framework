@@ -21,24 +21,24 @@ afterEach(function () {
 });
 
 it('puts data under Application Support on macOS', function () {
-    $paths = new PackagedPaths($this->root.'/phar', 'Stargazer', $this->root.'/home', 'Darwin');
+    $paths = new PackagedPaths($this->root.'/phar', 'Example', $this->root.'/home', 'Darwin');
 
-    expect($paths->dataPath())->toBe($this->root.'/home/Library/Application Support/Stargazer')
-        ->and($paths->dataPath('storage/logs'))->toBe($this->root.'/home/Library/Application Support/Stargazer/storage/logs');
+    expect($paths->dataPath())->toBe($this->root.'/home/Library/Application Support/Example')
+        ->and($paths->dataPath('storage/logs'))->toBe($this->root.'/home/Library/Application Support/Example/storage/logs');
 });
 
 it('puts data under XDG_DATA_HOME, then ~/.local/share, on Linux', function () {
-    $paths = new PackagedPaths($this->root.'/phar', 'Stargazer', $this->root.'/home', 'Linux');
-    expect($paths->dataPath())->toBe($this->root.'/home/.local/share/Stargazer');
+    $paths = new PackagedPaths($this->root.'/phar', 'Example', $this->root.'/home', 'Linux');
+    expect($paths->dataPath())->toBe($this->root.'/home/.local/share/Example');
 
     putenv('XDG_DATA_HOME='.$this->root.'/xdg');
-    $paths = new PackagedPaths($this->root.'/phar', 'Stargazer', $this->root.'/home', 'Linux');
-    expect($paths->dataPath())->toBe($this->root.'/xdg/Stargazer');
+    $paths = new PackagedPaths($this->root.'/phar', 'Example', $this->root.'/home', 'Linux');
+    expect($paths->dataPath())->toBe($this->root.'/xdg/Example');
     putenv('XDG_DATA_HOME');
 });
 
 it('seeds storage and database once', function () {
-    $paths = new PackagedPaths($this->root.'/phar', 'Stargazer', $this->root.'/home', 'Darwin');
+    $paths = new PackagedPaths($this->root.'/phar', 'Example', $this->root.'/home', 'Darwin');
 
     $paths->seed();
     expect(file_get_contents($paths->dataPath('database/database.sqlite')))->toBe('shipped')
@@ -58,22 +58,22 @@ it('is absent outside a phar', function () {
 it('finds the phar file above a phar:// base path even without a .phar suffix, and ignores a path with no file', function () {
     // A plain file stands in for a phpmicro binary: its name has no suffix and it is not a readable phar,
     // so the name falls back to the file name.
-    file_put_contents($this->root.'/stargazer-bin', 'not a phar');
+    file_put_contents($this->root.'/example-bin', 'not a phar');
 
-    $paths = PackagedPaths::fromRunningPhar('phar://'.$this->root.'/stargazer-bin/bootstrap');
+    $paths = PackagedPaths::fromRunningPhar('phar://'.$this->root.'/example-bin/bootstrap');
 
     expect($paths)->not->toBeNull()
-        ->and($paths->phar_root)->toBe('phar://'.$this->root.'/stargazer-bin')
-        ->and($paths->name)->toBe('stargazer')
+        ->and($paths->phar_root)->toBe('phar://'.$this->root.'/example-bin')
+        ->and($paths->name)->toBe('example')
         ->and(PackagedPaths::fromRunningPhar('phar:///nowhere/at/all/app'))->toBeNull();
 });
 
 it('drops the bootstrap caches a different phar wrote, and keeps them for the same one', function () {
     // An upgrade replaces the phar: its packages and providers may differ from what the caches list.
-    $phar = $this->root.'/stargazer.phar';
+    $phar = $this->root.'/example.phar';
     file_put_contents($phar, 'version one');
     touch($phar, 1_700_000_000);
-    $paths = new PackagedPaths('phar://'.$phar, 'Stargazer', $this->root.'/home', 'Linux');
+    $paths = new PackagedPaths('phar://'.$phar, 'Example', $this->root.'/home', 'Linux');
 
     $paths->seed();
     file_put_contents($paths->dataPath('bootstrap/cache/packages.php'), '<?php return ["jovian/venusian-gtk" => []];');

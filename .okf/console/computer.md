@@ -30,9 +30,11 @@ sources:
 
 # What is registered
 
-The uncommented entries in `ComputerServiceProvider`. Commands: `cache:clear`, `cache:forget`, config cache/clear, env and env encrypt/decrypt, package discover, `invoke-serialized-closure`, signal cache/clear/list, every `queue:*`, `about`. Dev commands: `make:cache-table`, `make:queue-table`, `make:queue-failed-table`, `make:queue-batches-table`, the class/config/console/enum/exception/factory/interface/node/provider/sketch/test/trait makers, `config:publish`, `stub:publish`, `vendor:publish`. Commented: `make:gig`, `make:job`, `make:job-middleware`, event/listener/observer makers.[^provider]
+Every `#[AsCommand]` class under `src/Voyager` is registered; `tests/Console/CommandRegistrationTest` runs `help` for each through the console kernel and fails on any it cannot find. `ComputerServiceProvider` (the counterpart of Laravel's `ArtisanServiceProvider`) holds the commands: `about`, `db`, `db:monitor`, `db:show`, `db:table`, `db:wipe`, `db:seed`, `model:prune`, `model:show`, `schema:dump`, `cache:clear`, `cache:forget`, config cache/clear, env and env encrypt/decrypt, package discover, `invoke-serialized-closure`, signal cache/clear/list, every `queue:*`; and the dev commands: `make:cache-table`, the queue table makers, the class/config/console/enum/event/exception/factory/gig/interface/job/job-middleware/listener/node/observer/provider/seeder/sketch/test/trait makers, `event:generate`, `config:publish`, `stub:publish`, `vendor:publish`.[^provider]
 
-A command constructed with required parameters gets `new Filesystem` unless the provider has a `register{Name}Command()` method (cache clear/forget, queue listen/monitor/restart/work). Other providers add theirs with `commands()`: migrations, `make:graph-model`.[^provider]
+A command constructed with required parameters gets `new Filesystem` unless the provider has a `register{Name}Command()` method (cache clear/forget, `db:monitor`, `db:seed`, queue listen/monitor/restart/work). Other providers add theirs with `commands()` (migrations, `make:graph-model`) and must also bind the class: the container command loader lists only bound commands.[^provider]
+
+`Database\Console\Factories\FactoryMakeCommand` duplicates `Core\Console\FactoryMakeCommand` (both `make:factory`, identical bodies); the Core one is registered.
 
 `Console\MigrationGeneratorCommand` writes one migration from a stub through `migration.creator`, into `databasePath('migrations')`, and refuses when a `*_create_{table}_table.php` exists.[^generator]
 

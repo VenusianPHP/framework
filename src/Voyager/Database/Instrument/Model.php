@@ -43,6 +43,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         Concerns\HasTimestamps,
         Concerns\HasUniqueIds,
         Concerns\HidesAttributes,
+        Concerns\PersistsAsync,
         Concerns\GuardsAttributes,
         Concerns\PreventsCircularRecursion,
         // Concerns\TransformsToResource is cut: it turns a model into an
@@ -1350,7 +1351,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         $dirty = $this->getDirtyForUpdate();
 
         if (count($dirty) > 0) {
-            $this->setKeysForSaveQuery($query)->update($dirty);
+            $this->runStatement($this->setKeysForSaveQuery($query), 'update', [$dirty]);
 
             $this->syncChanges();
 
@@ -1358,6 +1359,20 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         }
 
         return true;
+    }
+
+    /**
+     * Run one statement of the save or delete lifecycle on $query. Everything else in the
+     * lifecycle runs around it, so saveAsync() and its kin swap only this.
+     *
+     * @param  \Voyager\Database\Instrument\Builder<static>  $query
+     * @param  string  $method
+     * @param  array<int, mixed>  $args
+     * @return mixed
+     */
+    protected function runStatement(Builder $query, string $method, array $args): mixed
+    {
+        return static::runLifecycleStatement($query, $method, $args);
     }
 
     /**
@@ -1446,7 +1461,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
                 return true;
             }
 
-            $query->insert($attributes);
+            $this->runStatement($query, 'insert', [$attributes]);
         }
 
         // We will go ahead and set the exists property to true, so that it is set when
@@ -1470,7 +1485,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     protected function insertAndSetId(Builder $query, $attributes)
     {
-        $id = $query->insertGetId($attributes, $keyName = $this->getKeyName());
+        $id = $this->runStatement($query, 'insertGetId', [$attributes, $keyName = $this->getKeyName()]);
 
         $this->setAttribute($keyName, $id);
     }
@@ -1612,7 +1627,7 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
      */
     protected function performDeleteOnModel()
     {
-        $this->setKeysForSaveQuery($this->newModelQuery())->delete();
+        $this->runStatement($this->setKeysForSaveQuery($this->newModelQuery()), 'delete', []);
 
         $this->exists = false;
     }
@@ -2543,6 +2558,8 @@ abstract class Model implements Arrayable, ArrayAccess, CanBeEscapedWhenCastToSt
         $this->relationAutoloadContext = null;
 
         $keys = get_object_vars($this);
+
+        unset($keys['persisting_async']);
 
         if (version_compare(PHP_VERSION, '8.4.0', '>=')) {
             foreach ((new ReflectionClass($this))->getProperties() as $property) {

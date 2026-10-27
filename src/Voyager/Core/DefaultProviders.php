@@ -32,7 +32,7 @@ class DefaultProviders
             \Voyager\Database\MigrationServiceProvider::class,
             \Voyager\Filesystem\FilesystemServiceProvider::class,
             \Voyager\Graph\GraphServiceProvider::class,
-            //\Voyager\Core\Providers\FoundationServiceProvider::class,
+            \Voyager\Core\Providers\FoundationServiceProvider::class,
             \Voyager\Hashing\HashServiceProvider::class,
             \Voyager\Encryption\EncryptionServiceProvider::class,
             \Voyager\Http\HttpServiceProvider::class,

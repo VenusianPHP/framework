@@ -6,7 +6,7 @@ use Voyager\Broadcasting\Channel;
 use Voyager\Broadcasting\InteractsWithSockets;
 use Voyager\Broadcasting\PrivateChannel;
 use Voyager\Contracts\Broadcasting\ShouldBroadcast;
-use Voyager\Queue\Concerns\SerializesModels;
+use Voyager\Queue\SerializesModels;
 use Voyager\NutsAndBolts\Collection as BaseCollection;
 
 class BroadcastableModelEventOccurred implements ShouldBroadcast

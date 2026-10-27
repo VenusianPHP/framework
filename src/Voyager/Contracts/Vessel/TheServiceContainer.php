@@ -108,6 +108,21 @@ interface TheServiceContainer extends ServiceContainerContract
     public function scoped(callable|string $abstract, callable|string|null $concrete = null): void;
 
     /**
+     * Drop the current fiber's scoped instances (the main context's, outside any fiber).
+     *
+     * @return void
+     */
+    public function forgetScopedInstances(): void;
+
+    /**
+     * Hand a fiber not yet started the current scope, so it resolves the same scoped instances.
+     *
+     * @param \Fiber $child
+     * @return void
+     */
+    public function shareScopeWith(\Fiber $child): void;
+
+    /**
      * Register a new resolving callback.
      *
      * @param callable|string $abstract

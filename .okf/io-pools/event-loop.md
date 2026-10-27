@@ -26,7 +26,7 @@ sources:
 
 # Overview
 
-`Voyager\IOPools\EventLoop` implements `Voyager\Contracts\IOPools\Loop`. Container key `event-loop`; aliases `EventLoop`, `Loop`. Built in `IOPoolsServiceProvider::boot()` from the `loop-resource-registry` singleton, a `LoopWaiter` over the waiter backend, the promise engine, and the mail handler.[^provider]
+`Voyager\IOPools\EventLoop` implements `Voyager\Contracts\IOPools\Loop`. Container key `event-loop`; aliases `EventLoop`, `Loop`. Built in `IOPoolsServiceProvider::boot()` from the `loop-resource-registry` singleton, a `LoopWaiter` over the waiter backend, the promise engine, and the mail handler. It hooks `onFiberStart()` to `shareScopeWith()`, so a task shares its starter's scope ([Async](/io-pools/async.md)).[^provider]
 
 Contract: `at()`, `every()`, `promise()`, `await()`, `async()`, `defer()`, `post()`, `resource()`, `forget()`, `crown()`, `supports()`, `onStop()`, `run()`, `stop()`, `until()`.[^contract]
 

@@ -3,6 +3,7 @@
 namespace Voyager\Core\Exceptions;
 
 use Closure;
+use ReflectionFunction;
 use Exception;
 use Voyager\Contracts\Debug\ShouldntReport;
 use ReflectionException;
@@ -515,8 +516,20 @@ class Handler implements ExceptionHandlerContract
             $context = $e->context();
         }
 
+        $failed = [];
+
+        // A callback that throws must not stop the exception being reported; its failure is
+        // logged alongside, so it is seen rather than hidden.
         foreach ($this->contextCallbacks as $callback) {
-            $context = array_merge($context, $callback($e, $context));
+            try {
+                $context = array_merge($context, $callback($e, $context));
+            } catch (Throwable $failure) {
+                $failed[$this->describeContextCallback($callback)] = $failure::class.': '.$failure->getMessage();
+            }
+        }
+
+        if ($failed !== []) {
+            $context['context_callback_failed'] = $failed;
         }
 
         return $context;
@@ -529,13 +542,24 @@ class Handler implements ExceptionHandlerContract
      */
     protected function context(): array
     {
-        try {
-            return array_filter([
-                'userId' => Auth::id(),
-            ]);
-        } catch (Throwable) {
-            return [];
+        return [];
+    }
+
+    /**
+     * Name a context callback in a log line: its class, or the file and line a closure starts on.
+     *
+     * @param  Closure  $callback
+     * @return string
+     */
+    protected function describeContextCallback(Closure $callback): string
+    {
+        $reflection = new ReflectionFunction($callback);
+
+        if (($class = $reflection->getClosureScopeClass()?->getName()) !== null && ! str_contains($reflection->getName(), '{closure')) {
+            return $class.'::'.$reflection->getName();
         }
+
+        return 'Closure@'.$reflection->getFileName().':'.$reflection->getStartLine();
     }
 
     /**

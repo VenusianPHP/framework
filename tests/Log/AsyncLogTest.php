@@ -96,6 +96,8 @@ it('prefers the thread pool when it is on', function () {
     LogApp::channel($this->app, 'async');
     $threads = new RecordingPool($this->app->get(Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
 
     $this->app->get('log')->channel('async')->infoAsync('to the threads')->wait();
 

@@ -126,6 +126,8 @@ it('fails only the task whose closure a worker can\'t rebuild', function () {
 it('sends tasks to the thread workers when they are on', function () {
     $threads = new RecordingPool($this->app->get(Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
 
     $results = $this->app->get('concurrency')->driver('pool')->run(['threaded' => Tasks\returns('on a thread')]);
 
@@ -145,7 +147,7 @@ it('runs tasks on a real thread pool', function () {
 
     expect($driver->run(['a' => Tasks\returns('from a thread'), 'pid' => Tasks\pid()]))
         ->toBe(['a' => 'from a thread', 'pid' => getmypid()]);
-})->skip(! PHP_ZTS || ! extension_loaded('parallel'), 'needs a ZTS build with ext-parallel');
+})->skip(! Voyager\IOPools\WorkerPools\Thread\ThreadSupport::probe()->supported, 'needs threads: '.Voyager\IOPools\WorkerPools\Thread\ThreadSupport::probe()->reason);
 
 it('says which pool is missing or unknown', function () {
     expect(fn () => new PoolDriver($this->app, 'thread')->run(Tasks\returns(null)))

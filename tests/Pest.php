@@ -30,6 +30,12 @@ pest()->extend(TestCase::class)->in('Feature');
 
 uses()->group('deferred')->in('Database/deferred');
 
+// A pretended thread verdict and the fallback warning never outlive the test that set them.
+uses()->afterEach(function () {
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::flush();
+    \Voyager\IOPools\WorkerPools\AutoPool::flush();
+})->in(__DIR__);
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

@@ -7,6 +7,7 @@ use ArrayAccess;
 use JsonSerializable;
 use Stringable as BaseStringable;
 use Voyager\NutsAndBolts\Collection;
+use Voyager\Contracts\Encryption\Encrypter as EncrypterContract;
 use Voyager\NutsAndBolts\HtmlString;
 use Voyager\NutsAndBolts\Concerns\Dumpable;
 use Voyager\NutsAndBolts\Concerns\Tappable;
@@ -1443,7 +1444,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
      */
     public function encrypt(bool $serialize = false)
     {
-        return new static(encrypt($this->value, $serialize));
+        return new static(app(EncrypterContract::class)->encrypt($this->value, $serialize));
     }
 
     /**
@@ -1454,7 +1455,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
      */
     public function decrypt(bool $serialize = false)
     {
-        return new static(decrypt($this->value, $serialize));
+        return new static(app(EncrypterContract::class)->decrypt($this->value, $serialize));
     }
 
     /**

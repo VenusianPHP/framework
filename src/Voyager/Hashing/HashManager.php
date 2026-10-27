@@ -147,9 +147,8 @@ class HashManager extends Manager implements Hasher
      */
     protected function workers(): WorkerPool
     {
-        return match (true) {
-            $this->vessel->isBound('thread-workers') => $this->vessel->get('thread-workers'),
-            $this->vessel->isBound('process-workers') => $this->vessel->get('process-workers'),
+        return match ($binding = \Voyager\IOPools\WorkerPools\AutoPool::binding($this->vessel)) {
+            'thread-workers', 'process-workers' => $this->vessel->get($binding),
             default => throw new InvalidArgumentException(
                 'Async hashing runs on a worker pool, and none is on: enable io-pools.pool_workers.threads or io-pools.pool_workers.process.'
             ),

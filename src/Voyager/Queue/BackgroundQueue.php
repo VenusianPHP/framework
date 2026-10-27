@@ -34,7 +34,7 @@ class BackgroundQueue extends SyncQueue
         $app = $this->container ?? ControlPanel::getInstance();
 
         $binding = match ($this->pool) {
-            null => $app->isBound('thread-workers') ? 'thread-workers' : 'process-workers',
+            null => \Voyager\IOPools\WorkerPools\AutoPool::binding($app) ?? 'process-workers',
             'thread' => 'thread-workers',
             'process' => 'process-workers',
             default => throw new InvalidArgumentException(

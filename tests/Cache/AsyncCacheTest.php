@@ -169,6 +169,8 @@ it('has no async operations on a tagged cache', function () {
 it('sends the file store\'s operations to the thread pool when it is on', function () {
     $threads = new Venusian\Tests\Log\Fixtures\RecordingPool($this->app->get(Voyager\Contracts\IOPools\Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
 
     $this->app->get('cache')->store('file')->async()->put('threaded', 'value', 60)->wait();
 

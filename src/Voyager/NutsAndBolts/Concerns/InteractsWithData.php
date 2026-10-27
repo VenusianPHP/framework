@@ -181,6 +181,36 @@ trait InteractsWithData
     }
 
     /**
+     * Apply the callback if the instance contains a valid enum value for the given key.
+     *
+     * @template TEnum of \BackedEnum
+     * @template TReturn
+     * @template TReturnDefault = never
+     *
+     * @param  string  $key
+     * @param  class-string<TEnum>  $enumClass
+     * @param  callable(TEnum): TReturn  $callback
+     * @param  (callable(): TReturnDefault)|null  $default
+     * @return $this|TReturn|TReturnDefault
+     */
+    public function whenEnum($key, string $enumClass, callable $callback, ?callable $default = null): mixed
+    {
+        if ($this->filled($key) && $this->isBackedEnum($enumClass)) {
+            $value = $enumClass::tryFrom(data_get($this->all(), $key));
+
+            if ($value !== null) {
+                return $callback($value) ?: $this;
+            }
+        }
+
+        if ($default) {
+            return $default();
+        }
+
+        return $this;
+    }
+
+    /**
      * Determine if the instance is missing a given key.
      *
      * @param  string|array  $key
@@ -300,7 +330,14 @@ trait InteractsWithData
      */
     public function clamp($key, $min, $max, $default = 0): float|int
     {
-        return Number::clamp($this->data($key, $default), $min, $max);
+        $value = $this->data($key, $default);
+
+        if (! is_numeric($value)) {
+            $value = $default;
+        }
+
+        // Numeric strings become numbers here: Number::clamp() is strictly typed.
+        return Number::clamp($value + 0, $min, $max);
     }
 
     /**
@@ -349,7 +386,7 @@ trait InteractsWithData
 
         $unit = $unit instanceof Unit ? $unit : Unit::fromName($unit);
 
-        return $unit->interval((float) $value);
+        return CarbonInterval::fromString(number_format((float) $value, 10, '.', '').' '.$unit->name);
     }
 
     /**

@@ -54,7 +54,7 @@ interface Filesystem
      * Write the contents of a file.
      *
      * @param  string  $path
-     * @param  \Psr\Http\Message\StreamInterface|\Voyager\Http\File|\Voyager\Http\UploadedFile|string|resource  $contents
+     * @param  \Psr\Http\Message\StreamInterface|\Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string|resource  $contents
      * @param  mixed  $options
      * @return bool
      */
@@ -63,23 +63,23 @@ interface Filesystem
     /**
      * Store the uploaded file on the disk.
      *
-     * @param  \Voyager\Http\File|\Voyager\Http\UploadedFile|string  $path
-     * @param  \Voyager\Http\File|\Voyager\Http\UploadedFile|string|array|null  $file
+     * @param  \Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string  $path
+     * @param  \Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string|array|null  $file
      * @param  mixed  $options
      * @return string|false
      */
-    public function putFile(\Voyager\Http\File|\Voyager\Http\UploadedFile|string $path, mixed $file = null, mixed $options = []);
+    public function putFile(\Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string $path, mixed $file = null, mixed $options = []);
 
     /**
      * Store the uploaded file on the disk with a given name.
      *
-     * @param  \Voyager\Http\File|\Voyager\Http\UploadedFile|string  $path
-     * @param  \Voyager\Http\File|\Voyager\Http\UploadedFile|string|array|null  $file
+     * @param  \Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string  $path
+     * @param  \Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string|array|null  $file
      * @param  string|array|null  $name
      * @param  mixed  $options
      * @return string|false
      */
-    public function putFileAs(\Voyager\Http\File|\Voyager\Http\UploadedFile|string $path, mixed $file, string|array|null $name = null, mixed $options = []);
+    public function putFileAs(\Voyager\Filesystem\File|\Voyager\Filesystem\UploadedFile|string $path, mixed $file, string|array|null $name = null, mixed $options = []);
 
     /**
      * Write a new file using a stream.

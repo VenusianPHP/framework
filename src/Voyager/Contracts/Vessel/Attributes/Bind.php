@@ -6,6 +6,8 @@ use UnitEnum;
 use Attribute;
 use InvalidArgumentException;
 
+use function Voyager\NutsAndBolts\Helpers\enum_value;
+
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
 class Bind
 {

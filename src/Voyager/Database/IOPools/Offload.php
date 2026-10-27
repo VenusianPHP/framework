@@ -57,7 +57,7 @@ final readonly class Offload
         $app = ControlPanel::getInstance();
 
         $binding = match ($pool) {
-            null => $app->isBound('thread-workers') ? 'thread-workers' : 'process-workers',
+            null => \Voyager\IOPools\WorkerPools\AutoPool::binding($app) ?? 'process-workers',
             'thread' => 'thread-workers',
             'process' => 'process-workers',
             default => throw new InvalidArgumentException(

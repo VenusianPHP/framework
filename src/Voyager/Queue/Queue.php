@@ -14,6 +14,12 @@ use Voyager\Contracts\Encryption\Encrypter;
 use Voyager\Contracts\Queue\ShouldBeEncrypted;
 use Voyager\Contracts\Queue\ShouldBeUnique;
 use Voyager\Contracts\Queue\ShouldQueueAfterCommit;
+use Voyager\Queue\Attributes\Backoff;
+use Voyager\Queue\Attributes\FailOnTimeout;
+use Voyager\Queue\Attributes\MaxExceptions;
+use Voyager\Queue\Attributes\ReadsQueueAttributes;
+use Voyager\Queue\Attributes\Timeout;
+use Voyager\Queue\Attributes\Tries;
 use Voyager\Queue\Signals\JobQueued;
 use Voyager\Queue\Async\AsyncQueue;
 use Voyager\Contracts\IOPools\Loop;
@@ -27,7 +33,7 @@ use Throwable;
 
 abstract class Queue
 {
-    use InteractsWithTime;
+    use InteractsWithTime, ReadsQueueAttributes;
 
     /**
      * The IoC container instance.
@@ -171,10 +177,10 @@ abstract class Queue
             'displayName' => $this->getDisplayName($job),
             'job' => 'Voyager\Queue\CallQueuedHandler@call',
             'maxTries' => $this->getJobTries($job),
-            'maxExceptions' => $job->maxExceptions ?? null,
-            'failOnTimeout' => $job->failOnTimeout ?? false,
+            'maxExceptions' => $this->getAttributeValue($job, MaxExceptions::class, 'maxExceptions'),
+            'failOnTimeout' => $this->getAttributeValue($job, FailOnTimeout::class, 'failOnTimeout') ?? false,
             'backoff' => $this->getJobBackoff($job),
-            'timeout' => $job->timeout ?? null,
+            'timeout' => $this->getAttributeValue($job, Timeout::class, 'timeout'),
             'retryUntil' => $this->getJobExpiration($job),
             'data' => [
                 'commandName' => $job,
@@ -225,12 +231,10 @@ abstract class Queue
      */
     public function getJobTries($job)
     {
-        if (! method_exists($job, 'tries') && ! isset($job->tries)) {
-            return;
-        }
+        $tries = $this->getAttributeValue($job, Tries::class, 'tries');
 
-        if (is_null($tries = $job->tries ?? $job->tries())) {
-            return;
+        if (method_exists($job, 'tries')) {
+            $tries = $job->tries();
         }
 
         return $tries;
@@ -244,11 +248,13 @@ abstract class Queue
      */
     public function getJobBackoff($job)
     {
-        if (! method_exists($job, 'backoff') && ! isset($job->backoff)) {
-            return;
+        $backoff = $this->getAttributeValue($job, Backoff::class, 'backoff');
+
+        if (method_exists($job, 'backoff')) {
+            $backoff = $job->backoff();
         }
 
-        if (is_null($backoff = $job->backoff ?? $job->backoff())) {
+        if (is_null($backoff)) {
             return;
         }
 

@@ -91,6 +91,8 @@ it('checks a hash in a worker', function () {
 it('hashes on the thread pool when it is on', function () {
     $threads = new RecordingPool($this->app->get(Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
 
     $hash = $this->app->make('hash')->makeAsync('correct horse')->wait();
     $this->app->make('hash')->checkAsync('correct horse', $hash)->wait();

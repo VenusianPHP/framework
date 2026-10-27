@@ -55,6 +55,11 @@ final class QueueApp
     /** Runs a computer command in-process; its exit code and what it wrote. */
     public static function run(RenderedInstance $app, array $input): array
     {
+        // queue:work measures the whole test process, which outgrows the default 128 MB in a full run
+        if (($input['command'] ?? null) === 'queue:work') {
+            $input['--memory'] ??= 1024;
+        }
+
         $output = new \Symfony\Component\Console\Output\BufferedOutput;
 
         $code = $app->make(\Voyager\Contracts\Console\Kernel::class)->handle(new \Symfony\Component\Console\Input\ArrayInput($input), $output);

@@ -121,7 +121,7 @@ trait SoftDeletes
     protected function performDeleteOnModel()
     {
         if ($this->forceDeleting) {
-            return tap($this->setKeysForSaveQuery($this->newModelQuery())->forceDelete(), function () {
+            return tap($this->runStatement($this->setKeysForSaveQuery($this->newModelQuery()), 'forceDelete', []), function () {
                 $this->exists = false;
             });
         }
@@ -150,7 +150,7 @@ trait SoftDeletes
             $columns[$this->getUpdatedAtColumn()] = $this->fromDateTime($time);
         }
 
-        $query->update($columns);
+        $this->runStatement($query, 'update', [$columns]);
 
         $this->syncOriginalAttributes(array_keys($columns));
 

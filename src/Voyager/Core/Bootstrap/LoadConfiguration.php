@@ -3,6 +3,8 @@
 namespace Voyager\Core\Bootstrap;
 
 use Closure;
+use Fiber;
+use Voyager\Config\Overrides;
 use Voyager\Config\Repository;
 use Voyager\Contracts\Config\Repository as RepositoryContract;
 use Voyager\Contracts\Core\FrameworkCore as Application;
@@ -52,6 +54,10 @@ class LoadConfiguration
         // directory and load each one into the repository. This will make every
         // options available to the developer for use in various parts of this app.
         $app->registerInstance('config', $config = new Repository($items));
+
+        // a write inside a fiber stays with that fiber and the loop tasks it starts
+        $app->scoped(Overrides::class);
+        $config->overridesUsing(fn () => Fiber::getCurrent() === null ? null : $app->make(Overrides::class));
 
         if (! $loadedFromCache) {
             $this->loadConfigurationFiles($app, $config);

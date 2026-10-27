@@ -232,6 +232,8 @@ it('refuses what a worker can\'t do', function () {
 it('offloads to the thread workers when they are on', function () {
     $threads = new RecordingPool($this->app->get(Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
     $table = names($this, 'sqlite');
 
     $this->app['db']->connection('sqlite')->table($table)->via()->count()->wait();

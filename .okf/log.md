@@ -1,5 +1,17 @@
 # Update Log
 
+## 2026-10-27
+
+* **Creation**: [Database testing helpers](database/testing.md) — `Voyager\Database\Testing`: the refresh/transaction/migration/truncation traits and the database assertions, for any test case that boots `$this->app` and runs `setUp{Trait}`/`tearDown{Trait}`.
+* **Update**: [Computer](console/computer.md) — every shipped command is registered: the Database `db:*`, `model:*`, `schema:dump`, `make:seeder` commands; the event/gig/job/listener/observer makers and `event:generate` (switched off with no reason recorded; they generate working code); `make:graph-model` (its class was never bound). `migrate:fresh` on a populated database and `--seed` work again.
+* **Update**: [Queue](queue/component.md) — one `SerializesModels` trait; `Queueable` composes it; `#[WithoutRelations]` is read up the class chain.
+* **Update**: [Async](io-pools/async.md) — `onFiberSuspend()` suspend/resume hook pairs around every loop wait in fibers the loop started; their exception rules; raw `Fiber::suspend()` is not covered.
+* **Addition**: [Scoped bindings](vessel/scoped.md) — `scoped()` is per fiber plus one main-context scope (`WeakMap` bags); `forgetScopedInstances()` resets the current scope only; `shareScopeWith()`; `#[Bind]` resolves (it was missing its `enum_value` import).
+* **Addition**: [Config](config/component.md) — per-fiber writes through `Overrides`, memoized against a version counter; a task shares its starter's writes both ways.
+* **Update**: [Async](io-pools/async.md), [Event loop](io-pools/event-loop.md) — `onFiberStart()` hooks; the app's loop shares each task its starter's scope.
+* **Update**: [Framework](orientation/framework.md) — `FoundationServiceProvider` boots: `defer()` callbacks run; `dump()` gets the CLI dumper.
+* **Update**: [Queue](queue/component.md) — `queue:work` forgets the current scope between jobs; `--memory` measures the whole process.
+
 ## 2026-10-14
 
 * **Creation**: [Releasing](orientation/releasing.md) — `split.yml` on a `v*` tag: `tests.yml` gates, `.github/split.sh` splits every component to `venusian-voyager` with the same tag, line branch rules, manifest checks, `SPLIT_TOKEN`.

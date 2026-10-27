@@ -9,7 +9,7 @@
         }
     ],
     "require": {
-        "php": "^8.4|^8.5",
+        "php": "~8.4.27||^8.5.12",
         "symfony/console": "^8.0.0",
         "symfony/finder": "^8.0.0",
         "venusian-voyager/config": "^0.10.0",

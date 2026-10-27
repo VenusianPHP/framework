@@ -42,7 +42,7 @@ Driver-only packages and extensions are suggested, not required: Neo4j client, P
 
 # Providers that boot
 
-In `DefaultProviders` order. `FoundationServiceProvider` is the one commented entry.[^providers]
+In `DefaultProviders` order.[^providers]
 
 | Provider | Role |
 |---|---|
@@ -54,6 +54,7 @@ In `DefaultProviders` order. `FoundationServiceProvider` is the one commented en
 | `MigrationServiceProvider` | Deferred; migrator, repository, creator, `migrate:*`, `make:migration` |
 | `FilesystemServiceProvider` | `files`, `filesystem`, `Storage`; `via()` / `stream()` on worker pools |
 | `GraphServiceProvider` | `neo4j` database driver; Cypher grammar |
+| `FoundationServiceProvider` | `DeferredCallbackCollection` scoped, drained on `CommandFinished` / `JobAttempted`; the CLI dumper: `dump()` ends with its source `file:line`, container and dispatcher cut to stubs (`VAR_DUMPER_FORMAT=server`/`tcp://` keeps the stock handler) |
 | `HashServiceProvider` | `hash`; `makeAsync()` / `checkAsync()` |
 | `EncryptionServiceProvider` | `encrypter` |
 | `HttpServiceProvider` | `http`, `http.async`; loop drivers curl / pcurl |

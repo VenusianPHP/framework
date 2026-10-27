@@ -236,7 +236,7 @@ abstract class Relation implements BuilderContract
      */
     public function rawUpdate(array $attributes = [])
     {
-        return $this->query->withoutGlobalScopes()->update($attributes);
+        return Model::runLifecycleStatement($this->query->withoutGlobalScopes(), 'update', [$attributes]);
     }
 
     /**

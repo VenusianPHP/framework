@@ -150,6 +150,8 @@ it('refuses to offload a disk whose config can\'t cross to a worker', function (
 it('offloads to the thread pool when it is on, and to the pool named', function () {
     $threads = new RecordingPool($this->app->get(Loop::class));
     $this->app->registerInstance('thread-workers', $threads);
+    // a stand-in thread pool, on a build that stands in for one whose threads run
+    \Voyager\IOPools\WorkerPools\Thread\ThreadSupport::pretend(true, 'a thread pool stood in by the test');
     $path = $this->app['test.root'].'/threaded.txt';
 
     $this->app['files']->via()->put($path, 'on a thread')->wait();
@@ -187,7 +189,7 @@ it('runs offloaded calls and streams on a real thread pool', function () {
 
     expect(implode('', array_map(fn (FileChunk $chunk) => $chunk->bytes, $heard)))->toBe('written on a thread')
         ->and($read->wait())->toBe(19);
-})->skip(! PHP_ZTS || ! extension_loaded('parallel'), 'needs a ZTS build with ext-parallel');
+})->skip(! Voyager\IOPools\WorkerPools\Thread\ThreadSupport::probe()->supported, 'needs threads: '.Voyager\IOPools\WorkerPools\Thread\ThreadSupport::probe()->reason);
 
 it('streams a file as chunk mail, in order, the last one marked', function () {
     $path = $this->app['test.root'].'/large.bin';

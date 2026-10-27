@@ -1,0 +1,76 @@
+parameters:
+    level: 0
+    paths:
+        - src
+    tmpDir: .phpstan.cache
+    ignoreErrors:
+        # Laravel's factory and fluent APIs return new static() on extendable classes by design; subclasses keep the constructor contract.
+        -
+            identifier: new.static
+            path: src/Voyager/*
+        # Upstream docblock generics name templates resolved from the caller or the class, not from a parameter.
+        -
+            identifier: method.templateTypeNotInParameter
+            path: src/Voyager/*
+        # Drivers for optional packages the framework only suggests; each class is loaded only when its driver is configured.
+        -
+            identifier: class.notFound
+            message: '#(Aws\\|Laudis\\Neo4j\\|League\\Flysystem\\|Predis\\|Pusher\\|React\\Promise\\|Composer\\Script\\)#'
+        -
+            identifier: function.notFound
+            message: '#React\\Promise\\resolve#'
+            path: src/Voyager/IOPools/PromiseEngines/ReactPromiseEngine.php
+        # ext-epoll is suggested; EpollWaiterBackend is chosen only when the extension is loaded.
+        -
+            identifier: function.notFound
+            message: '#epoll_#'
+            path: src/Voyager/IOPools/Waiter/EpollWaiterBackend.php
+        # Methods typed only in docblocks that fall through to an implicit null by design (no native return type, so no runtime error).
+        -
+            identifier: return.missing
+            paths:
+                - src/Voyager/Database/Schema/Grammars/*
+                - src/Voyager/Database/Console/Migrations/TableGuesser.php
+                - src/Voyager/Database/Concerns/ManagesTransactions.php
+        # Laravel's `return $this->method()` on methods documented as void; the value returned is null.
+        -
+            identifier: method.void
+            paths:
+                - src/Voyager/Cache/RetrievesMultipleKeys.php
+                - src/Voyager/Database/Migrations/Migrator.php
+                - src/Voyager/Queue/CallQueuedHandler.php
+                - src/Voyager/Queue/Worker.php
+        -
+            identifier: staticMethod.void
+            path: src/Voyager/Database/Instrument/Builder.php
+        # Abstract bases that use members their concrete subclasses declare.
+        -
+            identifier: method.notFound
+            message: '#Voyager\\Queue\\Queue::(push|later)\(\)#'
+            path: src/Voyager/Queue/Queue.php
+        -
+            identifier: property.notFound
+            message: '#::\$hasMore#'
+            path: src/Voyager/Pagination/AbstractCursorPaginator.php
+        -
+            identifier: property.notFound
+            message: '#::\$migrator#'
+            path: src/Voyager/Database/Console/Migrations/BaseCommand.php
+        # withoutModelEvents() comes from the WithoutModelEvents trait and is called only when class_uses_recursive finds it.
+        -
+            identifier: method.notFound
+            message: '#withoutModelEvents\(\)#'
+            path: src/Voyager/Database/Seeder.php
+        # Unsetting a key that may be absent is a no-op.
+        -
+            identifier: unset.offset
+            path: src/Voyager/Core/Console/StubPublishCommand.php
+        # class-strings and an instanceof against classes this package does not ship: both evaluate without loading the class.
+        -
+            identifier: class.notFound
+            message: '#(BackedEnumCaseNotFoundException|Voyager\\Validation\\ValidationException)#'
+            path: src/Voyager/Core/Exceptions/Handler.php
+        -
+            identifier: class.notFound
+            message: '#Voyager\\NutsAndBolts\\MagicAliases\\Redis#'
+            path: src/Voyager/Redis/Connectors/PhpRedisConnector.php

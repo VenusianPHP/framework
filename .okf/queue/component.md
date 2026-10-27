@@ -61,7 +61,7 @@ Laravel 12's. `pop()` reserves the oldest available row in a transaction, `FOR U
 
 # Worker
 
-`queue:work {connection} --once --stop-when-empty --queue --sleep --tries --timeout …` is Laravel's blocking daemon, in its own process. Between jobs it flushes log context, resets query duration handlers, and forgets scoped instances. `JobFailed` is logged to `queue.failer` by the command's listeners, per signal dispatcher. `queue:restart` reads the default cache store.[^work]
+`queue:work {connection} --once --stop-when-empty --queue --sleep --tries --timeout …` is Laravel's blocking daemon, in its own process. Between jobs it flushes log context, resets query duration handlers, and forgets the current scope's scoped instances ([Scoped bindings](/vessel/scoped.md)). `--memory` measures the whole process, so a long-lived host sizes it to everything that process holds. One `SerializesModels` trait (`Voyager\Queue\SerializesModels`), which `Queueable` composes: a job may use both, and `#[WithoutRelations]` on the class or any parent drops the relations of the models it serializes. `JobFailed` is logged to `queue.failer` by the command's listeners, per signal dispatcher. `queue:restart` reads the default cache store.[^work]
 
 # Failed jobs
 

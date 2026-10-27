@@ -39,7 +39,8 @@ dataset('pools', function () {
 
     yield 'process' => [fn (int $max = 2) => new ProcessWorkerPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
 
-    if (PHP_ZTS && extension_loaded('parallel')) {
+    // Threads only where a parallel\Runtime really runs: a broken build would take the whole run down.
+    if (Voyager\IOPools\WorkerPools\Thread\ThreadSupport::probe()->supported) {
         yield 'thread' => [fn (int $max = 2) => new ThreadWorkerPool(poolLoop(), $max, $base, WorkerPoolManager::autoloader())];
     }
 });

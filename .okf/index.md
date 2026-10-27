@@ -8,6 +8,11 @@ okf_version: "0.2"
 * [Framework](orientation/framework.md) - PHP 8.4 framework package `venusian/framework` at 0.10.0, the `replace` map, and which providers boot.
 * [Releasing](orientation/releasing.md) - A vX.Y.Z tag runs the suite, then splits every component to venusian-voyager with the same tag.
 
+# Vessel, config
+
+* [Scoped bindings](vessel/scoped.md) - `scoped()` shares per fiber and once in the main context; a loop task shares its starter's scope; bags go with their fibers.
+* [Config](config/component.md) - A write inside a fiber stays with it and its loop tasks, read over the items; main-context writes stay global.
+
 # IOPools
 
 * [Event loop](io-pools/event-loop.md) - One turn waits once, then fires wakes, deadlines, ticks, follow-ons and mail; `until()` borrows or suspends.

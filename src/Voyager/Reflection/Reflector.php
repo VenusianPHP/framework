@@ -88,7 +88,7 @@ class Reflector
      *
      * @throws ReflectionException
      */
-    /*public static function getClassAttributes(object|string $objectOrClass, string $attribute, bool $includeParents = false): Collection
+    public static function getClassAttributes(object|string $objectOrClass, string $attribute, bool $includeParents = false): Collection
     {
         $reflectionClass = new ReflectionClass($objectOrClass);
 
@@ -102,7 +102,7 @@ class Reflector
         } while ($includeParents && false !== $reflectionClass = $reflectionClass->getParentClass());
 
         return $includeParents ? new Collection($attributes) : array_first($attributes);
-    }*/
+    }
 
     /**
      * Get the class name of the given parameter's type, if possible.
