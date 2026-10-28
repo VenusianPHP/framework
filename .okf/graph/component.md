@@ -31,7 +31,7 @@ sources:
 
 `GraphServiceProvider` is on `DefaultProviders`. It extends `db` with driver `neo4j` whether or not `db` was already resolved. Connection config `database.connections.neo4j`: host, port, database, username, password, scheme (`bolt`, `bolt+s`, `bolt+ssc`, `neo4j`, `neo4j+s`, `neo4j+ssc`), prefix. The client `laudis/neo4j-php-client` is suggested; only opening a neo4j connection needs it.[^provider][^connector]
 
-`database` picks the Neo4j database; `prefix` prefixes labels. Auth: token (bearer), username + password (basic), or neither (disabled).[^connector]
+`database` picks the Neo4j database; `prefix` prefixes labels. Auth: token (bearer scheme, through the client's `Authenticate::oidc()`), username + password (basic), or neither (disabled).[^connector]
 
 # Raw Cypher
 

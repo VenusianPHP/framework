@@ -2,6 +2,8 @@
 
 ## 2026-10-28
 
+* **Update**: PHPStan scans stubs for ext-epoll, ext-kqueue and ext-pcurl (`phpstan/stubs/`, copied from php-io-extensions: epoll 0.10.6, kqueue 0.10.5, pcurl ide 0.10.5), so analysis is the same on every machine. CI's Linux runner has neither kqueue nor pcurl, which failed the gate there while it passed on macOS. The epoll ignore entries are gone. `/phpstan` is export-ignored.
+* **Update**: [Graph](graph/component.md) — a `token` in the neo4j connection config logs in with `Authenticate::oidc()`, the client's bearer-scheme auth. `Authenticate::bearer()` does not exist, so a token config threw.
 * **Update**: CI runs the full suite on four cells: PHP 8.4 and 8.5, each NTS and ZTS (floors 8.4.27 / 8.5.12). ZTS cells add ext-parallel, keep swoole out, and must pass the thread probe, so thread rows run instead of skipping. The separate `threads` job (8.4 ZTS, subset of suites, no database services) is folded in. PHPStan runs on the 8.4 NTS cell.
 * **Update**: PHPStan gate is level 1 (`phpstan.neon`, CI comment). Magic and subclass-supplied members are declared with `@method`/`@property` on `Model`, `PredisConnection`, `ForeignIdColumnDefinition`, `Relation`, `GeneratorCommand`, and both abstract paginators. `EPOLL*` constants are ignored beside the `epoll_` functions. `Collection::implode()` drops a dead `?? ''`; its doc block matches the native `callable|string`.
 * **Update**: [Pagination](pagination/component.md) — a paginator casts to `toJson()` (Angel's call); `escapeWhenCastingToString()` wraps it in `e()`. `__toString()` called a `render()` view method this tree never had, so a cast threw.
@@ -145,3 +147,9 @@
 * **Addition**: [Concurrency drivers](concurrency/drivers.md) — the component wired onto 0.9, plus the `defer()` helper and console binary helpers it needed. `runningInConsole()` is gone: every entry point is the console, so the question has one answer.
 * **Update**: `AGENTS.md` points at [`.okf/index.md`](index.md). Concepts stay `draft`. The authoring agent does not set `stable`.
 * **Addition**: [Packaged mode](orientation/packaged-mode.md) — `PackagedPaths` moves storage, database and bootstrap caches to the user's data directory when the base path is inside a phar, seeded from the phar once. The framework carries no build commands: `venusian build` (package `venusian/build`, a `venusian-tool` the installer reveals) packs the app from its own directory and hands it `phar://.../<name>.phar` as the base path. `Phar::running()` only answers from code inside the phar.
+
+## 2026-10-28 — 0.11.0 extensions, test memory
+
+- `suggest` pins php-io-extensions epoll, kqueue and pcurl at `^0.11.0`; pcurl is now suggested as its package, not `ext-pcurl`.
+- `phpstan/stubs/` re-copied from the 0.11.0 promotion commits of epoll, kqueue and pcurl (`ide/0.11.0`).
+- `phpunit.xml` sets `memory_limit=1G` for every run: ZTS builds' 128M default ran out mid-suite.

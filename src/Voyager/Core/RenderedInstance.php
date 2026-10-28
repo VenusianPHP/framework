@@ -37,7 +37,7 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
      *
      * @var string
      */
-    const string VERSION = '0.10.8';
+    const string VERSION = '0.11.0';
 
     /**
      * Indicates if the application has "booted".

@@ -6,3 +6,4 @@
 /bootstrap export-ignore
 /storage export-ignore
 /config-stubs export-ignore
+/phpstan export-ignore

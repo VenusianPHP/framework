@@ -3,6 +3,13 @@ parameters:
     paths:
         - src
     tmpDir: .phpstan.cache
+    # The loop's extensions are platform-bound (epoll: Linux, kqueue: BSD/macOS) and pcurl is ours,
+    # so no one machine loads all three. Their stubs, copied from php-io-extensions 0.11.0, declare them everywhere.
+    scanFiles:
+        - phpstan/stubs/epoll.stub.php
+        - phpstan/stubs/kqueue.stub.php
+    scanDirectories:
+        - phpstan/stubs/pcurl
     # Attribute bags: Fluent reads any property through __get; SharedBag is #[AllowDynamicProperties].
     universalObjectCratesClasses:
         - Voyager\NutsAndBolts\Fluent
@@ -24,15 +31,6 @@ parameters:
             identifier: function.notFound
             message: '#React\\Promise\\resolve#'
             path: src/Voyager/IOPools/PromiseEngines/ReactPromiseEngine.php
-        # ext-epoll is suggested; EpollWaiterBackend is chosen only when the extension is loaded.
-        -
-            identifier: function.notFound
-            message: '#epoll_#'
-            path: src/Voyager/IOPools/Waiter/EpollWaiterBackend.php
-        -
-            identifier: constant.notFound
-            message: '#EPOLL#'
-            path: src/Voyager/IOPools/Waiter/EpollWaiterBackend.php
         # Methods typed only in docblocks that fall through to an implicit null by design (no native return type, so no runtime error).
         -
             identifier: return.missing
