@@ -324,7 +324,7 @@ class Arr
      * @template TValue
      * @template TLastDefault
      *
-     * @param iterable<TKey, TValue> $array
+     * @param array<TKey, TValue> $array
      * @param  (callable(TValue, TKey): bool)|null  $callback
      * @param (Closure(): TLastDefault)|null $default
      * @return TValue|TLastDefault
@@ -1091,7 +1091,7 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      *
-     * @param iterable<TKey, TValue> $array
+     * @param array<TKey, TValue> $array
      * @param callable|string|array<int, (callable(TValue, TValue): -1|0|1)|array{string, 'asc'|'desc'}>|null $callback
      * @return array<TKey, TValue>
      */
@@ -1108,7 +1108,7 @@ class Arr
      * @template TKey of array-key
      * @template TValue
      *
-     * @param iterable<TKey, TValue> $array
+     * @param array<TKey, TValue> $array
      * @param callable|string|array<int, (callable(TValue, TValue): -1|0|1)|array{string, 'asc'|'desc'}>|null $callback
      * @return array<TKey, TValue>
      */

@@ -204,7 +204,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Determine if a given string contains a given substring.
      *
-     * @param string|iterable<string> $needles
+     * @param string|array<array-key, string> $needles
      * @param bool $ignoreCase
      * @return bool
      */
@@ -216,7 +216,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Determine if a given string contains all array values.
      *
-     * @param iterable<string> $needles
+     * @param array<array-key, string> $needles
      * @param bool $ignoreCase
      * @return bool
      */
@@ -228,7 +228,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Determine if a given string doesn't contain a given substring.
      *
-     * @param string|iterable<string> $needles
+     * @param string|array<array-key, string> $needles
      * @param bool $ignoreCase
      * @return bool
      */
@@ -274,7 +274,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Determine if a given string ends with a given substring.
      *
-     * @param string|iterable<string> $needles
+     * @param string|array<array-key, string> $needles
      * @return bool
      */
     public function endsWith(array|string $needles): bool
@@ -285,7 +285,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Determine if a given string doesn't end with a given substring.
      *
-     * @param string|iterable<string> $needles
+     * @param string|array<array-key, string> $needles
      * @return bool
      */
     public function doesntEndWith(array|string $needles): bool
@@ -1160,7 +1160,7 @@ class Stringable implements JsonSerializable, ArrayAccess, BaseStringable
     /**
      * Execute the given callback if the string contains all array values.
      *
-     * @param  iterable<string>  $needles
+     * @param  array<array-key, string>  $needles
      * @param  callable  $callback
      * @param  callable|null  $default
      * @return static

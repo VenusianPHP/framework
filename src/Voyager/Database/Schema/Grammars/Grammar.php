@@ -167,6 +167,20 @@ abstract class Grammar extends BaseGrammar
     }
 
     /**
+     * Compile a drop vector index command.
+     *
+     * @param  \Voyager\Database\Schema\Blueprint  $blueprint
+     * @param  \Voyager\NutsAndBolts\Fluent  $command
+     * @return void
+     *
+     * @throws \RuntimeException
+     */
+    public function compileDropVectorIndex(Blueprint $blueprint, Fluent $command)
+    {
+        throw new RuntimeException('The database driver in use does not support vector indexes.');
+    }
+
+    /**
      * Compile the query to determine the foreign keys.
      *
      * @param  string|null  $schema

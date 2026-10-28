@@ -18,6 +18,9 @@ use Traversable;
  * @template-covariant TValue
  *
  * @mixin \Voyager\NutsAndBolts\Collection<TKey, TValue>
+ *
+ * @method bool hasMorePages() Implemented by each concrete paginator.
+ * @method string toJson(int $options = 0) Implemented by each concrete paginator.
  */
 abstract class AbstractPaginator implements CanBeEscapedWhenCastToString, Stringable
 {
@@ -683,15 +686,15 @@ abstract class AbstractPaginator implements CanBeEscapedWhenCastToString, String
     }
 
     /**
-     * Render the contents of the paginator when casting to a string.
+     * Cast the paginator to its JSON form.
      *
      * @return string
      */
     public function __toString()
     {
         return $this->escapeWhenCastingToString
-            ? e((string) $this->render())
-            : (string) $this->render();
+            ? e($this->toJson())
+            : $this->toJson();
     }
 
     /**

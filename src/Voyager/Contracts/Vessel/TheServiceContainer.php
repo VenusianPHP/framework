@@ -132,6 +132,23 @@ interface TheServiceContainer extends ServiceContainerContract
     public function resolving(callable|string $abstract, ?callable $callback = null): void;
 
     /**
+     * Register a new after resolving callback for all types.
+     *
+     * @param callable|string $abstract
+     * @param callable|null $callback
+     * @return void
+     */
+    public function afterResolving(callable|string $abstract, ?callable $callback = null): void;
+
+    /**
+     * Unset the value at a given offset.
+     *
+     * @param mixed $offset
+     * @return void
+     */
+    public function offsetUnset(mixed $offset): void;
+
+    /**
      * Register a shared binding in the container.
      *
      * @param callable|string $abstract

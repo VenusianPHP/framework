@@ -24,7 +24,7 @@ class SyncJob extends Job implements JobContract
     /**
      * Create a new job instance.
      *
-     * @param  \Voyager\Vessel\Vessel  $container
+     * @param  \Voyager\Vessel\ControlPanel  $container
      * @param  string  $payload
      * @param  string  $connectionName
      * @param  string  $queue

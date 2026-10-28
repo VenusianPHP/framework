@@ -16,7 +16,7 @@ class QueueManager implements FactoryContract, MonitorContract
     /**
      * The application instance.
      *
-     * @var \Voyager\Contracts\System\Application
+     * @var \Voyager\Contracts\Core\FrameworkCore
      */
     protected $app;
 
@@ -37,7 +37,7 @@ class QueueManager implements FactoryContract, MonitorContract
     /**
      * Create a new queue manager instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      */
     public function __construct($app)
     {
@@ -354,7 +354,7 @@ class QueueManager implements FactoryContract, MonitorContract
     /**
      * Get the application instance used by the manager.
      *
-     * @return \Voyager\Contracts\System\Application
+     * @return \Voyager\Contracts\Core\FrameworkCore
      */
     public function getApplication()
     {
@@ -364,7 +364,7 @@ class QueueManager implements FactoryContract, MonitorContract
     /**
      * Set the application instance used by the manager.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @return $this
      */
     public function setApplication($app)

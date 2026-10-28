@@ -22,7 +22,7 @@ use Voyager\NutsAndBolts\Exceptions\MultipleItemsFoundException;
  *
  * @template-covariant TValue
  *
- * @extends Arrayable
+ * @extends Arrayable<TKey, TValue>
  * @extends IteratorAggregate<TKey, TValue>
  */
 interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, JsonSerializable
@@ -181,7 +181,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Get the items whose keys are not present in the given items, using the callback.
      *
-     * @param  Arrayable|iterable<TKey, mixed>  $items
+     * @param  Arrayable|array<TKey, mixed>  $items
      * @param  callable(TKey, TKey): int  $callback
      * @return static
      */
@@ -371,7 +371,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Flip the values with their keys.
      *
-     * @return static<TValue, TKey>
+     * @return static<array-key, TKey>
      */
     public function flip();
 
@@ -396,7 +396,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @return static<
      *  ($groupBy is (array|string)
      *      ? array-key
-     *      : (TGroupKey is \UnitEnum ? array-key : (TGroupKey is \Stringable ? string : TGroupKey))),
+     *      : (TGroupKey is \UnitEnum ? array-key : (TGroupKey is \Stringable ? string : array-key))),
      *  static<($preserveKeys is true ? TKey : int), ($groupBy is array ? mixed : TValue)>
      * >
      */
@@ -448,7 +448,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Intersect the collection with the given items, using the callback.
      *
-     * @param Arrayable|iterable<array-key, TValue> $items
+     * @param Arrayable|array<array-key, TValue> $items
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
@@ -457,7 +457,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Intersect the collection with the given items with additional index check.
      *
-     * @param Arrayable|iterable<TKey, TValue> $items
+     * @param Arrayable|array<TKey, TValue> $items
      * @return static
      */
     public function intersectAssoc(Arrayable|array|null $items): static;
@@ -465,7 +465,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Intersect the collection with the given items with additional index check, using the callback.
      *
-     * @param Arrayable|iterable<array-key, TValue> $items
+     * @param Arrayable|array<array-key, TValue> $items
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
@@ -474,7 +474,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Intersect the collection with the given items by key.
      *
-     * @param Arrayable|iterable<TKey, mixed> $items
+     * @param Arrayable|array<TKey, mixed> $items
      * @return static
      */
     public function intersectByKeys(array|Arrayable|null $items): static;
@@ -627,7 +627,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TMergeValue
      *
-     * @param Arrayable|iterable<TKey, TMergeValue> $items
+     * @param Arrayable|array<TKey, TMergeValue> $items
      * @return static<TKey, TValue|TMergeValue>
      */
     public function merge(Arrayable|array|null $items): static;
@@ -637,7 +637,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TMergeRecursiveValue
      *
-     * @param Arrayable|iterable<TKey, TMergeRecursiveValue> $items
+     * @param Arrayable|array<TKey, TMergeRecursiveValue> $items
      * @return static<TKey, TValue|TMergeRecursiveValue>
      */
     public function mergeRecursive(Arrayable|array|null $items): static;
@@ -647,15 +647,15 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TCombineValue
      *
-     * @param Arrayable|iterable<array-key, TCombineValue> $values
-     * @return static<TValue, TCombineValue>
+     * @param Arrayable<array-key, TCombineValue>|array<array-key, TCombineValue> $values
+     * @return static<array-key, TCombineValue>
      */
     public function combine(Arrayable|array $values): static;
 
     /**
      * Union the collection with the given items.
      *
-     * @param Arrayable|iterable<TKey, TValue> $items
+     * @param Arrayable|array<TKey, TValue> $items
      * @return static
      */
     public function union(Arrayable|array|null $items): static;
@@ -739,7 +739,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Replace the collection items with the given items.
      *
-     * @param Arrayable|iterable<TKey, TValue> $items
+     * @param Arrayable|array<TKey, TValue> $items
      * @return static
      */
     public function replace(Arrayable|array|null $items): static;
@@ -747,7 +747,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
     /**
      * Recursively replace the collection items with the given items.
      *
-     * @param Arrayable|iterable<TKey, TValue> $items
+     * @param Arrayable|array<TKey, TValue> $items
      * @return static
      */
     public function replaceRecursive(Arrayable|array|null $items): static;

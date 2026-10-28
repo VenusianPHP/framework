@@ -113,4 +113,23 @@ interface Repository extends CacheInterface
      * @return \Voyager\Contracts\Cache\Store
      */
     public function getStore();
+
+    /**
+     * Begin executing a new tags operation.
+     *
+     * @param  mixed  $names
+     * @return \Voyager\Cache\TaggedCache
+     *
+     * @throws \BadMethodCallException
+     */
+    public function tags($names);
+
+    /**
+     * The repository's operations as promises.
+     *
+     * @return \Voyager\Cache\Async\AsyncRepository
+     *
+     * @throws \RuntimeException no loop was set with useAsync()
+     */
+    public function async(): \Voyager\Cache\Async\AsyncRepository;
 }

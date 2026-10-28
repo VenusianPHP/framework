@@ -12,7 +12,7 @@ interface Loop
      * Registers a one-shot timer that fires after $delay_s
      * @param float $delay_s
      * @param callable $fire
-     * @return Deadlined
+     * @return Timer
      */
     public function at(float $delay_s, callable $fire): Timer;
 
@@ -61,10 +61,10 @@ interface Loop
     public function post(object $mail): void;
 
     /**
-     * Registers a Tickable resource
+     * Registers a loop resource
      * @param string $name
-     * @param Tickable $resource
-     * @return Tickable
+     * @param LoopResource $resource
+     * @return LoopResource
      */
     public function resource(string $name, LoopResource $resource): LoopResource;
 

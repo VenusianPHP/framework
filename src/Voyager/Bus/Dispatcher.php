@@ -13,6 +13,8 @@ use Voyager\Pipeline\Pipeline;
 use Voyager\Queue\InteractsWithQueue;
 use Voyager\Queue\Jobs\SyncJob;
 use Voyager\NutsAndBolts\Collection;
+use Voyager\NutsAndBolts\Defer\DeferredCallback;
+use Voyager\NutsAndBolts\Defer\DeferredCallbackCollection;
 use RuntimeException;
 
 class Dispatcher implements QueueingDispatcher
@@ -20,7 +22,7 @@ class Dispatcher implements QueueingDispatcher
     /**
      * The container implementation.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
     protected TheServiceContainer $container;
 
@@ -262,9 +264,10 @@ class Dispatcher implements QueueingDispatcher
             return;
         }
 
-        $this->container->terminating(function () use ($command, $handler) {
-            $this->dispatchSync($command, $handler);
-        });
+        $this->container->make(DeferredCallbackCollection::class)[] = new DeferredCallback(
+            fn () => $this->dispatchSync($command, $handler),
+            always: true
+        );
     }
 
     /**

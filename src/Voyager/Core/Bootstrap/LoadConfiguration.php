@@ -24,7 +24,7 @@ class LoadConfiguration
     /**
      * Bootstrap the given application.
      *
-     * @param \Voyager\Contracts\System\Application $app
+     * @param \Voyager\Contracts\Core\FrameworkCore $app
      * @return void
      * @throws \ReflectionException
      * @throws \Exception
@@ -78,7 +78,7 @@ class LoadConfiguration
     /**
      * Load the configuration items from every file.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @param  \Voyager\Contracts\Config\Repository  $repository
      * @return void
      *
@@ -167,7 +167,7 @@ class LoadConfiguration
     /**
      * Get every configuration file for the application.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @return array
      */
     protected function getConfigurationFiles(Application $app): array

@@ -162,7 +162,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Collapse the collection of items into a single array while preserving its keys.
      *
-     * @return static<mixed, mixed>
+     * @return static<array-key, mixed>
      */
     public function collapseWithKeys(): static
     {
@@ -259,7 +259,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Cross join with the given lists, returning all possible permutations.
      *
-     * @template TCrossJoinKey
+     * @template TCrossJoinKey of array-key
      * @template TCrossJoinValue
      *
      * @param Arrayable<TCrossJoinKey, TCrossJoinValue>|iterable<TCrossJoinKey, TCrossJoinValue>  ...$lists
@@ -332,7 +332,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Get the items in the collection whose keys are not present in the given items, using the callback.
      *
-     * @param Arrayable<TKey, mixed>|iterable<TKey, mixed>  $items
+     * @param Arrayable<TKey, mixed>|array<TKey, mixed>  $items
      * @param  callable(TKey, TKey): int  $callback
      * @return static
      */
@@ -463,7 +463,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Flip the items in the collection.
      *
-     * @return static<TValue, TKey>
+     * @return static<array-key, TKey>
      */
     public function flip()
     {
@@ -634,7 +634,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Concatenate values of a given key as a string.
      *
-     * @param  (callable(TValue, TKey): mixed)|string|null  $value
+     * @param  (callable(TValue, TKey): mixed)|string  $value
      * @param  string|null  $glue
      * @return string
      */
@@ -650,7 +650,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
             return implode($glue ?? '', $this->pluck($value)->all());
         }
 
-        return implode($value ?? '', $this->items);
+        return implode($value, $this->items);
     }
 
     /**
@@ -667,7 +667,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Intersect the collection with the given items, using the callback.
      *
-     * @param Arrayable<array-key, TValue>|iterable<array-key, TValue>  $items
+     * @param Arrayable<array-key, TValue>|array<array-key, TValue>  $items
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
@@ -679,7 +679,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Intersect the collection with the given items with additional index check.
      *
-     * @param Arrayable<TKey, TValue>|iterable<TKey, TValue>  $items
+     * @param Arrayable<TKey, TValue>|array<TKey, TValue>  $items
      * @return static
      */
     public function intersectAssoc(Arrayable|array|null $items): static
@@ -690,7 +690,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Intersect the collection with the given items with additional index check, using the callback.
      *
-     * @param Arrayable<array-key, TValue>|iterable<array-key, TValue>  $items
+     * @param Arrayable<array-key, TValue>|array<array-key, TValue>  $items
      * @param  callable(TValue, TValue): int  $callback
      * @return static
      */
@@ -702,7 +702,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Intersect the collection with the given items by key.
      *
-     * @param Arrayable<TKey, mixed>|iterable<TKey, mixed>  $items
+     * @param Arrayable<TKey, mixed>|array<TKey, mixed>  $items
      * @return static
      */
     public function intersectByKeys(array|Arrayable|null $items): static
@@ -759,7 +759,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @param  string  $glue
      * @param  string  $finalGlue
-     * @return TValue|string
+     * @return string
      */
     public function join(string $glue, string $finalGlue = ''): string
     {
@@ -811,7 +811,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Get the values of a given key.
      *
-     * @param  \Closure|string|int|array<array-key, string>|null  $value
+     * @param  \Closure|string|int|array<array-key, string>  $value
      * @param  \Closure|string|null  $key
      * @return static<array-key, mixed>
      */
@@ -886,7 +886,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @template TMergeValue
      *
-     * @param Arrayable<TKey, TMergeValue>|iterable<TKey, TMergeValue>  $items
+     * @param Arrayable<TKey, TMergeValue>|array<TKey, TMergeValue>  $items
      * @return static<TKey, TValue|TMergeValue>
      */
     public function merge(Arrayable|array|null $items): static
@@ -899,7 +899,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @template TMergeRecursiveValue
      *
-     * @param Arrayable<TKey, TMergeRecursiveValue>|iterable<TKey, TMergeRecursiveValue>  $items
+     * @param Arrayable<TKey, TMergeRecursiveValue>|array<TKey, TMergeRecursiveValue>  $items
      * @return static<TKey, TValue|TMergeRecursiveValue>
      */
     public function mergeRecursive(Arrayable|array|null $items): static
@@ -929,8 +929,8 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @template TCombineValue
      *
-     * @param Arrayable<array-key, TCombineValue>|iterable<array-key, TCombineValue>  $values
-     * @return static<TValue, TCombineValue>
+     * @param Arrayable<array-key, TCombineValue>|array<array-key, TCombineValue>  $values
+     * @return static<array-key, TCombineValue>
      */
     public function combine(Arrayable|array $values): static
     {
@@ -940,7 +940,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Union the collection with the given items.
      *
-     * @param Arrayable<TKey, TValue>|iterable<TKey, TValue>  $items
+     * @param Arrayable<TKey, TValue>|array<TKey, TValue>  $items
      * @return static
      */
     public function union(Arrayable|array|null $items): static
@@ -1166,7 +1166,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Replace the collection items with the given items.
      *
-     * @param Arrayable<TKey, TValue>|iterable<TKey, TValue>  $items
+     * @param Arrayable<TKey, TValue>|array<TKey, TValue>  $items
      * @return static
      */
     public function replace(Arrayable|array|null $items): static
@@ -1177,7 +1177,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Recursively replace the collection items with the given items.
      *
-     * @param Arrayable<TKey, TValue>|iterable<TKey, TValue>  $items
+     * @param Arrayable<TKey, TValue>|array<TKey, TValue>  $items
      * @return static
      */
     public function replaceRecursive(Arrayable|array|null $items): static
@@ -1582,8 +1582,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Sort the collection using the given callback.
      *
-     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array
-    {string, SortDirection|'asc'|'desc'}>|(callable(TValue, TKey): mixed)|string|int  $callback
+     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array{string, SortDirection|'asc'|'desc'}>|(callable(TValue, TKey): mixed)|string|int  $callback
      * @param  int-mask-of<SORT_REGULAR|SORT_NUMERIC|SORT_STRING|SORT_LOCALE_STRING|SORT_NATURAL|SORT_FLAG_CASE>  $options
      * @param  SortDirection|bool  $descending
      * @return static
@@ -1623,8 +1622,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Sort the collection using multiple comparisons.
      *
-     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array
-    {string, SortDirection|'asc'|'desc'}>  $comparisons
+     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array{string, SortDirection|'asc'|'desc'}>  $comparisons
      * @param  int-mask-of<SORT_REGULAR|SORT_NUMERIC|SORT_STRING|SORT_LOCALE_STRING|SORT_NATURAL|SORT_FLAG_CASE>  $options
      * @return static
      */
@@ -1684,8 +1682,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
     /**
      * Sort the collection in descending order using the given callback.
      *
-     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array
-    {string, SortDirection|'asc'|'desc'}>|(callable(TValue, TKey): mixed)|string|int  $callback
+     * @param  array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array{string, SortDirection|'asc'|'desc'}>|(callable(TValue, TKey): mixed)|string|int  $callback
      * @param  int-mask-of<SORT_REGULAR|SORT_NUMERIC|SORT_STRING|SORT_LOCALE_STRING|SORT_NATURAL|SORT_FLAG_CASE>  $options
      * @return static
      */

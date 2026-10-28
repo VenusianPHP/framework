@@ -1226,7 +1226,7 @@ class Str
      * Replace a given value in the string sequentially with an array.
      *
      * @param string $search
-     * @param iterable<string> $replace
+     * @param array<array-key, string> $replace
      * @param string $subject
      * @return string
      */
@@ -1409,7 +1409,7 @@ class Str
      * Remove any occurrence of the given string in the subject.
      *
      * @param string|iterable<string> $search
-     * @param string|iterable<string> $subject
+     * @param string|array<array-key, string> $subject
      * @param bool $caseSensitive
      * @return string
      */

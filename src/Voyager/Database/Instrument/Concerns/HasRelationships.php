@@ -504,9 +504,9 @@ trait HasRelationships
      * @param  string|\Voyager\Database\Instrument\Relations\HasMany<TIntermediateModel, covariant $this>|\Voyager\Database\Instrument\Relations\HasOne<TIntermediateModel, covariant $this>  $relationship
      * @return (
      *     $relationship is string
-     *     ? \Voyager\Database\Instrument\PendingHasThroughRelationship<\Voyager\Database\Instrument\Model, $this>
+     *     ? \Voyager\Database\Instrument\PendingHasThroughRelationship<\Voyager\Database\Instrument\Model, $this, \Voyager\Database\Instrument\Relations\HasOneOrMany<\Voyager\Database\Instrument\Model, $this, mixed>>
      *     : (
-     *          $relationship is \Voyager\Database\Instrument\Relations\HasMany<TIntermediateModel, $this>
+     *          $relationship is \Voyager\Database\Instrument\Relations\HasMany<TIntermediateModel, covariant $this>
      *          ? \Voyager\Database\Instrument\PendingHasThroughRelationship<TIntermediateModel, $this, \Voyager\Database\Instrument\Relations\HasMany<TIntermediateModel, $this>>
      *          : \Voyager\Database\Instrument\PendingHasThroughRelationship<TIntermediateModel, $this, \Voyager\Database\Instrument\Relations\HasOne<TIntermediateModel, $this>>
      *     )

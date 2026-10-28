@@ -179,4 +179,100 @@ interface ConnectionInterface
      * @return string
      */
     public function getDatabaseName();
+
+    /**
+     * Run a select statement against the write connection.
+     *
+     * @param  string $query
+     * @param  array $bindings
+     * @return array
+     */
+    public function selectFromWriteConnection($query, $bindings = []);
+
+    /**
+     * Indicate if any records have been modified.
+     *
+     * @param  bool $value
+     * @return void
+     */
+    public function recordsHaveBeenModified($value = true);
+
+    /**
+     * Execute the given callback without table prefix.
+     *
+     * @param  \Closure $callback
+     * @return mixed
+     */
+    public function withoutTablePrefix(Closure $callback): mixed;
+
+    /**
+     * Get the database connection name.
+     *
+     * @return string|null
+     */
+    public function getName();
+
+    /**
+     * Get an option from the configuration options.
+     *
+     * @param  string|null $option
+     * @return mixed
+     */
+    public function getConfig($option = null);
+
+    /**
+     * Get the current PDO connection.
+     *
+     * @return \PDO
+     */
+    public function getPdo();
+
+    /**
+     * Get a human-readable name for the given connection driver.
+     *
+     * @return string
+     */
+    public function getDriverTitle();
+
+    /**
+     * Get the server version for the connection.
+     *
+     * @return string
+     */
+    public function getServerVersion(): string;
+
+    /**
+     * Get the number of open connections for the database.
+     *
+     * @return int|null
+     */
+    public function threadCount();
+
+    /**
+     * Get the table prefix for the connection.
+     *
+     * @return string
+     */
+    public function getTablePrefix();
+
+    /**
+     * Get the query grammar used by the connection.
+     *
+     * @return \Voyager\Database\Query\Grammars\Grammar
+     */
+    public function getQueryGrammar();
+
+    /**
+     * Get the query post processor used by the connection.
+     *
+     * @return \Voyager\Database\Query\Processors\Processor
+     */
+    public function getPostProcessor();
+
+    /**
+     * Get a schema builder instance for the connection.
+     *
+     * @return \Voyager\Database\Schema\Builder
+     */
+    public function getSchemaBuilder();
 }

@@ -36,7 +36,7 @@ class LoadEnvironmentVariables
     /**
      * Detect if a custom environment file matching the APP_ENV exists.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @return void
      */
     protected function checkForSpecificEnvironmentFile(FrameworkCore $app): void
@@ -60,7 +60,7 @@ class LoadEnvironmentVariables
     /**
      * Load a custom environment file.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @param  string  $file
      * @return bool
      */
@@ -78,7 +78,7 @@ class LoadEnvironmentVariables
     /**
      * Create a Dotenv instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @return \Dotenv\Dotenv
      */
     protected function createDotenv(FrameworkCore $app): Dotenv

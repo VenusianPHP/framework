@@ -139,7 +139,7 @@ class DatabaseManager implements ConnectionResolverInterface
     /**
      * Get a database connection instance from the given configuration.
      *
-     * @param  \UnitEnum|string  $name
+     * @param  string  $name
      * @param  array  $config
      * @param  bool  $force
      * @return \Voyager\Database\ConnectionInterface

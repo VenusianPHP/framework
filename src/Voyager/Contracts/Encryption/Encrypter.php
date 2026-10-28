@@ -2,7 +2,7 @@
 
 namespace Voyager\Contracts\Encryption;
 
-interface Encrypter
+interface Encrypter extends StringEncrypter
 {
     /**
      * @throws EncryptException

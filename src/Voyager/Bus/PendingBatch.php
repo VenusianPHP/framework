@@ -10,6 +10,8 @@ use Voyager\Contracts\Signals\SignalDispatcher as EventDispatcher;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\Concerns\Conditionable;
+use Voyager\NutsAndBolts\Defer\DeferredCallback;
+use Voyager\NutsAndBolts\Defer\DeferredCallbackCollection;
 use Laravel\SerializableClosure\SerializableClosure;
 use RuntimeException;
 use Throwable;
@@ -24,7 +26,7 @@ class PendingBatch
     /**
      * The IoC container instance.
      *
-     * @var \Voyager\Contracts\Vessel\Vessel
+     * @var \Voyager\Contracts\Vessel\TheServiceContainer
      */
     protected TheServiceContainer $container;
 
@@ -59,7 +61,7 @@ class PendingBatch
     /**
      * Create a new pending batch instance.
      *
-     * @param  \Voyager\Contracts\Vessel\Vessel  $container
+     * @param  \Voyager\Vessel\ControlPanel  $container
      * @param  \Voyager\NutsAndBolts\Collection  $jobs
      */
     public function __construct(ControlPanel $container, Collection $jobs)
@@ -233,9 +235,7 @@ class PendingBatch
      *
      * Optionally, add callbacks to be executed upon each job failure.
      *
-     * @phpstan-type TParam (Closure(\Voyager\Bus\Batch, \Throwable|null): mixed)|(callable(\Voyager\Bus\Batch, \Throwable|null): mixed)
-     *
-     * @param  bool|TParam|array<array-key, TParam>  $param
+     * @param  bool|(Closure(\Voyager\Bus\Batch, \Throwable|null): mixed)|(callable(\Voyager\Bus\Batch, \Throwable|null): mixed)|array<array-key, (Closure(\Voyager\Bus\Batch, \Throwable|null): mixed)|(callable(\Voyager\Bus\Batch, \Throwable|null): mixed)>  $param
      * @return $this
      */
     public function allowFailures(mixed $param = true): static
@@ -400,9 +400,10 @@ class PendingBatch
         $batch = $this->store($repository);
 
         if ($batch) {
-            $this->container->terminating(function () use ($batch) {
-                $this->dispatchExistingBatch($batch);
-            });
+            $this->container->make(DeferredCallbackCollection::class)[] = new DeferredCallback(
+                fn () => $this->dispatchExistingBatch($batch),
+                always: true
+            );
         }
 
         return $batch;

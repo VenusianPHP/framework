@@ -39,7 +39,7 @@ class RedisJob extends Job implements JobContract
     /**
      * Create a new job instance.
      *
-     * @param  \Voyager\Vessel\Vessel  $container
+     * @param  \Voyager\Vessel\ControlPanel  $container
      * @param  \Voyager\Queue\RedisQueue  $redis
      * @param  string  $job
      * @param  string  $reserved

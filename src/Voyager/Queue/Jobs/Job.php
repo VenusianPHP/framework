@@ -25,7 +25,7 @@ abstract class Job
     /**
      * The IoC container instance.
      *
-     * @var \Voyager\Vessel\Vessel
+     * @var \Voyager\Vessel\ControlPanel
      */
     protected $container;
 
@@ -403,7 +403,7 @@ abstract class Job
     /**
      * Get the service container instance.
      *
-     * @return \Voyager\Vessel\Vessel
+     * @return \Voyager\Vessel\ControlPanel
      */
     public function getContainer()
     {

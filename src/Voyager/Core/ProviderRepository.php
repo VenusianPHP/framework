@@ -12,7 +12,7 @@ class ProviderRepository
     /**
      * The application implementation.
      *
-     * @var \Voyager\Contracts\System\Application
+     * @var \Voyager\Contracts\Core\FrameworkCore
      */
     protected $app;
 
@@ -33,7 +33,7 @@ class ProviderRepository
     /**
      * Create a new service repository instance.
      *
-     * @param  \Voyager\Contracts\System\Application  $app
+     * @param  \Voyager\Contracts\Core\FrameworkCore  $app
      * @param  \Voyager\Filesystem\Filesystem  $files
      * @param  string  $manifestPath
      */

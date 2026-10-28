@@ -112,3 +112,14 @@ it('rounds a decimal cast half up to its scale', function () {
 
     expect($model->price)->toBe('1.24');
 });
+
+it('drops a vector index the way it drops any other index', function () {
+    $sqlite = $this->app['db']->connection('sqlite');
+    $sqlite->useDefaultSchemaGrammar();
+    $changed = new Voyager\Database\Schema\Blueprint($sqlite, 'notes', fn ($table) => $table->string('body')->vectorIndex(false)->change());
+    $dropped = new Voyager\Database\Schema\Blueprint($sqlite, 'notes', fn ($table) => $table->dropVectorIndex('notes_body_vectorindex'));
+    $postgres = new Voyager\Database\Schema\Grammars\PostgresGrammar($sqlite);
+
+    expect(fn () => $changed->toSql())->toThrow(RuntimeException::class, 'does not support vector indexes')
+        ->and($postgres->compileDropVectorIndex($dropped, $dropped->getCommands()[0]))->toBe('drop index "notes_body_vectorindex"');
+});

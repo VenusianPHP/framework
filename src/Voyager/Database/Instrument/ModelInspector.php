@@ -48,7 +48,7 @@ class ModelInspector
      *
      * @param  class-string<\Voyager\Database\Instrument\Model>|string  $model
      * @param  string|null  $connection
-     * @return array{"class": class-string<\Voyager\Database\Instrument\Model>, database: string, table: string, policy: class-string|null, attributes: \Voyager\NutsAndBolts\Collection, relations: \Voyager\NutsAndBolts\Collection, events: \Voyager\NutsAndBolts\Collection, observers: \Voyager\NutsAndBolts\Collection, collection: class-string<\Voyager\Database\Instrument\Collection<\Voyager\Database\Instrument\Model>>, builder: class-string<\Voyager\Database\Instrument\Builder<\Voyager\Database\Instrument\Model>>, "resource": class-string<\Voyager\Http\Resources\Json\JsonResource>|null}
+     * @return array{"class": class-string<\Voyager\Database\Instrument\Model>, database: string, table: string, policy: class-string|null, attributes: \Voyager\NutsAndBolts\Collection, relations: \Voyager\NutsAndBolts\Collection, events: \Voyager\NutsAndBolts\Collection, observers: \Voyager\NutsAndBolts\Collection, collection: class-string<\Voyager\Database\Instrument\Collection<\Voyager\Database\Instrument\Model>>, builder: class-string<\Voyager\Database\Instrument\Builder<\Voyager\Database\Instrument\Model>>}
      *
      * @throws \Voyager\Contracts\Vessel\DataBindingException
      */
@@ -74,7 +74,6 @@ class ModelInspector
             'observers' => $this->getObservers($model),
             'collection' => $this->getCollectedBy($model),
             'builder' => $this->getBuilder($model),
-            'resource' => $this->getResource($model),
         ];
     }
 
@@ -288,17 +287,6 @@ class ModelInspector
     protected function getBuilder($model)
     {
         return $model->newQuery()::class;
-    }
-
-    /**
-     * Get the class used for JSON response transforming.
-     *
-     * @param  \Voyager\Database\Instrument\Model  $model
-     * @return \Voyager\Http\Resources\Json\JsonResource|null
-     */
-    protected function getResource($model)
-    {
-        return rescue(static fn () => $model->toResource()::class, null, false);
     }
 
     /**

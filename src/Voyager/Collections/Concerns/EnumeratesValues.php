@@ -196,7 +196,7 @@ trait EnumeratesValues
     /**
      * Get the average value of a given key.
      *
-     * @param  (callable(TValue): float|int)|string|null  $callback
+     * @param  (callable(TValue): (float|int))|string|null  $callback
      * @return float|int|null
      */
     public function avg(callable|string|null $callback = null): float|int|null
@@ -218,7 +218,7 @@ trait EnumeratesValues
     /**
      * Alias for the "avg" method.
      *
-     * @param  (callable(TValue): float|int)|string|null  $callback
+     * @param  (callable(TValue): (float|int))|string|null  $callback
      * @return float|int|null
      */
     public function average(callable|string|null $callback = null): float|int|null
@@ -229,7 +229,7 @@ trait EnumeratesValues
     /**
      * Alias for the "contains" method.
      *
-     * @param  (callable(TValue, TKey): bool)|TValue|string  $key
+     * @param  (callable(TValue, TKey): bool)|string  $key
      * @param  mixed  $operator
      * @param  mixed  $value
      * @return bool
@@ -283,7 +283,7 @@ trait EnumeratesValues
     /**
      * Execute a callback over each nested chunk of items.
      *
-     * @param  callable(...mixed): mixed  $callback
+     * @param  callable(mixed ...): mixed  $callback
      * @return static
      */
     public function eachSpread(callable $callback): static
@@ -298,7 +298,7 @@ trait EnumeratesValues
     /**
      * Determine if all items pass the given truth test.
      *
-     * @param  (callable(TValue, TKey): bool)|TValue|string  $key
+     * @param  (callable(TValue, TKey): bool)|string  $key
      * @param  mixed  $operator
      * @param  mixed  $value
      * @return bool
@@ -574,10 +574,10 @@ trait EnumeratesValues
     /**
      * Get the sum of the given values.
      *
-     * @template TReturnType
+     * @template TReturnType of float|int|string
      *
      * @param  (callable(TValue, TKey): TReturnType)|string|null  $callback
-     * @return ($callback is callable ? TReturnType : mixed)
+     * @return ($callback is callable ? TReturnType : float|int|string)
      */
     public function sum(callable|string|null $callback = null): float|int|string
     {

@@ -42,7 +42,7 @@ class SignalServiceProvider extends ServiceProvider
     /**
      * The configured signal discovery paths.
      *
-     * @var iterable<int, string>|null
+     * @var array<int, string>|\Voyager\NutsAndBolts\Contracts\Enumerable<int, string>
      */
     protected static array|Enumerable $signal_discovery_paths = [];
 
@@ -163,7 +163,7 @@ class SignalServiceProvider extends ServiceProvider
     /**
      * Get the listener directories that should be used to discover signals.
      *
-     * @return iterable<int, string>
+     * @return array<int, string>
      */
     protected function discoverSignalsWithin(): array
     {

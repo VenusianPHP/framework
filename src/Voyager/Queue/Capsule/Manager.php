@@ -25,7 +25,7 @@ class Manager
     /**
      * Create a new queue capsule manager.
      *
-     * @param  \Voyager\Vessel\Vessel|null  $container
+     * @param  \Voyager\Vessel\ControlPanel|null  $container
      */
     public function __construct(?ControlPanel $container = null)
     {

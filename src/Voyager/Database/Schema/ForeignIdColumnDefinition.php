@@ -4,6 +4,10 @@ namespace Voyager\Database\Schema;
 
 use Voyager\NutsAndBolts\DataObjects\Stringable;
 
+/**
+ * @property string $name
+ * @property string|null $table
+ */
 class ForeignIdColumnDefinition extends ColumnDefinition
 {
     /**

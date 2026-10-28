@@ -11,7 +11,7 @@ use Voyager\NutsAndBolts\DataObjects\Stringable;
 /**
  * @template TIntermediateModel of \Voyager\Database\Instrument\Model
  * @template TDeclaringModel of \Voyager\Database\Instrument\Model
- * @template TLocalRelationship of \Voyager\Database\Instrument\Relations\HasOneOrMany<TIntermediateModel, TDeclaringModel>
+ * @template TLocalRelationship of \Voyager\Database\Instrument\Relations\HasOneOrMany<TIntermediateModel, TDeclaringModel, mixed>
  */
 class PendingHasThroughRelationship
 {
@@ -47,7 +47,7 @@ class PendingHasThroughRelationship
      *
      * @template TRelatedModel of \Voyager\Database\Instrument\Model
      *
-     * @param  string|(callable(TIntermediateModel): (\Voyager\Database\Instrument\Relations\HasOne<TRelatedModel, TIntermediateModel>|\Voyager\Database\Instrument\Relations\HasMany<TRelatedModel, TIntermediateModel>|\Voyager\Database\Instrument\Relations\MorphOneOrMany<TRelatedModel, TIntermediateModel>))  $callback
+     * @param  string|(callable(TIntermediateModel): (\Voyager\Database\Instrument\Relations\HasOne<TRelatedModel, TIntermediateModel>|\Voyager\Database\Instrument\Relations\HasMany<TRelatedModel, TIntermediateModel>|\Voyager\Database\Instrument\Relations\MorphOneOrMany<TRelatedModel, TIntermediateModel, mixed>))  $callback
      * @return (
      *     $callback is string
      *     ? \Voyager\Database\Instrument\Relations\HasManyThrough<\Voyager\Database\Instrument\Model, TIntermediateModel, TDeclaringModel>|\Voyager\Database\Instrument\Relations\HasOneThrough<\Voyager\Database\Instrument\Model, TIntermediateModel, TDeclaringModel>

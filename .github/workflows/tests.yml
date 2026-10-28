@@ -110,7 +110,7 @@ jobs:
       - name: Execute tests
         run: vendor/bin/pest
 
-      # Level 0 from phpstan.neon, on one PHP line.
+      # Level 1 from phpstan.neon, on one PHP line.
       - name: Analyse with PHPStan
         if: matrix.php == '8.4'
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G

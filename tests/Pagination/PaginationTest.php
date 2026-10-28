@@ -99,3 +99,14 @@ it('runs a macro on the paginator itself, and forwards anything else to its item
     Voyager\Pagination\LengthAwarePaginator::flushMacros();
     Voyager\Pagination\CursorPaginator::flushMacros();
 });
+
+it('casts every paginator to its JSON form, escaped when asked', function () {
+    $length = new LengthAwarePaginator(['<b>'], 1, 1, 1, ['path' => '/items']);
+    $simple = new Paginator(['<b>'], 1, 1, ['path' => '/items']);
+    $cursor = new CursorPaginator(['<b>'], 1, null, ['path' => '/items']);
+
+    expect((string) $length)->toBe($length->toJson())
+        ->and((string) $simple)->toBe($simple->toJson())
+        ->and((string) $cursor)->toBe($cursor->toJson())
+        ->and((string) $length->escapeWhenCastingToString())->toBe(e($length->toJson()));
+});

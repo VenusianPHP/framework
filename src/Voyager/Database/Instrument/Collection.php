@@ -252,7 +252,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Load a relationship path for models of the given type if it is not already eager loaded.
      *
-     * @param  array<int, <string, class-string>>  $tuples
+     * @param  array<int, array{string, class-string}>  $tuples
      * @return void
      */
     public function loadMissingRelationshipChain(array $tuples)
@@ -391,7 +391,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * Merge the collection with the given items.
      *
-     * @param  iterable<array-key, TModel>  $items
+     * @param  array<array-key, TModel>  $items
      * @return static
      */
     public function merge(\Voyager\Contracts\NutsAndBolts\Arrayable|array|null $items): static
@@ -727,7 +727,7 @@ class Collection extends BaseCollection implements QueueableCollection
     /**
      * {@inheritDoc}
      *
-     * @return \Voyager\NutsAndBolts\Collection<TModel, TKey>
+     * @return \Voyager\NutsAndBolts\Collection<array-key, TKey>
      */
     #[\Override]
     public function flip()

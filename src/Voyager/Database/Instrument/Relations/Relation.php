@@ -20,6 +20,8 @@ use Voyager\NutsAndBolts\Concerns\Macroable;
  * @template TResult
  *
  * @mixin \Voyager\Database\Instrument\Builder<TRelatedModel>
+ *
+ * @method string getExistenceCompareKey() Implemented by the relations used in existence queries.
  */
 abstract class Relation implements BuilderContract
 {

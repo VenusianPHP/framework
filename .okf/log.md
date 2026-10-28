@@ -1,5 +1,11 @@
 # Update Log
 
+## 2026-10-28
+
+* **Update**: PHPStan gate is level 1 (`phpstan.neon`, CI comment). Magic and subclass-supplied members are declared with `@method`/`@property` on `Model`, `PredisConnection`, `ForeignIdColumnDefinition`, `Relation`, `GeneratorCommand`, and both abstract paginators. `EPOLL*` constants are ignored beside the `epoll_` functions. `Collection::implode()` drops a dead `?? ''`; its doc block matches the native `callable|string`.
+* **Update**: [Pagination](pagination/component.md) — a paginator casts to `toJson()` (Angel's call); `escapeWhenCastingToString()` wraps it in `e()`. `__toString()` called a `render()` view method this tree never had, so a cast threw.
+* **Update**: Schema has `Blueprint::dropVectorIndex()` and `compileDropVectorIndex()` (base grammar throws, Postgres drops the index), as in Laravel v13.35.0. Changing a column with `vectorIndex(false)` threw `BadMethodCallException`.
+
 ## 2026-10-27
 
 * **Update**: Instrument `Collection` gains Laravel v13.37.0's `duplicates()`/`duplicatesStrict()` overrides (Angel's call): with a callback they compare on a base collection, not as models. `duplicatesStrict()` has no native return type.

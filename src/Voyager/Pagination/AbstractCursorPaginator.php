@@ -22,6 +22,8 @@ use Traversable;
  * @template-covariant TValue
  *
  * @mixin \Voyager\NutsAndBolts\Collection<TKey, TValue>
+ *
+ * @method string toJson(int $options = 0) Implemented by each concrete paginator.
  */
 abstract class AbstractCursorPaginator implements Stringable
 {
@@ -659,12 +661,12 @@ abstract class AbstractCursorPaginator implements Stringable
     }
 
     /**
-     * Render the contents of the paginator when casting to a string.
+     * Cast the paginator to its JSON form.
      *
      * @return string
      */
     public function __toString()
     {
-        return (string) $this->render();
+        return $this->toJson();
     }
 }

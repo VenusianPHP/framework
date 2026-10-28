@@ -132,7 +132,7 @@ class AnonymousEvent implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return \Voyager\Broadcasting\Channel|\Voyager\Broadcasting\Channel[]|string[]|string
+     * @return \Voyager\Broadcasting\Channel|\Voyager\Broadcasting\Channel[]|string[]
      */
     public function broadcastOn(): Channel|array
     {

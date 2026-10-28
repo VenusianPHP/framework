@@ -2,7 +2,7 @@
 
 namespace Voyager\Contracts\Cache;
 
-interface Store
+interface Store extends LockProvider
 {
     /**
      * Retrieve an item from the cache by key.

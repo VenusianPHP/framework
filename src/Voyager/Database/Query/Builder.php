@@ -481,6 +481,23 @@ class Builder implements BuilderContract
     }
 
     /**
+     * Reject a string where a vector is expected.
+     *
+     * @param  mixed  $vector
+     * @return void
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function rejectStringVector(mixed $vector): void
+    {
+        if (is_string($vector)) {
+            throw new InvalidArgumentException(
+                'Pass the embedding as an array of floats; Venusian does not generate embeddings.'
+            );
+        }
+    }
+
+    /**
      * Add a vector-similarity selection to the query.
      *
      * @param  \Voyager\Contracts\Database\Query\Expression|string  $column
@@ -492,9 +509,7 @@ class Builder implements BuilderContract
     {
         $this->ensureConnectionSupportsVectors();
 
-        if (is_string($vector)) {
-            $vector = Str::of($vector)->toEmbeddings(cache: true);
-        }
+        $this->rejectStringVector($vector);
 
         $this->addBinding(
             json_encode(
@@ -1168,9 +1183,7 @@ class Builder implements BuilderContract
      */
     public function whereVectorSimilarTo($column, $vector, $minSimilarity = 0.6, $order = true)
     {
-        if (is_string($vector)) {
-            $vector = Str::of($vector)->toEmbeddings(cache: true);
-        }
+        $this->rejectStringVector($vector);
 
         $this->whereVectorDistanceLessThan($column, $vector, 1 - $minSimilarity);
 
@@ -1194,9 +1207,7 @@ class Builder implements BuilderContract
     {
         $this->ensureConnectionSupportsVectors();
 
-        if (is_string($vector)) {
-            $vector = Str::of($vector)->toEmbeddings(cache: true);
-        }
+        $this->rejectStringVector($vector);
 
         return $this->whereRaw(
             "({$this->getGrammar()->wrap($column)} <=> ?) <= ?",
@@ -2983,9 +2994,7 @@ class Builder implements BuilderContract
     {
         $this->ensureConnectionSupportsVectors();
 
-        if (is_string($vector)) {
-            $vector = Str::of($vector)->toEmbeddings(cache: true);
-        }
+        $this->rejectStringVector($vector);
 
         $this->addBinding(
             json_encode(
