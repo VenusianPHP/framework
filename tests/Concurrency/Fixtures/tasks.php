@@ -42,6 +42,28 @@ function sleeps(int $ms, string $then): Closure
     };
 }
 
+/**
+ * Checks in under $dir, then waits up to five seconds for $count check-ins: true only if that many
+ * tasks were running at once, however long each took to start.
+ */
+function meets(string $dir, int $count): Closure
+{
+    return static function () use ($dir, $count): bool {
+        touch($dir.'/'.getmypid());
+        $until = microtime(true) + 5;
+
+        while (count(glob($dir.'/*')) < $count) {
+            if (microtime(true) > $until) {
+                return false;
+            }
+
+            usleep(10_000);
+        }
+
+        return true;
+    };
+}
+
 function declines(): Closure
 {
     return static fn () => throw new DomainException('card declined');

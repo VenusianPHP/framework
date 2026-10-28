@@ -308,7 +308,7 @@ class LazyCollection implements CanBeEscapedWhenCastToString, Enumerable
     }
 
     #[\Override]
-    public function duplicatesStrict(callable|string|null $callback = null): static
+    public function duplicatesStrict(callable|string|null $callback = null)
     {
         return $this->passthru(__FUNCTION__, func_get_args());
     }

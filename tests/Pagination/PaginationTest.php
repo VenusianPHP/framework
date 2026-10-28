@@ -83,3 +83,19 @@ it('windows a long page list around the current page', function () {
         ->and(array_keys($window['slider']))->toBe([7, 8, 9, 10, 11, 12, 13])
         ->and(array_keys($window['last']))->toBe([19, 20]);
 });
+
+it('runs a macro on the paginator itself, and forwards anything else to its items', function () {
+    Voyager\Pagination\LengthAwarePaginator::macro('describe', fn () => "page {$this->currentPage()} of {$this->lastPage()}, {$this->count()} items");
+    Voyager\Pagination\CursorPaginator::macro('isCursor', fn () => $this instanceof Voyager\Pagination\CursorPaginator);
+
+    $paged = new Voyager\Pagination\LengthAwarePaginator(['a', 'b'], 5, 2, 2);
+    $cursor = new Voyager\Pagination\CursorPaginator(['a', 'b'], 2);
+
+    expect($paged->describe())->toBe('page 2 of 3, 2 items')
+        ->and($paged->implode(','))->toBe('a,b')
+        ->and($cursor->isCursor())->toBeTrue()
+        ->and($cursor->implode(','))->toBe('a,b');
+
+    Voyager\Pagination\LengthAwarePaginator::flushMacros();
+    Voyager\Pagination\CursorPaginator::flushMacros();
+});

@@ -34,7 +34,7 @@ Every `#[AsCommand]` class under `src/Voyager` is registered; `tests/Console/Com
 
 A command constructed with required parameters gets `new Filesystem` unless the provider has a `register{Name}Command()` method (cache clear/forget, `db:monitor`, `db:seed`, queue listen/monitor/restart/work). Other providers add theirs with `commands()` (migrations, `make:graph-model`) and must also bind the class: the container command loader lists only bound commands.[^provider]
 
-`Database\Console\Factories\FactoryMakeCommand` duplicates `Core\Console\FactoryMakeCommand` (both `make:factory`, identical bodies); the Core one is registered.
+`make:factory` is `Core\Console\FactoryMakeCommand`; it and `stub:publish` use the same stub, `Core/Console/stubs/factory.stub` (a test checks the published copy matches).
 
 `Console\MigrationGeneratorCommand` writes one migration from a stub through `migration.creator`, into `databasePath('migrations')`, and refuses when a `*_create_{table}_table.php` exists.[^generator]
 

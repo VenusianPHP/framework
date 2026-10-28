@@ -49,7 +49,7 @@ Contract: `at()`, `every()`, `promise()`, `await()`, `async()`, `defer()`, `post
 
 # Stop signals
 
-`StopSignals` is a `Background` wake source on SIGINT/SIGTERM where the backend supports control signals. First signal: `stop(130)` / `stop(143)`, handlers reset to `SIG_DFL`, so a second one kills. `run()` and a standalone `until()` re-arm it.[^stop]
+`StopSignals` is a `Background` wake source on SIGINT/SIGTERM where the backend supports control signals. First signal: the handlers given `onStopSignal()` are asked in order; one returning `true` takes it and the loop keeps running until that handler calls `stop()` (a server answering what is in flight first). With none taking it, `stop(130)` / `stop(143)`. Either way the loop stops listening to that signal, so a second one goes to whatever handled it before the loop (by default, it kills). `run()` and a standalone `until()` arm it and let go when they end: the backend drops the registration at once (`Waiter::sync()`) and gives back the handler it found (`pcntl_signal_get_handler()` at registration), so a sketch or a supervisor keeps its own handler after a loop has run. `ignoreStopSignals()` keeps a loop out of SIGINT/SIGTERM altogether, for a loop that doesn't own its process's signals: one in a thread, where a backend's disposition change would take the signal from the thread that does.[^stop]
 
 # Config
 

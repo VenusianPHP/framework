@@ -112,16 +112,26 @@ it('makes a blocking query wait for the offloaded writes made on its connection'
 it('runs offloaded reads side by side', function (string $connection, string $sleep) {
     $db = $this->app['db']->connection($connection);
     $this->app->get('process-workers')->warm(2);
+
+    // warm() only starts the workers; each boots the app on its first job, so pay that outside the clock
+    $boots = [$db->via()->select('select 1'), $db->via()->select('select 1')];
+    array_map(fn (Promise $boot) => $boot->wait(), $boots);
+
+    // the server's backend id and statement start time show which session ran each read, and when
+    $read = [
+        'mysql' => 'select connection_id() as backend, unix_timestamp(now(6)) as began, sleep(1)',
+        'pgsql' => 'select pg_backend_pid() as backend, extract(epoch from statement_timestamp()) as began, pg_sleep(1)',
+    ][$connection];
     $started = hrtime(true);
 
-    $a = $db->via()->select($sleep);
-    $b = $db->via()->select($sleep);
-    $a->wait();
-    $b->wait();
+    $a = $db->via()->select($read);
+    $b = $db->via()->select($read);
+    [$a, $b] = [$a->wait()[0], $b->wait()[0]];
 
-    // one after the other is two seconds; side by side is one, plus each worker's first connect
-    // (measured 1.52-1.65 s on a Mac and a Pi 5), so under 1.8 s still proves they overlapped
-    expect(hrtime(true) - $started)->toBeLessThan(1_800_000_000);
+    // one after the other is two seconds, side by side is one
+    expect(hrtime(true) - $started)->toBeLessThan(1_500_000_000)
+        ->and($a->backend)->not->toBe($b->backend)
+        ->and(abs((float) $a->began - (float) $b->began))->toBeLessThan(1.0);
 })->with('servers');
 
 it('runs a write alone: it waits for the reads before it', function (string $connection, string $sleep) {

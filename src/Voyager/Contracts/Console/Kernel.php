@@ -24,6 +24,16 @@ interface Kernel
     public function handle(InputInterface $input, ?OutputInterface $output = null): int;
 
     /**
+     * Run a Computer command by name.
+     *
+     * @param  string  $command
+     * @param  array  $parameters
+     * @param  OutputInterface|null  $outputBuffer
+     * @return int
+     */
+    public function call(string $command, array $parameters = [], ?OutputInterface $outputBuffer = null): int;
+
+    /**
      * Terminate the application.
      *
      * @param InputInterface $input

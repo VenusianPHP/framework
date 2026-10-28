@@ -8,7 +8,6 @@ use Venusian\Tests\Concurrency\Fixtures\Tasks;
 use Venusian\Tests\Concurrency\Fixtures\ConcurrencyApp;
 
 beforeEach(function () {
-    ConcurrencyApp::hasComputerApp() || $this->markTestSkipped('needs an app with a `computer` script: set VENUSIAN_APP_PATH');
     $this->app = ConcurrencyApp::bootComputerApp();
 });
 afterEach(fn () => isset($this->app) && ConcurrencyApp::tearDown($this->app, $this));
@@ -31,22 +30,29 @@ it('rethrows a task\'s exception when it runs blocking', function () {
 });
 
 it('runs the processes at the same time without blocking, and delivers their results as mail', function () {
-    $started = hrtime(true);
+    $barrier = sys_get_temp_dir().'/venusian_test_'.bin2hex(random_bytes(5));
+    mkdir($barrier);
 
-    $promise = $this->app->get('concurrency')->driver('process')->async([
-        'a' => Tasks\sleeps(600, 'first'),
-        'b' => Tasks\sleeps(600, 'second'),
-        'c' => Tasks\sleeps(600, 'third'),
-    ], 'sleepers');
+    try {
+        $promise = $this->app->get('concurrency')->driver('process')->async([
+            'a' => Tasks\meets($barrier, 3),
+            'b' => Tasks\meets($barrier, 3),
+            'c' => Tasks\meets($barrier, 3),
+        ], 'sleepers');
 
-    expect($promise)->toBeInstanceOf(Promise::class)
-        ->and($promise->settled())->toBeFalse();
+        expect($promise)->toBeInstanceOf(Promise::class)
+            ->and($promise->settled())->toBeFalse();
 
-    $mail = ConcurrencyApp::mail($this->app, 'sleepers');
+        $mail = ConcurrencyApp::mail($this->app, 'sleepers');
 
-    expect($mail->results)->toBe(['a' => 'first', 'b' => 'second', 'c' => 'third'])
-        ->and($promise->wait())->toBe(['a' => 'first', 'b' => 'second', 'c' => 'third'])
-        ->and(hrtime(true) - $started)->toBeLessThan(1_800_000_000);
+        // each process boots an app first, for a time that varies by machine and load, so overlap
+        // is proven by a barrier: every task saw all three running before it returned
+        expect($mail->results)->toBe(['a' => true, 'b' => true, 'c' => true])
+            ->and($promise->wait())->toBe(['a' => true, 'b' => true, 'c' => true]);
+    } finally {
+        array_map(unlink(...), glob($barrier.'/*'));
+        rmdir($barrier);
+    }
 });
 
 it('delivers the failures beside the results, and rejects with the first in key order', function () {

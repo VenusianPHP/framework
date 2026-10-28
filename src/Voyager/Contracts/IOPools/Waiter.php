@@ -16,4 +16,7 @@ interface Waiter
 
     /** The backend's descriptor(): readable whenever a wait would return something, or null. */
     public function descriptor(): ?int;
+
+    /** Bring the backend's registrations in line with what the resources want now, without waiting. */
+    public function sync(): void;
 }

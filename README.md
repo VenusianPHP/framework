@@ -43,4 +43,4 @@ Please review [our security policy](https://github.com/VenusianPHP/framework/sec
 
 ## License
 
-The Venusian framework is open-sourced software licensed under the [MIT license](LICENSE.md).
+The Venusian framework is open-sourced software licensed under the [MIT license](LICENSE).

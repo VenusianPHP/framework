@@ -57,6 +57,7 @@ okf_version: "0.2"
 
 * [Database](database/component.md) - Illuminate toolkit. Eloquent is `Instrument`. `app('db')`. No facade.
 * [Database on the loop](database/loop.md) - `via()` gigs, `stream()` as `QueryChunk` mail, per-connection reader-writer lanes.
+* [Database testing helpers](database/testing.md) - RefreshDatabase and friends plus database assertions, for any host that runs `setUp{Trait}`/`tearDown{Trait}`.
 * [Pagination](pagination/component.md) - Three paginators, resolved through the container. No HTTP request.
 * [Graph](graph/component.md) - Neo4j driver on the boot list; builder compiles to Cypher; `cypher()` helpers; `via()` inherited.
 
@@ -73,6 +74,7 @@ okf_version: "0.2"
 # Console
 
 * [Computer](console/computer.md) - How built-in commands get onto `php computer`'s list, and which are registered.
+* [Console testing](console/testing.md) - `artisan()` and `PendingCommand` over the kernel's `call()`.
 * [about](console/about.md) - What the app has set up: drivers, event loop, first-party extensions, sketches; packages add sections.
 * [make:node](console/make-node.md) - Dev command: empty workflow Node or AsyncNode (`--async`) in `App\Workflows`.
 * [make:sketch](console/make-sketch.md) - Dev command: empty sketch into the scanned sketch path, on the app's own base.

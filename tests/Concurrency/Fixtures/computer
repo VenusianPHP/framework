@@ -1,0 +1,17 @@
+#!/usr/bin/env php
+<?php
+
+// This repository's own `computer`, for the process driver's tests: it boots the repo the way
+// ConcurrencyApp::boot() does, then runs the command it was given.
+
+use Voyager\Core\VenusianVoyager;
+use Symfony\Component\Console\Input\ArgvInput;
+
+$root = dirname(__DIR__, 3);
+
+require $root.'/vendor/autoload.php';
+
+$app = VenusianVoyager::setup($root)->create();
+$app->loadEnvironmentFrom('tests/Log/Fixtures/testing.env');
+
+exit($app->handleInquiry(new ArgvInput));

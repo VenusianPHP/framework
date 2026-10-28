@@ -15,10 +15,10 @@
         "php": "~8.4.27||^8.5.12",
         "symfony/polyfill-php85": "^1.33",
         "symfony/polyfill-php86": "^1.34",
-        "venusian-voyager/conditionable": "^0.10.0",
-        "venusian-voyager/contracts": "^0.10.0",
-        "venusian-voyager/macroable": "^0.10.0",
-        "venusian-voyager/nuts-and-bolts": "^0.10.0"
+        "venusian-voyager/conditionable": "^0.11.0",
+        "venusian-voyager/contracts": "^0.11.0",
+        "venusian-voyager/macroable": "^0.11.0",
+        "venusian-voyager/nuts-and-bolts": "^0.11.0"
     },
     "suggest": {
         "symfony/var-dumper": "Required for dd() and dump() (^8.0.0)."
@@ -38,7 +38,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.10.x-dev"
+            "dev-main": "0.11.x-dev"
         }
     }
 }

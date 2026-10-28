@@ -15,6 +15,12 @@ foreach (['bootstrap/cache', 'storage/app'] as $relative) {
     }
 }
 
+// The process driver's tests run `php computer` in this repo, which ships none: point it at the
+// fixture beside ConcurrencyApp. COMPUTER_BINARY is a process-wide constant the first booted
+// Kernel defaults to `computer`, so it is set here, before any app boots, and holds for the whole
+// run; the fixture boots this same app. VENUSIAN_APP_PATH runs them in a real app's own instead.
+getenv('VENUSIAN_APP_PATH') || define('COMPUTER_BINARY', __DIR__.'/Concurrency/Fixtures/computer');
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

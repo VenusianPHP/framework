@@ -104,6 +104,23 @@ interface Loop
     public function onStop(callable $hook): void;
 
     /**
+     * Ask $handler first when a stop signal (SIGINT, SIGTERM) arrives. A handler that returns
+     * true takes the signal: the loop keeps running, and the handler stops it once it is done
+     * (a server answering what is in flight first). With no handler taking it, the loop stops as
+     * it always has. A second signal is never offered: it ends the process as if nobody listened.
+     *
+     * @param  callable(int): bool  $handler  given the signal number
+     */
+    public function onStopSignal(callable $handler): void;
+
+    /**
+     * Never listen for stop signals: leave SIGINT and SIGTERM, and whatever handles them, to the
+     * process. For a loop that doesn't own its process's signals: one in a thread, or one nested in
+     * a runner that handles them itself.
+     */
+    public function ignoreStopSignals(): void;
+
+    /**
      * Runs the loop
      * @return int
      */

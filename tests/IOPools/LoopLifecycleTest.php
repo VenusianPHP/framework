@@ -140,3 +140,100 @@ it('keeps mail in the bag through until() and delivers it on the next run', func
     expect($handler->hand_offs)->toHaveCount(1)
         ->and(array_column($handler->hand_offs[0], 'from'))->toBe(['post']);
 });
+
+it('stops on a stop signal as before when no handler takes it', function ($backend) {
+    $loop = lifecycleLoop($backend);
+    $loop->resource('work', busyWork());
+    $loop->onStopSignal(fn (int $signo) => false);
+
+    $loop->at(0.02, fn () => posix_kill(getmypid(), SIGTERM));
+
+    expect($loop->run())->toBe(143);
+})->with('lifecycle backends')->skip(! extension_loaded('pcntl') || ! extension_loaded('posix'), 'needs pcntl and posix');
+
+it('keeps running when a handler takes the stop signal, until the handler stops it', function ($backend) {
+    $loop = lifecycleLoop($backend);
+    $loop->resource('work', busyWork());
+    $heard = [];
+    $after = [];
+
+    $loop->onStopSignal(function (int $signo) use ($loop, &$heard, &$after) {
+        $heard[] = $signo;
+        $loop->at(0.05, function () use ($loop, &$after) {
+            $after[] = 'still running';
+            $loop->stop(0);
+        });
+
+        return true;
+    });
+    $loop->at(0.02, fn () => posix_kill(getmypid(), SIGTERM));
+
+    expect($loop->run())->toBe(0)
+        ->and($heard)->toBe([SIGTERM])
+        ->and($after)->toBe(['still running']);
+})->with('lifecycle backends')->skip(! extension_loaded('pcntl') || ! extension_loaded('posix'), 'needs pcntl and posix');
+
+it('dies on a second stop signal, as if nobody listened, while a handler has the first', function () {
+    $autoload = dirname(__DIR__, 2).'/vendor/autoload.php';
+    $child = proc_open([PHP_BINARY, '-r', <<<PHP
+        require '{$autoload}';
+        \$registry = new Voyager\\IOPools\\ResourceRegistry();
+        \$loop = new Voyager\\IOPools\\EventLoop(\$registry, new Voyager\\IOPools\\LoopWaiter(\$registry, new Voyager\\IOPools\\Waiter\\StreamSelectWaiterBackend(), 5_000_000), new Voyager\\IOPools\\PromiseEngines\\GuzzlePromiseEngine());
+        \$loop->resource('work', new class extends Voyager\\IOPools\\Resources\\Pollable { public function tick(): void {} });
+        \$loop->onStopSignal(fn (int \$signo) => true);   // takes it, and never stops the loop
+        \$loop->at(0.05, fn () => posix_kill(getmypid(), SIGTERM));
+        \$loop->at(0.3, fn () => posix_kill(getmypid(), SIGTERM));
+        \$loop->at(3.0, fn () => \$loop->stop(7));
+        exit(\$loop->run());
+        PHP], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+    $deadline = microtime(true) + 10;
+
+    while (($status = proc_get_status($child))['running'] && microtime(true) < $deadline) {
+        usleep(20_000);
+    }
+
+    proc_close($child);
+
+    expect($status['signaled'])->toBeTrue()
+        ->and($status['termsig'])->toBe(SIGTERM);
+})->skip(! extension_loaded('pcntl') || ! extension_loaded('posix'), 'needs pcntl and posix');
+
+it('gives back the stop-signal handler it found once a run ends', function ($backend, string $ends) {
+    $mine = function () {};
+    pcntl_signal(SIGTERM, $mine);
+
+    try {
+        // Two datasets: Pest leaves the backend factory to us.
+        $loop = lifecycleLoop($backend instanceof Closure ? $backend() : $backend);
+        $loop->resource('work', busyWork());
+        $loop->at(0.02, $ends === 'stopped' ? fn () => $loop->stop(0) : fn () => posix_kill(getmypid(), SIGTERM));
+        $loop->run();
+
+        expect(pcntl_signal_get_handler(SIGTERM))->toBe($mine);
+    } finally {
+        pcntl_signal(SIGTERM, SIG_DFL);
+    }
+})->with('lifecycle backends')->with(['stopped' => ['stopped'], 'signalled' => ['signalled']])
+    ->skip(! extension_loaded('pcntl') || ! extension_loaded('posix'), 'needs pcntl and posix');
+
+it('leaves stop signals to the process when told to ignore them', function ($backend) {
+    $heard = 0;
+    pcntl_async_signals(true);
+    $mine = function () use (&$heard) { $heard++; };
+    pcntl_signal(SIGTERM, $mine);
+
+    try {
+        $loop = lifecycleLoop($backend);
+        $loop->ignoreStopSignals();
+        $loop->resource('work', busyWork());
+        $loop->at(0.02, fn () => posix_kill(getmypid(), SIGTERM));
+        $loop->at(0.2, fn () => $loop->stop(0));
+
+        expect($loop->run())->toBe(0)
+            ->and($heard)->toBe(1)
+            ->and(pcntl_signal_get_handler(SIGTERM))->toBe($mine);
+    } finally {
+        pcntl_signal(SIGTERM, SIG_DFL);
+    }
+})->with('lifecycle backends')->skip(! extension_loaded('pcntl') || ! extension_loaded('posix'), 'needs pcntl and posix');

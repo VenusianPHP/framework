@@ -350,7 +350,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  bool  $strict
      * @return static
      */
-    public function duplicates(callable|string|null $callback = null, bool $strict = false): static
+    public function duplicates(callable|string|null $callback = null, bool $strict = false)
     {
         $items = $this->map($this->valueRetriever($callback));
 
@@ -379,7 +379,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      * @param  (callable(TValue): TMapValue)|string|null  $callback
      * @return static
      */
-    public function duplicatesStrict(callable|string|null $callback = null): static
+    public function duplicatesStrict(callable|string|null $callback = null)
     {
         return $this->duplicates($callback, true);
     }
@@ -1813,7 +1813,7 @@ class Collection implements ArrayAccess, CanBeEscapedWhenCastToString, Enumerabl
      *
      * @phpstan-this-out static<TKey, TMapValue>
      */
-    public function transform(callable $callback): static
+    public function transform(callable $callback)
     {
         $this->items = $this->map($callback)->all();
 

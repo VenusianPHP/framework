@@ -7,6 +7,7 @@ use Voyager\Contracts\NutsAndBolts\CanBeEscapedWhenCastToString;
 use Voyager\NutsAndBolts\DataObjects\Arr;
 use Voyager\NutsAndBolts\Collection;
 use Voyager\NutsAndBolts\Concerns\ForwardsCalls;
+use Voyager\NutsAndBolts\Concerns\Macroable;
 use Voyager\NutsAndBolts\Concerns\Tappable;
 use Stringable;
 use Traversable;
@@ -21,6 +22,9 @@ use Traversable;
 abstract class AbstractPaginator implements CanBeEscapedWhenCastToString, Stringable
 {
     use ForwardsCalls, Tappable;
+    use Macroable {
+        __call as macroCall;
+    }
 
     /**
      * All of the items being paginated.
@@ -668,8 +672,13 @@ abstract class AbstractPaginator implements CanBeEscapedWhenCastToString, String
      * @param  array  $parameters
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function __call($method, $parameters): mixed
     {
+        // A package's macro first; anything else goes to the page's items, as before.
+        if (static::hasMacro($method)) {
+            return $this->macroCall($method, $parameters);
+        }
+
         return $this->forwardCallTo($this->getCollection(), $method, $parameters);
     }
 

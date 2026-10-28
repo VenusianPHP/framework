@@ -98,3 +98,19 @@ it('generates code whose imports all resolve, from every make command that was s
         $this->app['files']->deleteDirectory($dir);
     }
 });
+
+it('publishes the same factory stub make:factory uses', function () {
+    $base = sys_get_temp_dir().'/venusian-stubs-'.bin2hex(random_bytes(4));
+    mkdir($base);
+    $this->app->setBasePath($base);
+
+    try {
+        [$status, $output] = computer($this->app, ['command' => 'stub:publish', '--force' => true]);
+
+        expect($status)->toBe(0, $output)
+            ->and(file_get_contents($base.'/stubs/factory.stub'))
+            ->toBe(file_get_contents(dirname(__DIR__, 2).'/src/Voyager/Core/Console/stubs/factory.stub'));
+    } finally {
+        $this->app['files']->deleteDirectory($base);
+    }
+});

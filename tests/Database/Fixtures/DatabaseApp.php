@@ -30,7 +30,7 @@ final class DatabaseApp
         $app['config']->set('database.connections.mysql', [
             ...$app['config']->get('database.connections.mysql'),
             'host' => getenv('DB_TEST_MYSQL_HOST') ?: '127.0.0.1',
-            'database' => getenv('DB_TEST_MYSQL_DATABASE') ?: 'blog',
+            'database' => getenv('DB_TEST_MYSQL_DATABASE') ?: 'venusian_test',
             'username' => getenv('DB_TEST_MYSQL_USERNAME') ?: 'root',
             'password' => getenv('DB_TEST_MYSQL_PASSWORD') ?: '',
         ]);

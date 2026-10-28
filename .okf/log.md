@@ -2,6 +2,16 @@
 
 ## 2026-10-27
 
+* **Update**: Instrument `Collection` gains Laravel v13.37.0's `duplicates()`/`duplicatesStrict()` overrides (Angel's call): with a callback they compare on a base collection, not as models. `duplicatesStrict()` has no native return type.
+* **Update**: `duplicates()`, `transform()`, `mapSpread()`, `mapToGroups()` and `flatMap()` have no native return type, as in Laravel v13.37.0 (Angel's call).
+* **Update**: [Event loop](io-pools/event-loop.md): a run gives back the stop-signal handler it found when it ends (both backends, instead of resetting to `SIG_DFL`); `Loop::ignoreStopSignals()` for loops that don't own the process's signals.
+* **Update**: `mapInto()` has no native return type, as in Laravel v13.37.0 (Angel's call): an Instrument Collection mapped into non-models is a base collection, which `: static` refused. Other inherited `: static` methods that route through Instrument's `map()` (`duplicates`, `transform`, `mapSpread`, `mapToGroups`, `flatMap`) are reported, unchanged.
+* **Deprecation**: `src/Voyager/Database/README.md` (Laravel's text) and `src/Voyager/Graph/README.md` are deleted; the docs site's Database pages cover both (Graph page, Capsule section).
+* **Update**: [Pagination](pagination/component.md) — both paginators are `Macroable` (Angel's call): a macro runs on the paginator itself, anything else still goes to its items.
+* **Update**: [Event loop](io-pools/event-loop.md): `Loop::onStopSignal()` lets a handler take the first SIGINT/SIGTERM and stop the loop itself once done; the second signal still kills. For `php computer serve`'s drain.
+* **Update**: [Computer](console/computer.md) — `stub:publish` publishes Core's factory stub, the one `make:factory` uses; the Database copy is deleted (Angel's call).
+* **Creation**: [Console testing](console/testing.md) — `InteractsWithConsole`/`PendingCommand`, and `call()` on the console kernel contract (Angel's call). `ComputerConsoleInstance::$last_output` takes any `OutputInterface`, as its `call()` already did.
+* **Deprecation**: `Database\Console\Factories\FactoryMakeCommand` is deleted (Angel's call): it duplicated Core's `make:factory` line for line. Its stub stays: `stub:publish` copies it. [Computer](console/computer.md) notes that stub differs from Core's.
 * **Creation**: [Database testing helpers](database/testing.md) — `Voyager\Database\Testing`: the refresh/transaction/migration/truncation traits and the database assertions, for any test case that boots `$this->app` and runs `setUp{Trait}`/`tearDown{Trait}`.
 * **Update**: [Computer](console/computer.md) — every shipped command is registered: the Database `db:*`, `model:*`, `schema:dump`, `make:seeder` commands; the event/gig/job/listener/observer makers and `event:generate` (switched off with no reason recorded; they generate working code); `make:graph-model` (its class was never bound). `migrate:fresh` on a populated database and `--seed` work again.
 * **Update**: [Queue](queue/component.md) — one `SerializesModels` trait; `Queueable` composes it; `#[WithoutRelations]` is read up the class chain.

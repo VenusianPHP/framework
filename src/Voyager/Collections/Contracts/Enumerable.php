@@ -194,7 +194,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param bool $strict
      * @return static
      */
-    public function duplicates(callable|string|null $callback = null, bool $strict = false): static;
+    public function duplicates(callable|string|null $callback = null, bool $strict = false);
 
     /**
      * Retrieve duplicate items using strict comparison.
@@ -202,7 +202,7 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * @param (callable(TValue): bool)|string|null $callback
      * @return static
      */
-    public function duplicatesStrict(callable|string|null $callback = null): static;
+    public function duplicatesStrict(callable|string|null $callback = null);
 
     /**
      * Execute a callback over each item.
@@ -556,8 +556,11 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      * Run a map over each nested chunk of items.
      *
      * @template TMapSpreadValue
+     *
+     * @param  callable  $callback
+     * @return static
      */
-    public function mapSpread(callable $callback): static;
+    public function mapSpread(callable $callback);
 
     /**
      * Run a dictionary map over the items.
@@ -579,8 +582,11 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TMapToGroupsKey of array-key
      * @template TMapToGroupsValue
+     *
+     * @param  callable(TValue, TKey): array<TMapToGroupsKey, TMapToGroupsValue>  $callback
+     * @return static<TMapToGroupsKey, static<int, TMapToGroupsValue>>
      */
-    public function mapToGroups(callable $callback): static;
+    public function mapToGroups(callable $callback);
 
     /**
      * Run an associative map over each of the items.
@@ -600,15 +606,21 @@ interface Enumerable extends Arrayable, Countable, IteratorAggregate, Jsonable, 
      *
      * @template TFlatMapKey of array-key
      * @template TFlatMapValue
+     *
+     * @param  callable(TValue, TKey): (\Voyager\NutsAndBolts\Collection<TFlatMapKey, TFlatMapValue>|array<TFlatMapKey, TFlatMapValue>)  $callback
+     * @return static<TFlatMapKey, TFlatMapValue>
      */
-    public function flatMap(callable $callback): static;
+    public function flatMap(callable $callback);
 
     /**
      * Map the values into a new class.
      *
      * @template TMapIntoValue
+     *
+     * @param  class-string<TMapIntoValue>  $class
+     * @return static<TKey, TMapIntoValue>
      */
-    public function mapInto(string $class): static;
+    public function mapInto(string $class);
 
     /**
      * Merge the collection with the given items.

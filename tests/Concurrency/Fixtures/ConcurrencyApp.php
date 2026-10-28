@@ -28,23 +28,21 @@ final class ConcurrencyApp
         return $app;
     }
 
+    /**
+     * The app the process driver's tasks run in: VENUSIAN_APP_PATH's, run by its own `computer`,
+     * or else this repository, run by the `computer` beside this fixture (tests/Pest.php points
+     * COMPUTER_BINARY at it).
+     */
     public static function bootComputerApp(): RenderedInstance
     {
-        $app = VenusianVoyager::setup(self::computerAppPath())->create();
-        $app->make(Kernel::class)->bootstrap();
+        if ($path = getenv('VENUSIAN_APP_PATH')) {
+            $app = VenusianVoyager::setup($path)->create();
+            $app->make(Kernel::class)->bootstrap();
 
-        return $app;
-    }
+            return $app;
+        }
 
-    /** The app with a `computer` script: VENUSIAN_APP_PATH, or venusian_copy beside this repository. */
-    public static function computerAppPath(): string
-    {
-        return getenv('VENUSIAN_APP_PATH') ?: dirname(__DIR__, 4).'/venusian_copy';
-    }
-
-    public static function hasComputerApp(): bool
-    {
-        return is_file(self::computerAppPath().'/computer');
+        return self::boot();
     }
 
     /** Runs the loop until $name's results arrive as mail, or ten seconds pass. */

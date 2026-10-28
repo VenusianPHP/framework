@@ -192,6 +192,22 @@ class Kernel implements KernelContract
     }
 
     /**
+     * Run a Computer command by name, as Laravel's console kernel call() does.
+     *
+     * @throws \Symfony\Component\Console\Exception\CommandNotFoundException
+     */
+    public function call(string $command, array $parameters = [], ?OutputInterface $outputBuffer = null): int
+    {
+        if (in_array($command, ['env:encrypt', 'env:decrypt'], true)) {
+            $this->bootstrapWithoutBootingProviders();
+        }
+
+        $this->bootstrap();
+
+        return $this->getComputer()->call($command, $parameters, $outputBuffer);
+    }
+
+    /**
      * @throws ReflectionException
      */
     public function terminate(InputInterface $input, int $status): void

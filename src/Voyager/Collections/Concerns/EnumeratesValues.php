@@ -425,7 +425,7 @@ trait EnumeratesValues
      * @param  callable(mixed...): TMapSpreadValue  $callback
      * @return static<TKey, TMapSpreadValue>
      */
-    public function mapSpread(callable $callback): static
+    public function mapSpread(callable $callback)
     {
         return $this->map(function ($chunk, $key) use ($callback) {
             $chunk[] = $key;
@@ -445,7 +445,7 @@ trait EnumeratesValues
      * @param  callable(TValue, TKey): array<TMapToGroupsKey, TMapToGroupsValue>  $callback
      * @return static<TMapToGroupsKey, static<int, TMapToGroupsValue>>
      */
-    public function mapToGroups(callable $callback): static
+    public function mapToGroups(callable $callback)
     {
         $groups = $this->mapToDictionary($callback);
 
@@ -461,7 +461,7 @@ trait EnumeratesValues
      * @param  callable(TValue, TKey): (\Voyager\NutsAndBolts\Collection<TFlatMapKey, TFlatMapValue>|array<TFlatMapKey, TFlatMapValue>)  $callback
      * @return static<TFlatMapKey, TFlatMapValue>
      */
-    public function flatMap(callable $callback): static
+    public function flatMap(callable $callback)
     {
         return $this->map($callback)->collapse();
     }
@@ -474,7 +474,7 @@ trait EnumeratesValues
      * @param  class-string<TMapIntoValue>  $class
      * @return static<TKey, TMapIntoValue>
      */
-    public function mapInto(string $class): static
+    public function mapInto(string $class)
     {
         if (is_subclass_of($class, BackedEnum::class)) {
             return $this->map(fn ($value, $key) => $class::from($value));

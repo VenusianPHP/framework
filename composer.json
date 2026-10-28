@@ -7,7 +7,7 @@
         "scrapyard-io"
     ],
     "license": "MIT",
-    "version": "0.10.11",
+    "version": "0.11.0",
     "support": {
         "issues": "https://github.com/VenusianPHP/framework/issues",
         "source": "https://github.com/VenusianPHP/framework"
@@ -159,7 +159,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.10.x-dev"
+            "dev-main": "0.11.x-dev"
         }
     },
     "config": {

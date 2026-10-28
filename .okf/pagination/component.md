@@ -35,3 +35,5 @@ Not on the loop.
 [^paginator]: AbstractPaginator
 [^length]: LengthAwarePaginator
 [^cursor]: CursorPaginator
+
+`AbstractPaginator` and `AbstractCursorPaginator` use `Macroable`; `__call` runs a registered macro on the paginator first and forwards any other call to the page's collection. Packages add paginator methods this way (serve's `toResourceCollection()`).
