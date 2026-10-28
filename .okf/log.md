@@ -2,6 +2,7 @@
 
 ## 2026-10-28
 
+* **Update**: CI runs the full suite on four cells: PHP 8.4 and 8.5, each NTS and ZTS (floors 8.4.27 / 8.5.12). ZTS cells add ext-parallel, keep swoole out, and must pass the thread probe, so thread rows run instead of skipping. The separate `threads` job (8.4 ZTS, subset of suites, no database services) is folded in. PHPStan runs on the 8.4 NTS cell.
 * **Update**: PHPStan gate is level 1 (`phpstan.neon`, CI comment). Magic and subclass-supplied members are declared with `@method`/`@property` on `Model`, `PredisConnection`, `ForeignIdColumnDefinition`, `Relation`, `GeneratorCommand`, and both abstract paginators. `EPOLL*` constants are ignored beside the `epoll_` functions. `Collection::implode()` drops a dead `?? ''`; its doc block matches the native `callable|string`.
 * **Update**: [Pagination](pagination/component.md) — a paginator casts to `toJson()` (Angel's call); `escapeWhenCastingToString()` wraps it in `e()`. `__toString()` called a `render()` view method this tree never had, so a cast threw.
 * **Update**: Schema has `Blueprint::dropVectorIndex()` and `compileDropVectorIndex()` (base grammar throws, Postgres drops the index), as in Laravel v13.35.0. Changing a column with `vectorIndex(false)` threw `BadMethodCallException`.

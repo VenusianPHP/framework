@@ -17,6 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        php: ['8.4', '8.5']
+        # ZTS runs the thread pool's rows instead of skipping them.
+        ts: [nts, zts]
         # Security floor (composer.json "php": "~8.4.27||^8.5.12"): each line's lowest patched release.
         include:
           - php: '8.4'
@@ -24,7 +27,7 @@ jobs:
           - php: '8.5'
             min: '8.5.12'
 
-    name: PHP ${{ matrix.php }}
+    name: PHP ${{ matrix.php }} ${{ matrix.ts }}
 
     # The Database, Cache, Queue, Broadcasting and Graph suites run against these; each test
     # works in tables, keys and labels of its own and drops them after.
@@ -88,9 +91,11 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: curl, dom, gmp, intl, libxml, mbstring, pcntl, posix, pdo_sqlite, pdo_mysql, pdo_pgsql, redis, zip
+          # ZTS adds ext-parallel. Swoole stays out: loaded beside ext-parallel in a ZTS PHP, a thread crashes or hangs.
+          extensions: curl, dom, gmp, intl, libxml, mbstring, pcntl, posix, pdo_sqlite, pdo_mysql, pdo_pgsql, redis, zip${{ matrix.ts == 'zts' && ', parallel, :swoole' || '' }}
           coverage: none
         env:
+          phpts: ${{ matrix.ts == 'zts' && 'ts' || 'nts' }}
           # the newest patch of the line, never a cached older build
           update: true
 
@@ -107,42 +112,9 @@ jobs:
       - name: Install the Neo4j client for the Graph tests
         run: composer require --dev laudis/neo4j-php-client:^3.3 --prefer-stable --no-interaction --no-progress
 
-      - name: Execute tests
-        run: vendor/bin/pest
-
-      # Level 1 from phpstan.neon, on one PHP line.
-      - name: Analyse with PHPStan
-        if: matrix.php == '8.4'
-        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
-
-  # The thread pool's own job: a ZTS PHP with ext-parallel, so the thread rows run rather than
-  # skip. Swoole stays out: loaded beside ext-parallel in a ZTS PHP, a thread crashes or hangs.
-  threads:
-    runs-on: ubuntu-latest
-
-    name: PHP 8.4 ZTS, threads
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: curl, dom, gmp, intl, libxml, mbstring, pcntl, posix, pdo_sqlite, parallel, :swoole
-          coverage: none
-        env:
-          phpts: ts
-          update: true
-
-      - name: Refuse a PHP below the patched floor
-        run: |
-          php -r 'if (version_compare(PHP_VERSION, "8.4.27", "<")) { fwrite(STDERR, "PHP ".PHP_VERSION." is below the patched floor 8.4.27".PHP_EOL); exit(1); } echo "PHP ".PHP_VERSION.PHP_EOL;'
-
-      - name: Install Composer dependencies
-        run: composer update --prefer-stable --no-interaction --no-progress
-
-      # Without this, a runner that cannot run threads would skip every thread row and pass.
+      # Without this, a ZTS runner that cannot run threads would skip every thread row and pass.
       - name: Require a PHP that runs threads, without swoole
+        if: matrix.ts == 'zts'
         run: |
           # shellcheck disable=SC2016 # the $ names are PHP's, single-quoted on purpose
           php -r 'require "vendor/autoload.php";
@@ -151,5 +123,11 @@ jobs:
             echo $probe->reason, PHP_EOL;
             exit($probe->supported ? 0 : 1);'
 
-      - name: Execute the suites that use the thread pool
-        run: vendor/bin/pest tests/IOPools tests/Cache tests/Filesystem tests/Hashing tests/Concurrency tests/Database
+      - name: Execute tests
+        run: vendor/bin/pest
+
+      # Level 1 from phpstan.neon, on one cell.
+      - name: Analyse with PHPStan
+        if: matrix.php == '8.4' && matrix.ts == 'nts'
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
+
