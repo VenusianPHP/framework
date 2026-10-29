@@ -472,7 +472,7 @@ class Migrator
 
         $this->write(
             BulletList::class,
-            (new Collection($this->getQueries($migration, $method)))->map(fn ($query) => $query['query'])
+            (new Collection($this->getQueries($migration, $method)))->map(fn ($query) => $query['query'])->all()
         );
     }
 

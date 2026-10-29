@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-10-29
+
+* **Fix**: [Database](database/component.md) — `migrate --pretend` lists its queries again: `Migrator::pretendToRun()` handed `BulletList` a Collection where it takes an array, a TypeError. Test: `--pretend` prints the create query and creates no table.
+
 ## 2026-10-28
 
 * **Update**: PHPStan scans stubs for ext-epoll, ext-kqueue and ext-pcurl (`phpstan/stubs/`, copied from php-io-extensions: epoll 0.10.6, kqueue 0.10.5, pcurl ide 0.10.5), so analysis is the same on every machine. CI's Linux runner has neither kqueue nor pcurl, which failed the gate there while it passed on macOS. The epoll ignore entries are gone. `/phpstan` is export-ignored.

@@ -57,3 +57,11 @@ it('runs db:seed on its own', function () {
     expect($status)->toBe(0, $output)
         ->and($this->host->db()->table('widgets')->count())->toBe(1);
 });
+
+it('lists the queries migrate --pretend would run, and runs none', function () {
+    [$status, $output] = freshCommand($this->host->app, ['command' => 'migrate', '--pretend' => true]);
+
+    expect($status)->toBe(0, $output)
+        ->and($output)->toContain('create table "widgets"')
+        ->and($this->host->db()->getSchemaBuilder()->hasTable('widgets'))->toBeFalse();
+});
