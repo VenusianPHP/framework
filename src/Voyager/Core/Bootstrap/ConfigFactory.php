@@ -4,6 +4,7 @@ namespace Voyager\Core\Bootstrap;
 
 use ReflectionException;
 use Voyager\Contracts\Console\Kernel as ConsoleKernel;
+use Voyager\Contracts\Core\Kernel as AppKernel;
 use Voyager\Contracts\Sketches\Kernel as SketchKernel;
 use Voyager\Core\Providers\SignalServiceProvider as AppSignalServiceProvider;
 use Voyager\Core\RenderedInstance;
@@ -114,6 +115,19 @@ class ConfigFactory
                 $kernel->addSketchPaths($paths->all());
             });
         });
+
+        return $this;
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function withMainApplication(string $application): static
+    {
+        $this->instance->registerSingleton(
+            AppKernel::class,
+            $application,
+        );
 
         return $this;
     }

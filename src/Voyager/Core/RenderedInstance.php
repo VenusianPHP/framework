@@ -11,6 +11,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Voyager\Contracts\Console\Kernel as ConsoleKernel;
 use Voyager\Contracts\Core\CachesConfiguration;
 use Voyager\Contracts\Core\FrameworkCore;
+use Voyager\Contracts\Core\Kernel as AppKernel;
 use Voyager\Contracts\Sketches\Kernel as SketchKernel;
 use Voyager\Contracts\Vessel\DataBindingException;
 use Voyager\Contracts\Vessel\TheServiceContainer;
@@ -37,7 +38,7 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
      *
      * @var string
      */
-    const string VERSION = '0.11.0';
+    const string VERSION = '0.11.1';
 
     /**
      * Indicates if the application has "booted".
@@ -59,6 +60,13 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
      * @var bool
      */
     protected bool $rocket_running = false;
+
+    /**
+     * Indicates if the application kernel is running the application.
+     *
+     * @var bool
+     */
+    protected bool $application_running = false;
 
     /**
      * The data directory of a packaged app, resolved once.
@@ -149,6 +157,23 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
 
         return $results;
     }
+
+    /**
+     * Handle the main application.
+     *
+     * @throws ReflectionException
+     */
+    public function handleApplication(array $argv): int
+    {
+        $kernel = $this->make(AppKernel::class);
+
+        $results = $kernel->handle($argv);
+
+        $kernel->terminate($argv, $results);
+
+        return $results;
+    }
+
 
     /**
      * Register a service provider with the application.
@@ -255,6 +280,26 @@ class RenderedInstance extends ControlPanel implements FrameworkCore, CachesConf
     public function markRocketRunning(): void
     {
         $this->rocket_running = true;
+    }
+
+    /**
+     * Determine if the application kernel is running the application.
+     *
+     * @return bool
+     */
+    public function isApplicationRunning(): bool
+    {
+        return $this->application_running;
+    }
+
+    /**
+     * Record that the application kernel is running the application.
+     *
+     * @return void
+     */
+    public function markApplicationRunning(): void
+    {
+        $this->application_running = true;
     }
 
     /**
