@@ -5,9 +5,12 @@ namespace Voyager\Core;
 use ReflectionException;
 use Voyager\Contracts\Core\FrameworkCore;
 use Voyager\Contracts\Core\Kernel as AppKernel;
+use Voyager\Core\Bootstrap\ProvisionDatabase;
 
 abstract class ApplicationKernel implements AppKernel
 {
+    protected array $app_bootstrappers = [];
+
     protected array $bootstrappers = [
         \Voyager\Core\Bootstrap\LoadEnvironmentVariables::class,
         \Voyager\Core\Bootstrap\LoadConfiguration::class,
@@ -15,6 +18,7 @@ abstract class ApplicationKernel implements AppKernel
         \Voyager\Core\Bootstrap\HandleExceptions::class,
         \Voyager\Core\Bootstrap\RegisterProviders::class,
         \Voyager\Core\Bootstrap\BootProviders::class,
+        \Voyager\Core\Bootstrap\ProvisionDatabase::class
     ];
 
     public function __construct(protected FrameworkCore $app) {}
@@ -52,7 +56,10 @@ abstract class ApplicationKernel implements AppKernel
 
     public function bootstrappers(): array
     {
-        return $this->bootstrappers;
+        return [
+            ...$this->bootstrappers,
+            ...$this->app_bootstrappers,
+        ];
     }
 
     protected function run(): int
