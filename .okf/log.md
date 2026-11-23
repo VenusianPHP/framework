@@ -1,5 +1,9 @@
 # Update Log
 
+## 2026-11-23
+
+* **Rename**: the pcurl async driver is the multicurl driver, after php-io-extensions/pcurl became php-io-extensions/multicurl (ext-multicurl, class `Multicurl\Multi`). Driver key and config `http.async.drivers.multicurl`, `auto` checks `extension_loaded('multicurl')`; `LoopMulticurlHandler`, `createMulticurlDriver()`, `AsyncResource::MULTICURL` (`http.multicurl`); enums `MulticurlOption`, `MulticurlPoll`, `MulticurlSelect`, `MulticurlSocket`. `install:ext` offers `multicurl` (`FirstPartyExtension::MULTICURL`, `php-io-extensions/multicurl:^0.11`; the package has no 0.10 line). `suggest` lists `php-io-extensions/multicurl` at `^0.11.1`, the Http subpackage `ext-multicurl`. `phpstan/stubs/multicurl/` is copied from multicurl `ide/0.11.1`. Updated: [Async drivers](http/async-drivers.md), [Http client](http/component.md), [install:ext](console/install-ext.md), [Framework](orientation/framework.md). PHPStan clean; suite 660 passed, 19 skipped on Homebrew PHP 8.4 NTS, and the multicurl driver tests pass on NTS and ZTS.
+
 ## 2026-10-29
 
 * **Fix**: [Database](database/component.md) — `migrate --pretend` lists its queries again: `Migrator::pretendToRun()` handed `BulletList` a Collection where it takes an array, a TypeError. Test: `--pretend` prints the create query and creates no table.

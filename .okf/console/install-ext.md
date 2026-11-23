@@ -1,11 +1,11 @@
 ---
 type: Module
 title: install:ext
-description: Dev command that installs the first-party PHP extensions (epoll, kqueue, pcurl) through PIE, run by the PHP binary running computer.
+description: Dev command that installs the first-party PHP extensions (epoll, kqueue, multicurl) through PIE, run by the PHP binary running computer.
 resource: src/Voyager/Core/Extensions/
 tags: [console, computer, extensions, pie, workflows]
 status: draft
-generated: { by: claude-fable-5-1, at: "2026-10-04T00:00:00Z" }
+generated: { by: claude-code/claude-opus-5.5, at: 2026-11-23T22:39:13Z }
 sources:
   - id: command
     resource: src/Voyager/Core/Console/ExtensionInstallCommand.php
@@ -27,8 +27,8 @@ sources:
 # Use
 
 ```bash
-php computer install:ext          # list, pick, install
-php computer install:ext pcurl    # that one, no list
+php computer install:ext            # list, pick, install
+php computer install:ext multicurl  # that one, no list
 ```
 
 Registered in `ComputerServiceProvider::$dev_commands`.[^command]

@@ -5,7 +5,7 @@ description: PHP 8.4 framework package venusian/framework at 0.10.0, the replace
 resource: composer.json
 tags: [framework, voyager, boot]
 status: draft
-generated: { by: claude-opus-5-5, at: 2026-09-29T18:31:32Z }
+generated: { by: claude-code/claude-opus-5.5, at: 2026-11-23T22:39:13Z }
 sources:
   - id: composer
     resource: composer.json
@@ -34,7 +34,7 @@ Every component ships in this tree under `src/Voyager` with its own `composer.js
 
 `config/app.php` carries the app's two names: `app.name` (`APP_NAME`) for people, and `app.id` (`APP_ID`, default `com.venusian.app`) for the desktop: the macOS bundle identifier, the GTK application id and the Qt desktop file name in one reverse-DNS key. The jovian toolkit drivers read `config('app.id')` rather than carrying defaults of their own, and `venusian build` writes the same value into a packaged app's `.env`, so the window a desktop sees and the app it installed carry one id.[^app-config]
 
-Driver-only packages and extensions are suggested, not required: Neo4j client, Pusher SDK, predis, flysystem adapters, spatie/fork, react/promise, ext-redis/pcntl/posix/parallel/pcurl/epoll/kqueue, and the rest.[^composer]
+Driver-only packages and extensions are suggested, not required: Neo4j client, Pusher SDK, predis, flysystem adapters, spatie/fork, react/promise, ext-redis/pcntl/posix/parallel/multicurl/epoll/kqueue, and the rest.[^composer]
 
 # Base providers
 
@@ -57,7 +57,7 @@ In `DefaultProviders` order.[^providers]
 | `FoundationServiceProvider` | `DeferredCallbackCollection` scoped, drained on `CommandFinished` / `JobAttempted`; the CLI dumper: `dump()` ends with its source `file:line`, container and dispatcher cut to stubs (`VAR_DUMPER_FORMAT=server`/`tcp://` keeps the stock handler) |
 | `HashServiceProvider` | `hash`; `makeAsync()` / `checkAsync()` |
 | `EncryptionServiceProvider` | `encrypter` |
-| `HttpServiceProvider` | `http`, `http.async`; loop drivers curl / pcurl |
+| `HttpServiceProvider` | `http`, `http.async`; loop drivers curl / multicurl |
 | `LogServiceProvider` | `log`; `*Async()` writes on worker pools |
 | `QueueServiceProvider` | `queue`, `queue.worker`, `queue.failer`; `async()` pushes |
 | `RedisServiceProvider` | `redis`; loop pipes, list push/pop |

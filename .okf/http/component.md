@@ -5,7 +5,7 @@ description: Guzzle client behind app('http'). Sync sends block. async() on a bo
 resource: src/Voyager/Http/Client/Factory.php
 tags: [http, guzzle, client]
 status: draft
-generated: { by: claude-opus-5-5, at: 2026-09-29T18:31:32Z }
+generated: { by: claude-code/claude-opus-5.5, at: 2026-11-23T22:39:13Z }
 sources:
   - id: factory
     resource: src/Voyager/Http/Client/Factory.php
@@ -31,7 +31,7 @@ Sync sends block: Guzzle with its own handler, no loop.[^pending]
 
 `Factory` type-hints `Voyager\Contracts\Events\Dispatcher`, which this tree does not define; the provider passes null, so no request/response signals fire.[^factory][^provider]
 
-Config `config/http.php` key `http.async`: `default` (`HTTP_ASYNC_DRIVER`, `auto`), `drivers.curl` (`max_handles` 50, `multi_options`), `drivers.pcurl` (`max_handles` 50). Drivers: [async drivers](/http/async-drivers.md).[^config]
+Config `config/http.php` key `http.async`: `default` (`HTTP_ASYNC_DRIVER`, `auto`), `drivers.curl` (`max_handles` 50, `multi_options`), `drivers.multicurl` (`max_handles` 50). Drivers: [async drivers](/http/async-drivers.md).[^config]
 
 [^factory]: Factory
 [^pending]: PendingRequest

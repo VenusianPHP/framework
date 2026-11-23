@@ -77,7 +77,7 @@ it('reports the drivers auto resolves to, the pools and the first-party extensio
     expect($json['event_loop']['waiter_backend'])->toBe($this->app->get('waiter-backend-mgr')->autoDriver())
         ->and($json['event_loop']['process_workers'])->toBe(3)
         ->and($json['event_loop']['thread_workers'])->toBeFalse()
-        ->and($json['drivers']['async_http'])->toBe(extension_loaded('pcurl') ? 'pcurl' : 'curl')
+        ->and($json['drivers']['async_http'])->toBe(extension_loaded('multicurl') ? 'multicurl' : 'curl')
         ->and($json['extensions'])->toBe($extensions)
         ->and($detail)->toContain('auto / '.$json['event_loop']['waiter_backend'])->toContain('ENABLED / 3 max');
 });

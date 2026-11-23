@@ -114,7 +114,7 @@ function interview(DescribedHost $host, array $keys = [], ?string $only = null, 
 }
 
 it('finds a case by the name PHP loads it under', function () {
-    expect(FirstPartyExtension::named('pcurl'))->toBe(FirstPartyExtension::PCURL)
+    expect(FirstPartyExtension::named('multicurl'))->toBe(FirstPartyExtension::MULTICURL)
         ->and(FirstPartyExtension::named('KQueue'))->toBe(FirstPartyExtension::KQUEUE)
         ->and(FirstPartyExtension::named('gd'))->toBeNull();
 });
@@ -130,10 +130,10 @@ it('goes straight to the list and installs what stays selected', function () {
         [EXT_PHP, EXT_PIE, '--version'],
         [EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/kqueue:^0.10', '--with-php-config='.EXT_PHP_CONFIG],
         [EXT_PHP, '--ri', 'kqueue'],
-        [EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/pcurl:^0.10', '--with-php-config='.EXT_PHP_CONFIG],
-        [EXT_PHP, '--ri', 'pcurl'],
+        [EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/multicurl:^0.11', '--with-php-config='.EXT_PHP_CONFIG],
+        [EXT_PHP, '--ri', 'multicurl'],
     ])
-        ->and($shared->extension_results)->toBe(['kqueue' => 'installed', 'pcurl' => 'installed'])
+        ->and($shared->extension_results)->toBe(['kqueue' => 'installed', 'multicurl' => 'installed'])
         ->and(Prompt::strippedContent())->toContain('– epoll — event loop waiting on Linux (Linux only)');
 });
 
@@ -144,7 +144,7 @@ it('installs the one named extension without showing the list', function () {
 
     expect($shared->extension_results)->toBe(['epoll' => 'installed'])
         ->and($host->commands)->toContain([EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/epoll:^0.10', '--with-php-config='.EXT_PHP_CONFIG])
-        ->and($host->commands)->not->toContain([EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/pcurl:^0.10', '--with-php-config='.EXT_PHP_CONFIG])
+        ->and($host->commands)->not->toContain([EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/multicurl:^0.11', '--with-php-config='.EXT_PHP_CONFIG])
         ->and(Prompt::strippedContent())->not->toContain('Extensions to install');
 });
 
@@ -157,23 +157,23 @@ it('ends with the reason when the named extension cannot be installed', function
         ->and($host->commands)->toBe([]);
 })->with([
     'another operating system' => ['epoll', [], 'Nothing to install: epoll (Linux only).'],
-    'already loaded' => ['pcurl', ['pcurl'], 'Nothing to install: pcurl (installed).'],
-    'not a first-party extension' => ['gd', [], 'Unknown extension [gd]. Choose one of: epoll, kqueue, pcurl.'],
+    'already loaded' => ['multicurl', ['multicurl'], 'Nothing to install: multicurl (installed).'],
+    'not a first-party extension' => ['gd', [], 'Unknown extension [gd]. Choose one of: epoll, kqueue, multicurl.'],
 ]);
 
 it('ends when every extension is installed or belongs to another operating system', function () {
-    $host = new DescribedHost(os: 'Darwin', loaded: ['kqueue', 'pcurl']);
+    $host = new DescribedHost(os: 'Darwin', loaded: ['kqueue', 'multicurl']);
 
     $shared = interview($host);
 
-    expect($shared->extensions_note)->toBe('Nothing to install: epoll (Linux only), kqueue (installed), pcurl (installed).')
+    expect($shared->extensions_note)->toBe('Nothing to install: epoll (Linux only), kqueue (installed), multicurl (installed).')
         ->and($host->commands)->toBe([]);
 });
 
 it('asks for a name on a non-interactive run with none', function () {
     $shared = interview(new DescribedHost, interactive: false);
 
-    expect($shared->extensions_note)->toBe('Name the extension to install on a non-interactive run: epoll, kqueue, pcurl.');
+    expect($shared->extensions_note)->toBe('Name the extension to install on a non-interactive run: epoll, kqueue, multicurl.');
 });
 
 it('ends when nothing is selected', function () {
@@ -187,7 +187,7 @@ it('ends when nothing is selected', function () {
 });
 
 it('downloads PIE on a yes, has it verify itself, and installs with it', function () {
-    $host = new DescribedHost(os: 'Linux', loaded: ['pcurl'], executables: []);
+    $host = new DescribedHost(os: 'Linux', loaded: ['multicurl'], executables: []);
 
     $shared = interview($host, [Key::ENTER, Key::ENTER]);
 
@@ -200,7 +200,7 @@ it('downloads PIE on a yes, has it verify itself, and installs with it', functio
 it('ends without PIE', function (array $host, array $keys, bool $interactive, string $note) {
     $host = new DescribedHost(...$host, executables: []);
 
-    $shared = interview($host, $keys, 'pcurl', $interactive);
+    $shared = interview($host, $keys, 'multicurl', $interactive);
 
     expect($shared->extensions_note)->toBe($note)
         ->and(isset($shared->pie_binary))->toBeFalse();
@@ -215,7 +215,7 @@ it('ends without PIE', function (array $host, array $keys, bool $interactive, st
 it('removes a downloaded PIE that fails its own verification', function () {
     $host = new DescribedHost(executables: [], rules: [['self-verify', 1, '']]);
 
-    interview($host, [Key::ENTER], 'pcurl');
+    interview($host, [Key::ENTER], 'multicurl');
 
     expect($host->removed)->toBe(['/home/dev/.local/bin/pie']);
 });
@@ -223,7 +223,7 @@ it('removes a downloaded PIE that fails its own verification', function () {
 it('does not take a pie that is another program or does not run under this PHP', function (array $rule) {
     $host = new DescribedHost(rules: [$rule]);
 
-    $shared = interview($host, ['n', Key::ENTER], 'pcurl');
+    $shared = interview($host, ['n', Key::ENTER], 'multicurl');
 
     expect($shared->extensions_note)->toBe('PIE is not installed, and you declined to install it.');
 })->with([
@@ -245,7 +245,7 @@ it('takes a php-config from PATH when it reports the running PHP binary', functi
         rules: [[EXT_PHP_CONFIG.' --php-binary', 127, ''], ['/usr/local/bin/php-config --php-binary', 0, EXT_PHP]],
     );
 
-    expect(interview($host, only: 'pcurl')->php_config)->toBe('/usr/local/bin/php-config');
+    expect(interview($host, only: 'multicurl')->php_config)->toBe('/usr/local/bin/php-config');
 });
 
 it('ends when the only php-config builds for another PHP', function () {
@@ -254,7 +254,7 @@ it('ends when the only php-config builds for another PHP', function () {
         rules: [[EXT_PHP_CONFIG.' --php-binary', 127, ''], ['/usr/local/bin/php-config --php-binary', 0, '/usr/local/bin/php']],
     );
 
-    $shared = interview($host, only: 'pcurl');
+    $shared = interview($host, only: 'multicurl');
 
     expect($shared->extensions_note)->toBe('The php-config on this machine builds for /usr/local/bin/php, not for '.EXT_PHP.'. Install the development files for '.EXT_PHP.' first.');
 });
@@ -262,11 +262,11 @@ it('ends when the only php-config builds for another PHP', function () {
 it('leaves the php-config to PIE when the machine has none', function () {
     $host = new DescribedHost(rules: [[EXT_PHP_CONFIG.' --php-binary', 127, '']]);
 
-    $shared = interview($host, only: 'pcurl');
+    $shared = interview($host, only: 'multicurl');
 
     expect($shared->php_config)->toBeNull()
-        ->and($host->commands)->toContain([EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/pcurl:^0.10'])
-        ->and($shared->extension_results)->toBe(['pcurl' => 'installed']);
+        ->and($host->commands)->toContain([EXT_PHP, EXT_PIE, 'install', 'php-io-extensions/multicurl:^0.11'])
+        ->and($shared->extension_results)->toBe(['multicurl' => 'installed']);
 });
 
 it('reports a failed build and still installs the next extension', function () {
@@ -274,14 +274,14 @@ it('reports a failed build and still installs the next extension', function () {
 
     $shared = interview($host, [Key::ENTER]);
 
-    expect($shared->extension_results)->toBe(['kqueue' => 'failed (PIE exit code 2)', 'pcurl' => 'installed'])
+    expect($shared->extension_results)->toBe(['kqueue' => 'failed (PIE exit code 2)', 'multicurl' => 'installed'])
         ->and($host->commands)->not->toContain([EXT_PHP, '--ri', 'kqueue']);
 });
 
 it('reports an extension PIE installed that the PHP binary still does not load', function () {
-    $host = new DescribedHost(rules: [['--ri pcurl', 1, '']]);
+    $host = new DescribedHost(rules: [['--ri multicurl', 1, '']]);
 
-    $shared = interview($host, only: 'pcurl');
+    $shared = interview($host, only: 'multicurl');
 
-    expect($shared->extension_results)->toBe(['pcurl' => 'installed by PIE, but '.EXT_PHP.' does not load it']);
+    expect($shared->extension_results)->toBe(['multicurl' => 'installed by PIE, but '.EXT_PHP.' does not load it']);
 });

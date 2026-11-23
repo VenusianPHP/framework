@@ -113,7 +113,7 @@
         "league/flysystem-sftp-v3": "Required to use the sftp driver (^3.25.1).",
         "php-io-extensions/epoll": "Required to use the epoll waiter backend on Linux (^0.11.0).",
         "php-io-extensions/kqueue": "Required to use the kqueue waiter backend on macOS and BSD (^0.11.0).",
-        "php-io-extensions/pcurl": "Required for the pcurl async driver: curl's own sockets wait on the loop (^0.11.0).",
+        "php-io-extensions/multicurl": "Required for the multicurl async driver: curl's own sockets wait on the loop (^0.11.1).",
         "predis/predis": "Required to use the predis connector (^2.3|^3.0).",
         "pusher/pusher-php-server": "Required to use the Pusher and Reverb broadcast drivers (^7.0).",
         "react/promise": "Required to use the react promise engine (^3.0).",

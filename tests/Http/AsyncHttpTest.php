@@ -5,7 +5,7 @@ use Voyager\Http\Client\Response;
 use Voyager\Contracts\IOPools\Loop;
 use Voyager\Contracts\IOPools\Promise;
 use Voyager\Http\Async\LoopCurlHandler;
-use Voyager\Http\Async\LoopPcurlHandler;
+use Voyager\Http\Async\LoopMulticurlHandler;
 use Voyager\Http\Client\ConnectionException;
 use Venusian\Tests\Http\Fixtures\HttpApp;
 use Venusian\Tests\Http\Fixtures\SocketPairWatch;
@@ -13,8 +13,8 @@ use Venusian\Tests\Http\Fixtures\SocketPairWatch;
 dataset('drivers', function () {
     yield 'curl' => ['curl'];
 
-    if (extension_loaded('pcurl')) {
-        yield 'pcurl' => ['pcurl'];
+    if (extension_loaded('multicurl')) {
+        yield 'multicurl' => ['multicurl'];
     }
 });
 
@@ -39,11 +39,11 @@ it('sends a blocking request without the loop', function (string $driver) {
         ->and(json_decode($response->json('body'), true))->toBe(['name' => 'venusian']);
 })->with('drivers');
 
-it('picks pcurl for auto when it is loaded, curl otherwise', function () {
+it('picks multicurl for auto when it is loaded, curl otherwise', function () {
     $t = http('auto');
 
     expect($t->app->get('http.async')->driver())
-        ->toBeInstanceOf(extension_loaded('pcurl') ? LoopPcurlHandler::class : LoopCurlHandler::class);
+        ->toBeInstanceOf(extension_loaded('multicurl') ? LoopMulticurlHandler::class : LoopCurlHandler::class);
 });
 
 it('returns a loop promise for an async request and settles it with the response', function (string $driver) {
@@ -118,7 +118,7 @@ it('lets run() end once its transfers finish', function (string $driver) {
 })->with('drivers');
 
 it('wakes another wake source on time while a slow response is in flight', function () {
-    $t = http('pcurl');
+    $t = http('multicurl');
     [$ours, $theirs] = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
     $watch = new SocketPairWatch($ours);
     $written_at = null;
@@ -134,4 +134,4 @@ it('wakes another wake source on time while a slow response is in flight', funct
 
     expect($watch->woke_at)->not->toBeNull()
         ->and($watch->woke_at - $written_at)->toBeLessThan(10_000_000);
-})->skip(! extension_loaded('pcurl'), 'needs ext-pcurl');
+})->skip(! extension_loaded('multicurl'), 'needs ext-multicurl');

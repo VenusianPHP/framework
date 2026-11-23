@@ -15,7 +15,7 @@ class ExtensionInstallCommand extends Command
      *
      * @var string
      */
-    protected ?string $signature = 'install:ext {ext? : The extension to install: epoll, kqueue or pcurl. Omit it to choose from the list}';
+    protected ?string $signature = 'install:ext {ext? : The extension to install: epoll, kqueue or multicurl. Omit it to choose from the list}';
 
     /**
      * The console command description.

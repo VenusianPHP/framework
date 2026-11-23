@@ -10,7 +10,7 @@ enum FirstPartyExtension: string
 {
     case EPOLL = 'php-io-extensions/epoll:^0.10';
     case KQUEUE = 'php-io-extensions/kqueue:^0.10';
-    case PCURL = 'php-io-extensions/pcurl:^0.10';
+    case MULTICURL = 'php-io-extensions/multicurl:^0.11';
 
     /** The case PHP loads under this name, or null. */
     public static function named(string $extension): ?self
@@ -35,7 +35,7 @@ enum FirstPartyExtension: string
         return match ($this) {
             self::EPOLL => 'event loop waiting on Linux',
             self::KQUEUE => 'event loop waiting on macOS',
-            self::PCURL => 'HTTP requests that run on the event loop',
+            self::MULTICURL => 'HTTP requests that run on the event loop',
         };
     }
 
@@ -49,7 +49,7 @@ enum FirstPartyExtension: string
         return match ($this) {
             self::EPOLL => $os_family === 'Linux' ? null : 'Linux only',
             self::KQUEUE => $os_family === 'Darwin' ? null : 'macOS only',
-            self::PCURL => $os_family === 'Windows' ? 'not on Windows' : null,
+            self::MULTICURL => $os_family === 'Windows' ? 'not on Windows' : null,
         };
     }
 }

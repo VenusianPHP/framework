@@ -3,13 +3,13 @@ parameters:
     paths:
         - src
     tmpDir: .phpstan.cache
-    # The loop's extensions are platform-bound (epoll: Linux, kqueue: BSD/macOS) and pcurl is ours,
+    # The loop's extensions are platform-bound (epoll: Linux, kqueue: BSD/macOS) and multicurl is ours,
     # so no one machine loads all three. Their stubs, copied from php-io-extensions 0.11.0, declare them everywhere.
     scanFiles:
         - phpstan/stubs/epoll.stub.php
         - phpstan/stubs/kqueue.stub.php
     scanDirectories:
-        - phpstan/stubs/pcurl
+        - phpstan/stubs/multicurl
     # Attribute bags: Fluent reads any property through __get; SharedBag is #[AllowDynamicProperties].
     universalObjectCratesClasses:
         - Voyager\NutsAndBolts\Fluent

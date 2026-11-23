@@ -64,7 +64,7 @@ okf_version: "0.2"
 # Http
 
 * [Http client](http/component.md) - Guzzle client behind `app('http')`. Sync sends block; `async()` answers with a loop promise.
-* [Async drivers](http/async-drivers.md) - `curl` holds the loop's sleep; `pcurl` puts curl's sockets and timer in the loop's wait.
+* [Async drivers](http/async-drivers.md) - `curl` holds the loop's sleep; `multicurl` puts curl's sockets and timer in the loop's wait.
 
 # Filesystem
 
