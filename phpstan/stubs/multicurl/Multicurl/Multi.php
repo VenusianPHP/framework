@@ -1,6 +1,6 @@
 <?php
 
-namespace Pcurl;
+namespace Multicurl;
 
 class Multi
 {
